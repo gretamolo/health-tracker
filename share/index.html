@@ -272,7 +272,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-17 15:46-s65edcf6';
+var BUILD_ID='2026-10-17 16:02-s9f8b4d5';
 (function(){
 'use strict';
 /* ===== Share copy: no personal data, visitor's own name (prefix) ===== */
@@ -1961,7 +1961,7 @@ function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
 function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
   if(isSkipped(t,k))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
 function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t));
-  return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:a._i-b._i;});}
+  return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:((b.st&&!b.sip?1:0)-(a.st&&!a.sip?1:0))||a._i-b._i;});}
 function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',teetham:'Brush your teeth',teethpm:'Brush your teeth',sauna:'Sauna time?',cold:'Cold plunge?',evening:'Log today – did you drink?'}[k];}
 function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
   if(r.rt)return routinePopup(t,r,L.length);

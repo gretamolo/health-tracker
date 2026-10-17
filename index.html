@@ -270,7 +270,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-17 15:40-a590818';
+var BUILD_ID='2026-10-17 16:01-d707519';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1944,7 +1944,7 @@ function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
 function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
   if(isSkipped(t,k))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
 function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t));
-  return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:a._i-b._i;});}
+  return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:((b.st&&!b.sip?1:0)-(a.st&&!a.sip?1:0))||a._i-b._i;});}
 function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',teetham:'Brush your teeth',teethpm:'Brush your teeth',sauna:'Sauna time?',cold:'Cold plunge?',evening:'Log today – did you drink?'}[k];}
 function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
   if(r.rt)return routinePopup(t,r,L.length);
@@ -2172,11 +2172,11 @@ function seedStacks(){if(D.settings.stacksSeeded)return;stacks();var S=D.setting
   function find(re,name){var x=S.find(function(s){return re.test(s.name);});if(x){if(x.active===false&&!x.routine)x.active=true;return x.id;}return ensureSupp(name);}
   var vd=find(/vitamin\s*d/i,'Vitamin D'),fo=find(/fish\s*oil|omega/i,'Fish oil'),bl=find(/bloat/i,'Bloating supplement'),vc=find(/vitamin\s*c\b/i,'Vitamin C'),mg=find(/magnes/i,'Magnesium'),cr=find(/creatine/i,'Creatine');
   var has=function(n){return D.settings.stacks.some(function(x){return x.name===n;});},t=today(),add=function(o){if(!has(o.name))D.settings.stacks.push(Object.assign({id:uid(),freq:{kind:'daily'},on:true,start:t,water:0,bottle:false,sips:[],sipOn:false,tip:''},o));};
-  add({name:'☀️ Morning stack',time:'06:30',timeWE:'09:30',items:[vd,fo,bl],tip:'Take with breakfast — D and fish oil absorb better with fat'});
-  add({name:'🥤 Vitamin C + Magnesium — cup 1',time:'06:50',timeWE:'09:50',items:[vc,mg],tip:'Mix in a cup of water',water:1});
-  add({name:'🚗 Grab for the school run',time:'07:20',timeWE:'10:20',items:[cr,vc,mg],tip:'On the way: creatine bottle + Vitamin C/Magnesium cup 2',water:2,bottle:true,bottleWater:0,bottleName:'creatine bottle',sips:['12:00','16:00'],sipOn:true});
+  add({name:'☀️ Morning stack',time:'06:30',timeWE:'09:30',items:[vd,fo,bl],tip:'Take with breakfast — D and fish oil absorb better with fat',water:1});
+  add({name:'🚗 School run: creatine + vitamin C',time:'07:20',timeWE:'10:20',items:[cr,vc],tip:'On the way: creatine + vitamin C bottle',water:1,bottle:true,bottleWater:0,bottleName:'creatine bottle',sips:['12:00','16:00'],sipOn:true});
+  add({name:'🌙 Magnesium + Vitamin C with big water bottle',time:'20:00',timeWE:'20:00',items:[mg,vc],tip:'Mix into your big water bottle',water:2});
   D.settings.reminders=D.settings.reminders&&typeof D.settings.reminders==='object'?D.settings.reminders:{};D.settings.reminders.vit=Object.assign({},D.settings.reminders.vit||{},{on:false});
-  D.settings.stacksSeeded=true;save();}
+  D.settings.stacksV2=true;D.settings.stacksSeeded=true;save();}
 seedStacks();
 
 /* ===== weekday / weekend times ===== */
@@ -2410,9 +2410,10 @@ function loadGretaSetup(){var S=D.settings.supps,t=today();stacks();routines();
   function find(re,name){var x=S.find(function(s){return re.test(s.name);});if(x){if(x.active===false)x.active=true;return x.id;}return ensureSupp(name);}
   var vd=find(/vitamin\s*d/i,'Vitamin D3'),fo=find(/fish\s*oil|omega/i,'Omega-3'),mg=find(/magnes/i,'Magnesium glycinate'),vc=find(/vitamin\s*c\b/i,'Vitamin C'),cr=find(/creatine/i,'Creatine'),bl=find(/bloat/i,'Bloating supplement');
   var SS=D.settings.stacks,hasS=function(re){return SS.some(function(x){return re.test(x.name);});},add=function(re,o){if(!hasS(re))SS.push(Object.assign({id:uid(),freq:{kind:'daily'},on:true,start:t,water:0,bottle:false,sips:[],sipOn:false,tip:''},o));};
-  add(/morning stack/i,{name:'☀️ Morning stack',time:'06:30',timeWE:'09:30',items:[vd,fo,bl],tip:'Take with breakfast — D and fish oil absorb better with fat'});
-  add(/cup 1/i,{name:'🥤 Vitamin C + Magnesium — cup 1',time:'06:50',timeWE:'09:50',items:[vc,mg],tip:'Mix in a cup of water',water:1});
-  add(/school run/i,{name:'🚗 Grab for the school run',time:'07:20',timeWE:'10:20',items:[cr,vc,mg],tip:'On the way: creatine bottle + Vitamin C/Magnesium cup 2',water:2,bottle:true,bottleWater:0,bottleName:'creatine bottle',sips:['12:00','16:00'],sipOn:true});
+  add(/morning stack/i,{name:'☀️ Morning stack',time:'06:30',timeWE:'09:30',items:[vd,fo,bl],tip:'Take with breakfast — D and fish oil absorb better with fat',water:1});
+  add(/school run/i,{name:'🚗 School run: creatine + vitamin C',time:'07:20',timeWE:'10:20',items:[cr,vc],tip:'On the way: creatine + vitamin C bottle',water:1,bottle:true,bottleWater:0,bottleName:'creatine bottle',sips:['12:00','16:00'],sipOn:true});
+  add(/big water bottle|evening.*magnes/i,{name:'🌙 Magnesium + Vitamin C with big water bottle',time:'20:00',timeWE:'20:00',items:[mg,vc],tip:'Mix into your big water bottle',water:2});
+  migrateStacksV2();
   var R=D.settings.reminders=D.settings.reminders&&typeof D.settings.reminders==='object'?D.settings.reminders:{};
   function rem(k,o){R[k]=Object.assign({},R[k]||{},o);}
   rem('vit',{on:false});rem('teetham',{on:true,t:'07:05',timeWE:'09:00'});rem('teethpm',{on:true,t:'21:00'});rem('gym',{on:true,t:'08:30'});rem('skinam',{on:true,t:'08:00'});rem('skinpm',{on:true,t:'21:00'});rem('evening',{on:true,t:'20:00'});
@@ -2424,6 +2425,17 @@ function loadGretaSetup(){var S=D.settings.supps,t=today();stacks();routines();
   addR(/retatrutide/i,{type:'injection',name:'Retatrutide',freq:{kind:'weekly',days:[1]},time:'09:00',on:false,waitStart:true,note:'Only with a doctor’s prescription and supervision'});
   addR(/ghk/i,{type:'injection',name:'GHK-Cu',freq:{kind:'weekly',days:[1]},time:'09:00',on:false,waitStart:true,note:'Only with a doctor’s prescription and supervision'});
   D.settings.routinesSeeded=D.settings.stacksSeeded=true;D.settings.setupChoice='greta';save();}
+/* v2 stacks migration (Greta): morning +1 water; school run = creatine + C, +1; drop cup 1; add evening Mg + C big bottle */
+function migrateStacksV2(){if(D.settings.stacksV2)return;var SS=D.settings.stacks;if(!Array.isArray(SS)||!SS.length){return;}
+  var mor=SS.find(function(x){return /morning stack/i.test(x.name);}),sr=SS.find(function(x){return /school run/i.test(x.name);}),c1=SS.find(function(x){return /cup 1/i.test(x.name);});
+  if(!mor&&!sr&&!c1)return;var S=D.settings.supps,find=function(re,n){var x=S.find(function(s){return re.test(s.name);});return x?x.id:ensureSupp(n);};
+  var mg=find(/magnes/i,'Magnesium glycinate'),vc=find(/vitamin\s*c\b/i,'Vitamin C'),t=today();
+  if(mor)mor.water=1;
+  if(sr){sr.items=(sr.items||[]).filter(function(id){return id!==mg;});if(sr.items.indexOf(vc)<0)sr.items.push(vc);sr.water=1;sr.name='🚗 School run: creatine + vitamin C';sr.tip='On the way: creatine + vitamin C bottle';}
+  if(c1)D.settings.stacks=SS=SS.filter(function(x){return x!==c1;});
+  if(!SS.some(function(x){return /big water bottle/i.test(x.name);}))SS.push({id:uid(),name:'🌙 Magnesium + Vitamin C with big water bottle',freq:{kind:'daily'},on:true,start:t,time:'20:00',timeWE:'20:00',items:[mg,vc],tip:'Mix into your big water bottle',water:2,bottle:false,sips:[],sipOn:false});
+  D.settings.stacksV2=true;save();}
+migrateStacksV2();
 function setupCard(){if(!isFreshish())return null;
   return h('div',{class:'card setup',id:'setup-card'},h('div',{class:'pq'},'👋 Welcome! Set up in one tap'),h('p',{class:'muted small',style:'text-align:center'},'Adds vitamins, supplement stacks, reminders and weekly routines. Nothing is duplicated.'),
     h('button',{class:'btn',id:'load-greta',onclick:function(ev){tap(ev,'All set up ✨','✨',loadGretaSetup);}},'✨ Load Greta’s setup'),
