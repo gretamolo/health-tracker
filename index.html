@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'self'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; form-action 'none'; base-uri 'none'">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"><meta http-equiv="Pragma" content="no-cache">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -254,6 +254,9 @@ p{margin:6px 0}
 .srow{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--soft);border-radius:16px;padding:12px;margin-top:10px;min-height:64px;text-align:left;color:var(--text)}.srow .stime{font-weight:800;min-width:44px;font-size:15px}.srow .stx{flex:1;min-width:0;display:flex;flex-direction:column}.srow .stx small{color:var(--muted);font-size:13px}.srow .sck{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}.srow.on{background:#e9f7ef}.srow.on .sck{background:#5fb98a;border-color:#5fb98a}
 @media (prefers-color-scheme:dark){.srow.on{background:#1f3a2c}}
 .swaps{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip.sm{min-height:36px;padding:0 10px;font-size:13px}
+.exthumb{width:56px;height:56px;flex:none;border:0;padding:0;border-radius:12px;overflow:hidden;background:#fff;font-size:24px}.exthumb img{width:100%;height:100%;object-fit:cover;display:block}.exthumb.noimg{background:var(--soft)}
+#ex-big{width:100%;max-height:52vh;object-fit:contain;border-radius:16px;background:#fff;display:block}.exframes{display:flex;gap:10px;margin:8px 0 12px}.exfr{flex:1;border:2px solid var(--line);border-radius:12px;background:#fff;padding:4px;color:var(--text)}.exfr.on{border-color:var(--accent,#d6739a)}.exfr img{width:100%;height:90px;object-fit:contain;display:block}
+.warmstrip{display:flex;gap:10px;overflow-x:auto;margin:4px 0 8px}.warmstrip .wi{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);min-width:64px}
 </style>
 </head>
 <body>
@@ -267,7 +270,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-17 15:30-493b821';
+var BUILD_ID='2026-10-17 15:40-a590818';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -2184,6 +2187,20 @@ var WKD='MO,TU,WE,TH,FR',WKE='SA,SU';
 function splitDaily(uidS,start,time,timeWE,summary,desc){if(!timeWE||timeWE===time)return icsEvent(uidS,icsDT(start,time),summary,'FREQ=DAILY',desc);
   return icsEvent(uidS+'-wd',icsDT(start,time),summary,'FREQ=WEEKLY;BYDAY='+WKD,desc).concat(icsEvent(uidS+'-we',icsDT(start,timeWE),summary,'FREQ=WEEKLY;BYDAY='+WKE,desc));}
 function weInput(val,on,id){return h('input',{type:'time',class:'rtime we',id:id||null,title:'Weekends (Sat–Sun)',value:val||'','aria-label':'Weekends time',onchange:function(){on(this.value||null);}});}
+var EXIMG={"Hip thrust (barbell or Smith)": ["Barbell_Hip_Thrust", 1], "Hip thrust machine": ["Barbell_Hip_Thrust", 0], "Glute bridge (DB)": ["Barbell_Glute_Bridge", 0], "Cable kickback": ["One-Legged_Cable_Kickback", 1], "Glute kickback machine": ["Glute_Kickback", 0], "Hip abduction machine": ["Thigh_Abductor", 1], "Banded seated abduction": ["Thigh_Abductor", 0], "45° back extension (glute bias)": ["Hyperextensions_Back_Extensions", 1], "Cable pull-through": ["Pull_Through", 1], "Bulgarian split squat": ["Split_Squat_with_Dumbbells", 0], "Smith machine split squat": ["Smith_Single-Leg_Split_Squat", 1], "Romanian deadlift (DB or barbell)": ["Romanian_Deadlift", 1], "Smith machine RDL": ["Smith_Machine_Stiff-Legged_Deadlift", 1], "Seated leg curl": ["Seated_Leg_Curl", 1], "Lying leg curl": ["Lying_Leg_Curls", 1], "Squat (goblet, back or Smith)": ["Barbell_Squat", 1], "Hack squat machine": ["Hack_Squat", 1], "Leg press": ["Leg_Press", 1], "Goblet squat": ["Goblet_Squat", 1], "Walking lunge (DB)": ["Dumbbell_Lunges", 1], "Reverse lunge (Smith)": ["Dumbbell_Rear_Lunge", 0], "Leg extension": ["Leg_Extensions", 1], "Single-leg extension": ["Single-Leg_Leg_Extension", 1], "Lat pulldown": ["Wide-Grip_Lat_Pulldown", 1], "Assisted pull-up machine": ["Band_Assisted_Pull-Up", 0], "Chest-supported row (machine or DB)": ["Dumbbell_Incline_Row", 1], "Seated cable row": ["Seated_Cable_Rows", 1], "One-arm DB row": ["One-Arm_Dumbbell_Row", 1], "Straight-arm pulldown": ["Straight-Arm_Pulldown", 1], "Seated DB shoulder press": ["Dumbbell_Shoulder_Press", 1], "Shoulder press machine": ["Leverage_Shoulder_Press", 1], "DB lateral raise": ["Side_Lateral_Raise", 1], "Cable lateral raise": ["Cable_Seated_Lateral_Raise", 1], "Reverse pec deck (rear delts)": ["Reverse_Machine_Flyes", 1], "Face pull": ["Face_Pull", 1], "DB biceps curl": ["Dumbbell_Bicep_Curl", 1], "Cable curl": ["Standing_Biceps_Cable_Curl", 1], "Hammer curl": ["Hammer_Curls", 1], "Triceps pushdown (cable)": ["Triceps_Pushdown", 1], "Overhead DB triceps extension": ["Standing_Dumbbell_Triceps_Extension", 1], "Overhead cable extension": ["Cable_Rope_Overhead_Triceps_Extension", 1], "Incline DB press": ["Incline_Dumbbell_Press", 1], "Chest press machine": ["Leverage_Chest_Press", 1], "DB bench press": ["Dumbbell_Bench_Press", 1], "Push-up (incline OK)": ["Incline_Push-Up", 1], "Pec deck / cable fly": ["Butterfly", 1], "Cable crunch": ["Cable_Crunch", 1], "Hanging knee raise": ["Hanging_Leg_Raise", 0], "Dead bug": ["Dead_Bug", 1], "Pallof press": ["Pallof_Press", 1], "Plank": ["Plank", 1], "Side plank": ["Side_Bridge", 1], "W:Glute bridge": ["Butt_Lift_Bridge", 1], "W:Good morning": ["Band_Good_Morning", 0], "W:Side steps": ["Monster_Walk", 1], "W:Band pull-apart": ["Band_Pull_Apart", 1], "W:Arm circles": ["Arm_Circles", 1], "W:Bodyweight squat": ["Bodyweight_Squat", 1], "W:Reverse lunge": ["Dumbbell_Rear_Lunge", 0], "W:Bike": ["Bicycling_Stationary", 1], "W:Rower": ["Rowing_Stationary", 1], "W:Face pull": ["Face_Pull", 1]};
+var WARMIMG={D1:['W:Bike','W:Glute bridge','W:Good morning','W:Side steps'],D2:['W:Rower','W:Band pull-apart','W:Arm circles','W:Face pull'],D3:['W:Bike','W:Bodyweight squat','W:Reverse lunge','W:Glute bridge']};
+function exImg(n,f){var m=EXIMG[n];return m?'img/ex/'+m[0]+'-'+(f||0)+'.webp':null;}
+function exThumb(n,cue){var src=exImg(n);var b=h('button',{type:'button',class:'exthumb','aria-label':'Show form: '+n.replace(/^W:/,''),'data-img':n,onclick:function(ev){ev.stopPropagation();openExImg(n,cue);}});
+  if(src){var im=h('img',{src:src,alt:'',loading:'lazy',decoding:'async',width:56,height:56});im.onerror=function(){b.classList.add('noimg');b.textContent='🏋️';};b.appendChild(im);}else{b.classList.add('noimg');b.textContent='🏋️';}return b;}
+function openExImg(n,cue){var m=EXIMG[n],nm=n.replace(/^W:/,''),f=0,timer,big=h('img',{id:'ex-big',src:exImg(n,0),alt:nm+' – start position'});
+  big.onerror=function(){big.replaceWith(h('div',{class:'empty'},'📷 Picture not available offline yet'));};
+  var lab=h('div',{class:'pq',id:'ex-frame',style:'margin:6px 0'},'Start');
+  function show(i){f=i;big.src=exImg(n,i);big.alt=nm+(i?' – end position':' – start position');lab.textContent=i?'End':'Start';[].forEach.call(fr.children,function(c,j){c.classList.toggle('on',j===i);});}
+  var fr=h('div',{class:'exframes'},[0,1].map(function(i){var im=h('img',{src:exImg(n,i),alt:i?'End':'Start',loading:'lazy'});return h('button',{type:'button',class:'exfr'+(i?'':' on'),'data-frame':i,onclick:function(){stop();show(i);}},im,h('small',null,i?'End':'Start'));}));
+  var play=h('button',{type:'button',class:'btn sec',id:'ex-play',onclick:function(){if(timer)stop();else start();}},'⏸ Pause');
+  function start(){timer=setInterval(function(){show(1-f);},1000);play.textContent='⏸ Pause';}function stop(){clearInterval(timer);timer=null;play.textContent='▶ Play';}
+  var body=h('div',{id:'ex-viewer'},big,lab,fr,play,cue?h('p',{class:'hint',style:'font-size:15px'},'💡 '+cue):null,m&&!m[1]?h('p',{class:'muted small',id:'ex-approx'},'Photo shows a very similar movement.'):null);
+  var s=sheet({title:nm,body:body,onClose:function(){stop();}});start();var obs=new MutationObserver(function(){if(!document.body.contains(body)){stop();obs.disconnect();}});obs.observe(document.body,{childList:true,subtree:true});}
 /* ===== Catch-up helpers ===== */
 function isSkipped(t,k){var q=D.quick&&D.quick[t];return !!(q&&q.skip&&q.skip[k]);}
 function skipIt(t,k){var q=qd(t);q.skip=q.skip||{};q.skip[k]=1;if(k.slice(0,2)==='r:'){var r=routineById(k.slice(2));if(r)routineSkip(t,r);}}
@@ -2324,17 +2341,17 @@ function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan())
     var list=planList(key);if(quick)list=list.slice(0,3);
     body.appendChild(h('div',{class:'row',style:'justify-content:space-between;margin:4px 2px'},h('div',{class:'pq',style:'text-align:left;margin:0;font-size:18px',id:'wk-title'},title+' · ~'+(quick?20:mins)+' min'),
       h('button',{class:'chip'+(quick?' on':''),id:'quick20',onclick:function(){quick=!quick;draw();}},'⏱ 20 min')));
-    body.appendChild(h('p',{class:'hint'},quick?'Quick version: 3 key exercises × 2 sets, 60–90 s rest. Short warm-up: 3 min easy cardio + 1 light set.':(isBP?'Warm-up 5 min easy cardio + 1–2 light sets of the first exercise.':DAYS[key].warm)));
+    body.appendChild(h('p',{class:'hint'},quick?'Quick version: 3 key exercises × 2 sets, 60–90 s rest. Short warm-up: 3 min easy cardio + 1 light set.':(isBP?'Warm-up 5 min easy cardio + 1–2 light sets of the first exercise.':DAYS[key].warm)));if(!quick&&!isBP&&WARMIMG[key])body.appendChild(h('div',{class:'warmstrip',id:'warm-imgs'},WARMIMG[key].map(function(w){return h('div',{class:'wi'},exThumb(w,null),h('small',null,w.slice(2)));})));
     var rows=list.map(function(n,i){var e=exByName(n),sets=quick?2:e[2],last=lastEx(n),up=last&&last.allHit;
       var wt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:last&&last.weight?last.weight:''});
       var chk=h('button',{type:'button',class:'tick','aria-label':'Done '+n,onclick:function(){chk.classList.toggle('on');chk.textContent=chk.classList.contains('on')?'✓':'';}});
       var sw=h('div',{class:'swaps'},e[6]?h('button',{type:'button',class:'chip sm swap-alt',onclick:function(){swaps()[key+':'+i]=e[6];save();draw();}},'⇄ '+e[6]):null,h('button',{type:'button',class:'chip sm swap-more',onclick:function(){openSwap(key,i,n,draw);}},'More swaps'));
-      var el=h('div',{class:'exr','data-ex':n},chk,h('div',{class:'tx'},h('b',null,n),h('div',{class:'small'},sets+' × '+e[3]+' · rest '+e[4]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[5]),sw),wt);
+      var el=h('div',{class:'exr','data-ex':n},chk,exThumb(n,e[5]),h('div',{class:'tx'},h('b',null,n),h('div',{class:'small'},sets+' × '+e[3]+' · rest '+e[4]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[5]),sw),wt);
       return {el:el,get:function(){var o={name:n,sets:sets,reps:e[3],weight:num(wt.value),done:chk.classList.contains('on')};o.allHit=o.done;return o;}};});
     rows.forEach(function(r){body.appendChild(r.el);});
     if(!quick)body.appendChild(h('p',{class:'hint'},FINISH));
     body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key,quick20:quick||undefined,duration:quick?20:mins,exercises:rows.map(function(r){return r.get();}),note:title,unit:D.settings.unit,quick:true});}},'✓ Done workout'));
-    body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},WHY)));}
+    body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},WHY),h('p',{class:'muted small',id:'photo-credit'},'Exercise photos: free-exercise-db by yuhonas (github.com/yuhonas/free-exercise-db), public domain (Unlicense). Some photos show a very similar movement.')));}
   function saveGym(o){s.close();snap();var before=gymWeek(t);D.gym.push(o);if(!save()){undoLast();return;}render();celebrate($('[data-t="gym"]'),'💪');showUndo('Workout saved 💪');var after=gymWeek(t);if(before<gymGoal()&&after>=gymGoal())gymParty();}
   draw();s=sheet({title:'💪 Workout',body:body});}
 function vBodyPart(){var w=h('div');w.appendChild(hdr('Pick by body part',{back:true,sub:'Tap one for a ready workout'}));
@@ -2477,6 +2494,7 @@ function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
       h('span',{class:'stime'},'💊'),h('span',{class:'stx'},h('b',null,sp.name),h('small',null,sp.dose||'')),h('span',{class:'sck'},on?'✓':'')));});}
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
+window.__ex={EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,

@@ -1,0 +1,4 @@
+Exercise photos from free-exercise-db by yuhonas
+https://github.com/yuhonas/free-exercise-db
+License: The Unlicense (public domain dedication).
+Resized/re-encoded to WebP for the Health Tracker.
