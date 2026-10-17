@@ -253,6 +253,7 @@ p{margin:6px 0}
 .tmpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.tmpl{border:0;background:var(--soft);border-radius:18px;min-height:96px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--text);font-size:14px}.tmpl .ti{font-size:32px}.chip.big{min-height:44px;padding:0 14px;font-size:15px}
 .srow{display:flex;align-items:center;gap:12px;width:100%;border:0;background:var(--soft);border-radius:16px;padding:12px;margin-top:10px;min-height:64px;text-align:left;color:var(--text)}.srow .stime{font-weight:800;min-width:44px;font-size:15px}.srow .stx{flex:1;min-width:0;display:flex;flex-direction:column}.srow .stx small{color:var(--muted);font-size:13px}.srow .sck{width:34px;height:34px;border-radius:50%;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;flex:none}.srow.on{background:#e9f7ef}.srow.on .sck{background:#5fb98a;border-color:#5fb98a}
 @media (prefers-color-scheme:dark){.srow.on{background:#1f3a2c}}
+.swaps{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.chip.sm{min-height:36px;padding:0 10px;font-size:13px}
 </style>
 </head>
 <body>
@@ -266,7 +267,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-17 15:19-0e10d97';
+var BUILD_ID='2026-10-17 15:30-493b821';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1846,7 +1847,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -2231,39 +2232,113 @@ function vHeat(){var w=h('div'),t=today();w.appendChild(hdr('Sauna & cold',{back
     h('p',{class:'hint'},'Evidence: modest – may help mood/alertness and soreness. Right after strength training it can blunt muscle gains (Roberts et al., J Physiol 2015), so keep it ~6 h away from lifting, or use the sauna after lifting instead.')));
   return w;}
 
-/* ===== Gym program (3x/week full body A/B/C) ===== */
-var PLAN={
- A:{n:'Full body A',min:50,ex:[['Goblet squat',3,'8–12','Chest up, sit between heels, knees track toes'],['Romanian deadlift (DBs)',3,'8–12','Soft knees, push hips back, flat back'],['DB bench press (or push-ups)',3,'8–12','Shoulder blades squeezed, lower to chest'],['One-arm DB row',3,'10–12 /side','Pull elbow to hip, don\u2019t twist'],['Plank',3,'30–45 s','Ribs down, squeeze glutes']]},
- B:{n:'Full body B',min:50,ex:[['Hip thrust / glute bridge',3,'8–12','Chin tucked, drive through heels, pause at top'],['Reverse lunge',3,'8–10 /side','Step back, front knee over mid-foot'],['Lat pulldown (or band pulldown)',3,'8–12','Pull bar to upper chest, elbows down'],['Seated DB shoulder press',3,'8–12','Brace core, press up and slightly in'],['Dead bug',3,'8 /side','Low back stays on the floor']]},
- C:{n:'Full body C',min:55,ex:[['DB or trap-bar deadlift',3,'6–10','Hips and chest rise together, bar close'],['Step-up (or split squat)',3,'8–10 /side','Whole foot on box, drive through heel'],['Incline DB press',3,'8–12','Bench ~30°, control the lowering'],['Seated cable row',3,'10–12','Tall chest, squeeze shoulder blades'],['Pallof press',3,'10 /side','Resist the twist, press straight out'],['Farmer carry',3,'30–40 m','Tall posture, heavy DBs, slow steps']]},
- Q:{n:'Quick 20-min',min:20,ex:[['Goblet squat',2,'12','Chest up'],['Push-ups (incline OK)',2,'8–12','Body in one line'],['One-arm DB row',2,'10 /side','Elbow to hip'],['Glute bridge',2,'15','Pause at top'],['Plank',2,'30 s','Brace']]}};
-var WARMUP='Warm-up 5–8 min: brisk walk/bike, then 10 bodyweight squats, 10 glute bridges, 10 band pull-aparts.';
-var FINISH='Optional finisher: 8–10 min bike or rower intervals (30 s hard / 60 s easy).';
+/* ===== Gym program: 3-day body-part split ===== */
+// [name, part, sets, reps, rest, cue, alt]
+var EXL=[
+ ['Hip thrust (barbell or Smith)','glutes',4,'8–12','2 min','Chin tucked, ribs down, drive through heels; 1-s squeeze at top','Hip thrust machine'],
+ ['Hip thrust machine','glutes',4,'8–12','2 min','Pad on hips, push up until hips are straight, pause','Hip thrust (barbell or Smith)'],
+ ['Glute bridge (DB)','glutes',3,'12–15','90 s','Shoulders on floor, DB on hips, squeeze at top','Hip thrust machine'],
+ ['Cable kickback','glutes',3,'12–15 /side','60 s','Slight forward lean, kick back and out, don’t arch low back','Glute kickback machine'],
+ ['Glute kickback machine','glutes',3,'12–15 /side','60 s','Push platform back with heel, hips stay square','Cable kickback'],
+ ['Hip abduction machine','glutes',3,'15–20','60 s','Lean slightly forward, push knees out, slow return','Banded seated abduction'],
+ ['Banded seated abduction','glutes',3,'20','60 s','Band above knees, sit tall or lean forward, press out','Hip abduction machine'],
+ ['45° back extension (glute bias)','glutes',3,'12–15','60 s','Toes out, round upper back slightly, squeeze glutes to rise','Cable pull-through'],
+ ['Cable pull-through','glutes',3,'12–15','60 s','Rope between legs, hinge back, snap hips forward','45° back extension (glute bias)'],
+ ['Bulgarian split squat','legs',3,'8–10 /side','90 s','Rear foot on bench, lean torso a bit forward for glutes','Smith machine split squat'],
+ ['Smith machine split squat','legs',3,'8–10 /side','90 s','Long stance, drop back knee straight down','Bulgarian split squat'],
+ ['Romanian deadlift (DB or barbell)','legs',3,'8–10','2 min','Soft knees, push hips back, weights close, flat back','Smith machine RDL'],
+ ['Smith machine RDL','legs',3,'8–10','2 min','Hips back until hamstrings stretch, bar slides along thighs','Romanian deadlift (DB or barbell)'],
+ ['Seated leg curl','legs',3,'10–12','90 s','Lean forward a little, curl fully, slow 3-s return','Lying leg curl'],
+ ['Lying leg curl','legs',3,'10–12','90 s','Hips pressed down, curl heels to glutes','Seated leg curl'],
+ ['Squat (goblet, back or Smith)','legs',3,'6–10','2 min','Brace, sit down between heels, knees track toes','Hack squat machine'],
+ ['Hack squat machine','legs',3,'8–10','2 min','Feet mid-platform, go deep with control','Squat (goblet, back or Smith)'],
+ ['Leg press','legs',3,'10–12','2 min','Feet shoulder-width, lower until hips about to tuck','Goblet squat'],
+ ['Goblet squat','legs',3,'10–12','90 s','DB at chest, elbows inside knees, chest up','Leg press'],
+ ['Walking lunge (DB)','legs',3,'10 /side','90 s','Long step, back knee kisses floor, push through front heel','Reverse lunge (Smith)'],
+ ['Reverse lunge (Smith)','legs',3,'10 /side','90 s','Step back, front shin vertical-ish','Walking lunge (DB)'],
+ ['Leg extension','legs',3,'12–15','60 s','Pause 1 s at top, slow down','Single-leg extension'],
+ ['Single-leg extension','legs',2,'12–15 /side','60 s','One leg at a time, full squeeze','Leg extension'],
+ ['Lat pulldown','back',3,'8–12','90 s','Chest up, pull bar to upper chest, elbows down to ribs','Assisted pull-up machine'],
+ ['Assisted pull-up machine','back',3,'6–10','90 s','Full hang, pull chest to bar','Lat pulldown'],
+ ['Chest-supported row (machine or DB)','back',3,'8–12','90 s','Chest on pad, pull elbows back, squeeze shoulder blades','Seated cable row'],
+ ['Seated cable row','back',3,'10–12','90 s','Tall chest, pull to belly, don’t rock','Chest-supported row (machine or DB)'],
+ ['One-arm DB row','back',3,'10–12 /side','60 s','Hand on bench, pull elbow to hip','Seated cable row'],
+ ['Straight-arm pulldown','back',2,'12–15','60 s','Arms long, sweep bar to thighs','Lat pulldown'],
+ ['Seated DB shoulder press','shoulders',3,'8–12','90 s','Back on bench, press up and slightly in, ribs down','Shoulder press machine'],
+ ['Shoulder press machine','shoulders',3,'8–12','90 s','Handles at shoulder height, press without shrugging','Seated DB shoulder press'],
+ ['DB lateral raise','shoulders',3,'12–15','60 s','Lead with elbows, raise to shoulder height, slow down','Cable lateral raise'],
+ ['Cable lateral raise','shoulders',3,'12–15 /side','60 s','Cable behind you, sweep out to shoulder height','DB lateral raise'],
+ ['Reverse pec deck (rear delts)','shoulders',3,'12–15','60 s','Arms slightly bent, sweep back, no shrug','Face pull'],
+ ['Face pull','shoulders',3,'12–15','60 s','Rope to eyes, elbows high, thumbs back','Reverse pec deck (rear delts)'],
+ ['DB biceps curl','arms',3,'10–12','60 s','Elbows pinned, no swinging, slow down','Cable curl'],
+ ['Cable curl','arms',3,'10–12','60 s','Step back, elbows still, squeeze','DB biceps curl'],
+ ['Hammer curl','arms',2,'10–12','60 s','Thumbs up, elbows by sides','Cable curl'],
+ ['Triceps pushdown (cable)','arms',3,'10–15','60 s','Elbows tucked, push to straight, control up','Overhead DB triceps extension'],
+ ['Overhead DB triceps extension','arms',3,'10–12','60 s','DB behind head, elbows forward, stretch then extend','Overhead cable extension'],
+ ['Overhead cable extension','arms',3,'10–12','60 s','Face away from cable, elbows by ears','Overhead DB triceps extension'],
+ ['Incline DB press','chest',3,'8–12','90 s','Bench ~30°, lower to upper chest, press up','Chest press machine'],
+ ['Chest press machine','chest',3,'8–12','90 s','Handles mid-chest, press without locking hard','Incline DB press'],
+ ['DB bench press','chest',3,'8–12','90 s','Shoulder blades squeezed, lower to chest','Chest press machine'],
+ ['Push-up (incline OK)','chest',3,'8–15','60 s','Body in one line, chest to bench/floor','Chest press machine'],
+ ['Pec deck / cable fly','chest',3,'12–15','60 s','Soft elbows, hug a tree, stretch then squeeze','Push-up (incline OK)'],
+ ['Cable crunch','core',3,'12–15','60 s','Kneel, rope by head, curl ribs to hips','Hanging knee raise'],
+ ['Hanging knee raise','core',3,'10–12','60 s','No swinging, tilt pelvis up','Cable crunch'],
+ ['Dead bug','core',3,'8 /side','45 s','Low back glued to floor, slow','Plank'],
+ ['Pallof press','core',3,'10 /side','45 s','Stand side-on to cable, press out, resist the twist','Side plank'],
+ ['Plank','core',3,'30–45 s','45 s','Ribs down, squeeze glutes','Dead bug'],
+ ['Side plank','core',2,'20–30 s /side','45 s','Hips high, straight line','Pallof press']];
+function exByName(n){var e=EXL.find(function(x){return x[0]===n;});return e||[n,'other',3,'8–12','90 s','',null];}
+var DAYS={D1:{n:'Day 1 · Glutes & Hamstrings',min:50,ex:['Hip thrust (barbell or Smith)','Romanian deadlift (DB or barbell)','Bulgarian split squat','Seated leg curl','Cable kickback','Hip abduction machine'],warm:'Warm-up 5–8 min: bike or incline walk, then 2×10 glute bridges, 10 bodyweight good-mornings, 10 banded side steps each way; 1–2 light sets of the first lift.'},
+ D2:{n:'Day 2 · Upper body',min:50,ex:['Lat pulldown','Chest-supported row (machine or DB)','Seated DB shoulder press','Incline DB press','DB lateral raise','DB biceps curl','Triceps pushdown (cable)'],warm:'Warm-up 5–8 min: rower or arm bike, then 15 band pull-aparts, 10 arm circles each way, 10 band face pulls; 1–2 light sets of pulldown.'},
+ D3:{n:'Day 3 · Quads, Glutes & Core',min:55,ex:['Squat (goblet, back or Smith)','Leg press','Walking lunge (DB)','Leg extension','45° back extension (glute bias)','Cable crunch'],warm:'Warm-up 5–8 min: bike, then 10 bodyweight squats, 10 reverse lunges, 10 glute bridges; 2 light ramp-up sets of squats.'}};
+var BODY={glutes:['🍑','Glutes',['Hip thrust (barbell or Smith)','Bulgarian split squat','45° back extension (glute bias)','Cable kickback','Hip abduction machine']],
+ legs:['🦵','Legs',['Squat (goblet, back or Smith)','Romanian deadlift (DB or barbell)','Leg press','Seated leg curl','Leg extension']],
+ back:['🔙','Back',['Lat pulldown','Chest-supported row (machine or DB)','One-arm DB row','Straight-arm pulldown','Face pull']],
+ shoulders:['🤷‍♀️','Shoulders',['Seated DB shoulder press','DB lateral raise','Reverse pec deck (rear delts)','Cable lateral raise','Face pull']],
+ arms:['💪','Arms',['DB biceps curl','Triceps pushdown (cable)','Hammer curl','Overhead DB triceps extension','Cable curl']],
+ chest:['🫀','Chest',['Incline DB press','Chest press machine','Push-up (incline OK)','Pec deck / cable fly']],
+ core:['🧘‍♀️','Core / Abs',['Cable crunch','Dead bug','Pallof press','Hanging knee raise','Side plank']]};
+var FINISH='Optional finisher: 8–10 min incline walk or bike intervals (30 s hard / 60 s easy).';
+var WHY='Glutes and legs get two days (Day 1 + Day 3) and upper body one focused day. Research basis: weekly sets per muscle drive growth – ~10+ hard sets/week beats fewer (Schoenfeld, Ogborn & Krieger 2017, J Sports Sci); with volume equal, how you split the week matters little, so a body-part split works fine (Schoenfeld, Grgic & Krieger 2019, J Sports Sci). Anywhere from ~6 to 30 reps builds muscle if sets end 1–3 reps short of failure (Schoenfeld et al. 2017, J Strength Cond Res; Stronger by Science / Jeff Nippard use 1–3 reps in reserve). Longer rest (~2 min) on big lifts gives better gains than 1 min (Schoenfeld et al. 2016, J Strength Cond Res). Hip thrusts load glutes more than squats in EMG (Contreras et al. 2015, J Appl Biomech) and grow glutes similarly to squats, while squats also build quads – so both are in (Plotkin et al. 2023, PeerJ). Seated leg curls grew hamstrings more than lying curls (Maeo et al. 2021, Med Sci Sports Exerc); overhead triceps work grew triceps more than pushdowns alone (Maeo et al. 2023, Eur J Sport Sci). Progression follows ACSM (2009): add ~2–10% load once you beat the top of the rep range.';
 function gymGoal(){return D.settings.gymGoal||3;}
 function gymWeek(t){var ws=weekStart(t||today()),days={};D.gym.forEach(function(g){if(g.date>=ws&&g.date<=addDays(ws,6))days[g.date]=1;});return Object.keys(days).length;}
-function nextPlan(){var L=sortDesc(D.gym.filter(function(g){return g.plan&&/^[ABC]$/.test(g.plan);}))[0];return L?{A:'B',B:'C',C:'A'}[L.plan]:'A';}
-function nextPlanLabel(){return 'Workout '+nextPlan();}
+function nextPlan(){var L=sortDesc(D.gym.filter(function(g){return g.plan&&/^D[123]$/.test(g.plan);}))[0];return L?{D1:'D2',D2:'D3',D3:'D1'}[L.plan]:'D1';}
+function nextPlanLabel(){return DAYS[nextPlan()].n;}
 function lastEx(name){var g=sortDesc(D.gym.filter(function(x){return (x.exercises||[]).some(function(e){return e.name===name&&e.weight;});}))[0];return g?g.exercises.find(function(e){return e.name===name;}):null;}
 function gymTile(t){var n=gymWeek(t),g=gymGoal(),today_=D.gym.some(function(x){return x.date===t;});
   return h('button',{class:'tile'+(today_?' on':''),'data-t':'gym',onclick:function(){openWorkout();}},h('span',{class:'wring',html:ringSVG(Math.min(1,n/g),CATS.gym.c,46,5,'<text x="23" y="29" text-anchor="middle" font-size="18">🏋️</text>')}),h('b',null,'Gym'),h('small',{id:'gym-week'},n+'/'+g+' this week'));}
-function openWorkout(force){var t=today(),key=force||nextPlan(),s;var body=h('div',{id:'workout'});
+function swaps(){D.settings.gymSwaps=D.settings.gymSwaps&&typeof D.settings.gymSwaps==='object'?D.settings.gymSwaps:{};return D.settings.gymSwaps;}
+function planList(key){var base=key.slice(0,3)==='BP:'?BODY[key.slice(3)][2]:DAYS[key].ex,S=swaps();return base.map(function(n,i){return S[key+':'+i]||n;});}
+function openSwap(key,i,cur,done){var part=exByName(cur)[1],alt=exByName(cur)[6],L=EXL.filter(function(x){return x[1]===part&&x[0]!==cur;});L.sort(function(a,b){return (b[0]===alt)-(a[0]===alt);});var s;
+  var body=h('div',{id:'swap-list'},h('p',{class:'hint'},'Swap '+cur+' for another '+(BODY[part]?BODY[part][1].toLowerCase():part)+' exercise:'),L.map(function(x){return h('button',{class:'srow','data-swap':x[0],onclick:function(){swaps()[key+':'+i]=x[0];save();s.close();setTimeout(done,280);}},h('span',{class:'stime'},x[0]===alt?'⇄':'•'),h('span',{class:'stx'},h('b',null,x[0]),h('small',null,(x[0]===alt?'Machine/DB alternative · ':'')+x[2]+' × '+x[3])),h('span',{class:'sck'},''));}));
+  s=sheet({title:'Swap exercise',body:body});}
+function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan()),quick=false,s;var body=h('div',{id:'workout'});
   function draw(){body.innerHTML='';
-    body.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:10px'},['A','B','C','Q','O'].map(function(k){return h('button',{class:key===k?'on':'','data-plan':k,onclick:function(){key=k;draw();}},k==='Q'?'20 min':k==='O'?'Other':k);})));
-    if(key==='O'){var mins=30,typ='Walk';var chips=h('div',{class:'chips',id:'other-type'},['Walk','Cardio','Class','Yoga','Run','Swim'].map(function(x){return h('button',{type:'button',class:'chip'+(x===typ?' on':''),'data-v':x,onclick:function(){typ=x;[].forEach.call(chips.children,function(c){c.classList.toggle('on',c.dataset.v===typ);});}},x);}));
+    body.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:10px'},[['D1','Day 1'],['D2','Day 2'],['D3','Day 3'],['BP','Body part'],['O','Other']].map(function(k){var on=k[0]==='BP'?key.slice(0,3)==='BP:'||key==='BP':key===k[0];return h('button',{class:on?'on':'','data-plan':k[0],onclick:function(){key=k[0]==='BP'?'BP':k[0];draw();}},k[1]);})));
+    if(key==='BP'){body.appendChild(h('div',{class:'pq',style:'margin:6px 0 10px'},'Pick a body part'));body.appendChild(h('div',{class:'tmpl-grid',id:'bp-grid'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){key='BP:'+b;draw();}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return;}
+    if(key==='O'){var typ='Walk';var chips=h('div',{class:'chips',id:'other-type'},['Walk','Cardio','Class','Yoga','Run','Swim'].map(function(x){return h('button',{type:'button',class:'chip'+(x===typ?' on':''),'data-v':x,onclick:function(){typ=x;[].forEach.call(chips.children,function(c){c.classList.toggle('on',c.dataset.v===typ);});}},x);}));
       var mi=h('input',{type:'number',id:'other-min',class:'stin',value:30,inputmode:'numeric'});
       body.appendChild(chips);body.appendChild(h('div',{class:'fld',style:'margin-top:10px'},h('span',{class:'lbl'},'Minutes'),mi));
-      body.appendChild(h('button',{class:'btn',id:'done-other',style:'margin-top:12px',onclick:function(){var m=parseInt(mi.value)||null;saveGym({id:uid(),date:t,type:typ==='Run'?'Run':typ==='Swim'?'Swim':typ==='Yoga'?'Yoga':typ==='Walk'?'Walk':typ==='Class'?'Other':'Cardio',duration:m,exercises:[],note:typ,unit:D.settings.unit,quick:true});}},'✓ Log '+'activity'));return;}
-    var P=PLAN[key];body.appendChild(h('div',{class:'pq',style:'text-align:left;margin:4px 2px'},P.n+' · ~'+P.min+' min'));
-    if(key!=='Q')body.appendChild(h('p',{class:'hint'},WARMUP));
-    var rows=P.ex.map(function(e){var last=lastEx(e[0]),up=last&&last.allHit;var wt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:last&&last.weight?last.weight:''});var chk=h('button',{type:'button',class:'tick','aria-label':'Done '+e[0],onclick:function(){chk.classList.toggle('on');chk.textContent=chk.classList.contains('on')?'✓':'';}});
-      var el=h('div',{class:'exr','data-ex':e[0]},chk,h('div',{class:'tx'},h('b',null,e[0]),h('div',{class:'small'},e[1]+' × '+e[2]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[3])),wt);
-      return {el:el,get:function(){var o={name:e[0],sets:e[1],reps:e[2],weight:num(wt.value),done:chk.classList.contains('on')};o.allHit=o.done;return o;}};});
+      body.appendChild(h('button',{class:'btn',id:'done-other',style:'margin-top:12px',onclick:function(){var m=parseInt(mi.value)||null;saveGym({id:uid(),date:t,type:{Run:'Run',Swim:'Swim',Yoga:'Yoga',Walk:'Walk',Class:'Other'}[typ]||'Cardio',duration:m,exercises:[],note:typ,unit:D.settings.unit,quick:true});}},'✓ Log activity'));return;}
+    var isBP=key.slice(0,3)==='BP:',title=isBP?BODY[key.slice(3)][0]+' '+BODY[key.slice(3)][1]+' workout':DAYS[key].n,mins=isBP?35:DAYS[key].min;
+    var list=planList(key);if(quick)list=list.slice(0,3);
+    body.appendChild(h('div',{class:'row',style:'justify-content:space-between;margin:4px 2px'},h('div',{class:'pq',style:'text-align:left;margin:0;font-size:18px',id:'wk-title'},title+' · ~'+(quick?20:mins)+' min'),
+      h('button',{class:'chip'+(quick?' on':''),id:'quick20',onclick:function(){quick=!quick;draw();}},'⏱ 20 min')));
+    body.appendChild(h('p',{class:'hint'},quick?'Quick version: 3 key exercises × 2 sets, 60–90 s rest. Short warm-up: 3 min easy cardio + 1 light set.':(isBP?'Warm-up 5 min easy cardio + 1–2 light sets of the first exercise.':DAYS[key].warm)));
+    var rows=list.map(function(n,i){var e=exByName(n),sets=quick?2:e[2],last=lastEx(n),up=last&&last.allHit;
+      var wt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:last&&last.weight?last.weight:''});
+      var chk=h('button',{type:'button',class:'tick','aria-label':'Done '+n,onclick:function(){chk.classList.toggle('on');chk.textContent=chk.classList.contains('on')?'✓':'';}});
+      var sw=h('div',{class:'swaps'},e[6]?h('button',{type:'button',class:'chip sm swap-alt',onclick:function(){swaps()[key+':'+i]=e[6];save();draw();}},'⇄ '+e[6]):null,h('button',{type:'button',class:'chip sm swap-more',onclick:function(){openSwap(key,i,n,draw);}},'More swaps'));
+      var el=h('div',{class:'exr','data-ex':n},chk,h('div',{class:'tx'},h('b',null,n),h('div',{class:'small'},sets+' × '+e[3]+' · rest '+e[4]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[5]),sw),wt);
+      return {el:el,get:function(){var o={name:n,sets:sets,reps:e[3],weight:num(wt.value),done:chk.classList.contains('on')};o.allHit=o.done;return o;}};});
     rows.forEach(function(r){body.appendChild(r.el);});
-    if(key!=='Q')body.appendChild(h('p',{class:'hint'},FINISH));
-    body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key==='Q'?'Q':key,duration:P.min,exercises:rows.map(function(r){return r.get();}),note:P.n,unit:D.settings.unit,quick:true});}},'✓ Done workout'));
-    body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},'3 full-body days hit each muscle ~2×/week or more, which a meta-analysis found better for growth than once a week (Schoenfeld et al., Sports Med 2016). ACSM recommends training all major muscle groups 2–3 days/week, 8–12 reps for most adults, and adding load gradually (~2–10%) once you can do 1–2 reps more than the target (ACSM Position Stand 2009). WHO 2020 guidelines: muscle strengthening ≥2 days/week plus 150–300 min moderate cardio. Rest 60–90 s between sets; when every set hits the top of the range, go up a little next time.')));}
+    if(!quick)body.appendChild(h('p',{class:'hint'},FINISH));
+    body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key,quick20:quick||undefined,duration:quick?20:mins,exercises:rows.map(function(r){return r.get();}),note:title,unit:D.settings.unit,quick:true});}},'✓ Done workout'));
+    body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},WHY)));}
   function saveGym(o){s.close();snap();var before=gymWeek(t);D.gym.push(o);if(!save()){undoLast();return;}render();celebrate($('[data-t="gym"]'),'💪');showUndo('Workout saved 💪');var after=gymWeek(t);if(before<gymGoal()&&after>=gymGoal())gymParty();}
   draw();s=sheet({title:'💪 Workout',body:body});}
+function vBodyPart(){var w=h('div');w.appendChild(hdr('Pick by body part',{back:true,sub:'Tap one for a ready workout'}));
+  w.appendChild(h('div',{class:'tmpl-grid',id:'bp-screen'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){openWorkout(null,b);}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return w;}
 function gymParty(){confetti();toast(gymGoal()+'/'+gymGoal()+' this week! 🎉');}
 function confetti(){var E=['🎉','⭐','💪','✨','🎊','💖'];for(var i=0;i<36;i++){var s=h('span',{class:'burst confetti','aria-hidden':'true',style:'left:'+(Math.random()*innerWidth)+'px;top:'+(innerHeight*0.35)+'px;--dx:'+(Math.random()*200-100).toFixed(0)+'px;--dy:'+(-80-Math.random()*220).toFixed(0)+'px'},E[i%E.length]);document.body.appendChild(s);(function(s){setTimeout(function(){s.remove();},1200);})(s);}
   var c=h('div',{id:'party',class:'party'});document.body.appendChild(c);setTimeout(function(){c.remove();},2500);}
@@ -2819,7 +2894,7 @@ function importData(file){
 
 /* ================= Router / init ================= */
 var TABS=['today','cycle','track','insights','settings','eat','week','more'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel};
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
