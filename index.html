@@ -221,6 +221,14 @@ p{margin:6px 0}
 @media (prefers-color-scheme:dark){.bopt.on{background:#3a2632}.tile.on{background:#1f3328}.pcard{background:#33222b}}
 .wring svg{display:block}.nudge{background:#e8f5fc}.wtime{flex:1;min-width:0;min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 6px;font-size:15px;background:var(--card);color:var(--text)}
 @media (prefers-color-scheme:dark){.nudge{background:#1d2b33}}
+.rempop{background:linear-gradient(135deg,#fde3ec,#efe4fb);border:2px solid var(--accent);animation:slidein .4s ease}.remi{font-size:40px;text-align:center;line-height:1.1}
+@keyframes slidein{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+.remrow{display:flex;align-items:center;gap:8px;min-height:52px;border-top:1px solid var(--line)}.remrow:first-child{border-top:0}.remrow .rl{flex:1;font-weight:600;font-size:15px}
+.rtime{min-height:40px;border:1.5px solid var(--line);border-radius:10px;padding:0 6px;font-size:15px;background:var(--card);color:var(--text)}
+.tog{width:52px;height:32px;border-radius:16px;border:0;background:var(--line);position:relative;flex:none}.tog i{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on{background:#5fb98a}.tog.on i{left:23px}
+@media (prefers-color-scheme:dark){.rempop{background:linear-gradient(135deg,#3a2632,#2c2540)}}
+@media (prefers-reduced-motion:reduce){.rempop{animation:none}}
 </style>
 </head>
 <body>
@@ -1750,9 +1758,10 @@ function tile(key,icon,label,sub,done,fn){return h('button',{class:'tile'+(done?
 function vHome(){
   var t=today(), w=h('div'), hr=new Date().getHours();
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
+  var rp=remPopup(t); if(rp)w.appendChild(rp);
   var pc=periodCard(t); if(pc)w.appendChild(pc);
-  var dc=drinkCard(t); if(dc)w.appendChild(dc);
-  var wc=waterNudge(t); if(wc)w.appendChild(wc);
+  var dc=remDue('evening',t)?null:drinkCard(t); if(dc)w.appendChild(dc);
+  var wc=remOn('water')?waterNudge(t):null; if(wc)w.appendChild(wc);
   var md=todayMood(t), en=energyOn(t), sl=D.sleep.find(function(x){return x.date===t;});
   var c=h('div',{class:'card simple-card',id:'quick'});
   c.appendChild(bigRow('Mood','mood',MOODF.map(function(m,i){return [i+1,m[0],m[1]];}),md?md.mood:null,function(ev,v){tap(ev,'Mood saved '+MOODF[v-1][0],MOODF[v-1][0],function(){setMood(t,v);});}));
@@ -1817,9 +1826,9 @@ var REMTXT='Log today + did you drink? \u2013 30 seconds \u{1F449} https://greta
 function copyReminder(){function fb(){var ta=h('textarea',{style:'position:fixed;opacity:0'});ta.value=REMTXT;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();toast('Copied ✓');}
   try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(REMTXT).then(function(){toast('Copied ✓');},fb);else fb();}catch(e){fb();}}
 function reminderCard(){var tm=h('input',{type:'time',id:'rem-time',value:(D.settings.remindAt||'20:00'),onchange:function(){D.settings.remindAt=tm.value||'20:00';save();}});
-  return h('div',{class:'card',id:'reminder'},h('h2',null,'⏰ Reminders'),
+  return h('div',{class:'card',id:'reminder'},h('h2',null,'⏰ Reminders'),remList(),h('button',{class:'btn',id:'ics-all',style:'margin:12px 0',onclick:function(){dlFile('all-my-reminders.ics',allICS());}},'📅 All my reminders'),
     h('div',{class:'row',style:'justify-content:space-between;margin-bottom:10px'},h('span',null,'Time'),tm),
-    h('div',{style:'display:grid;gap:10px'},h('button',{class:'btn',id:'ics-btn',onclick:function(){downloadICS(tm.value);}},'📅 Daily log reminder'),h('button',{class:'btn sec',id:'copy-rem',onclick:copyReminder},'📋 Copy reminder')),
+    h('div',{style:'display:grid;gap:10px'},h('button',{class:'btn sec',id:'ics-btn',onclick:function(){downloadICS(tm.value);}},'📅 Daily log reminder'),h('button',{class:'btn sec',id:'copy-rem',onclick:copyReminder},'📋 Copy reminder')),
     waterRemBlock(), periodRemBlock(), notifBlock(),
     h('p',{class:'hint'},'iPhone tip: open Reminders → New → paste → set Repeat: Daily.'));}
 function modeCard(){var m=uiMode();return h('div',{class:'card',id:'mode-card'},h('div',{class:'row',style:'justify-content:space-between'},h('span',null,'App style'),
@@ -1844,7 +1853,7 @@ function waterNudge(t){if(!waterDue(t))return null;
     h('div',{class:'btns',style:'margin:10px 0 0'},h('button',{class:'btn',id:'nudge-water','data-t':'nudge',onclick:function(ev){var wa=D.water[t]||0;tap(ev,'💧 '+(wa+1)+' glasses','💧',function(){D.water[t]=wa+1;qd(t).waterAt=Date.now();});}},'+1 glass'),
       h('button',{class:'btn sec',id:'nudge-later',onclick:function(ev){qd(t).waterSnooze=Date.now();save();render();}},'Later')));}
 var nudgeShown=null,lastNotif=0;
-function tickNudge(){if(document.hidden||document.querySelector('.ov'))return;var t=today(),due=waterDue(t),r=location.hash.replace(/^#\/?/,'')||'today';
+function tickNudge(){remTick();if(document.hidden||document.querySelector('.ov'))return;var t=today(),due=waterDue(t),r=location.hash.replace(/^#\/?/,'')||'today';
   if(r==='today'&&uiMode()==='simple'&&due!==!!$('#water-nudge'))render();
   if(due&&window.Notification&&Notification.permission==='granted'&&Date.now()-lastNotif>3*36e5){lastNotif=Date.now();try{new Notification('💧 Sip of water?',{body:'Tap +1 in Health Tracker'});}catch(e){}}}
 setInterval(tickNudge,5*60*1000);
@@ -1883,6 +1892,45 @@ function periodRemBlock(){var cs=cycleStats();if(!cs.last)return null;var nx=cs.
     old&&old!==nx?h('p',{class:'hint',id:'period-changed'},'Prediction moved from '+fmtD(old)+' – tap to get the new date.'):null);}
 function notifBlock(){if(!window.Notification)return null;if(Notification.permission==='granted')return h('p',{class:'hint'},'🔔 In-app water nudges on (only while the app is open).');
   if(Notification.permission==='denied')return null;return h('button',{class:'link',id:'notif-btn',style:'margin-top:10px',onclick:function(){Notification.requestPermission().then(function(){render();});}},'🔔 Allow nudges while app is open (optional)');}
+
+/* ===== In-app reminders ===== */
+var REMS=[{k:'vit',i:'💊',l:'Vitamins',t:'09:00',on:true},{k:'water',i:'💧',l:'Water',t:null,on:true},{k:'skinam',i:'☀️',l:'Skin care AM',t:'08:00',on:true},{k:'skinpm',i:'🌙',l:'Skin care PM',t:'21:00',on:true},{k:'gym',i:'🏋️',l:'Gym',t:'18:00',on:false},{k:'evening',i:'📝',l:'Log today + drinks',t:'20:00',on:true}];
+function remCfg(k){var d=REMS.find(function(r){return r.k===k;}),c=(D.settings.reminders||{})[k]||{};return {on:c.on!=null?!!c.on:d.on,t:c.t||d.t};}
+function remSet(k,v){var R=D.settings.reminders&&typeof D.settings.reminders==='object'?D.settings.reminders:(D.settings.reminders={});R[k]=Object.assign(remCfg(k),v);save();}
+function remOn(k){return remCfg(k).on;}
+function nowHM(){var d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes());}
+function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
+  switch(k){case 'vit':return !suppList().length||suppStatus(t).done;case 'skinam':return skinDone(sk,'am');case 'skinpm':return skinDone(sk,'pm');
+  case 'gym':return D.gym.some(function(x){return x.date===t;});case 'evening':return drinkAnswered(t);}return true;}
+function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
+  var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
+function dueList(t){return REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);});}
+function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',evening:'Log today – did you drink?'}[k];}
+function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
+  function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
+  var btns;
+  if(k==='evening')btns=[h('button',{class:'btn',id:'rem-done','data-t':'remdone',onclick:function(ev){tap(ev,'Alcohol-free day saved','💧',function(){D.alcohol.push({id:uid(),date:t,type:'none',count:0,note:'',quick:true});});}},'No drinks'),
+    h('button',{class:'btn sec',id:'rem-drank',onclick:function(){var q=qd(t);q.snooze=q.snooze||{};q.snooze.evening=Date.now()+36e5;drinkUI={yes:t};save();render();}},'I drank')];
+  else btns=[h('button',{class:'btn',id:'rem-done','data-t':'remdone',onclick:function(ev){tap(ev,r.l+' ✓',r.i,function(){
+    if(k==='vit')allVitamins(t);else if(k==='skinam')skinRoutine(t,'am');else if(k==='skinpm')skinRoutine(t,'pm');else if(k==='gym')gymDone(t);});}},k==='vit'?'✓ All my usual':'✓ Done')];
+  btns.push(h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'));
+  return h('div',{class:'card rempop',id:'rem-pop','data-rem':k,role:'alert'},h('div',{class:'remi'},r.i),h('div',{class:'pq'},remMsg(k)),
+    k==='vit'?h('div',{class:'muted small',style:'text-align:center'},suppList().map(function(s){return s.name;}).join(' · ')):null,
+    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat('+btns.length+',1fr)'},btns),L.length>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(L.length-1)+' more after this'):null);}
+var dueKey='';
+function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;});
+  if(window.Notification&&Notification.permission==='granted'){var q=qd(t),ch=false;q.notified=q.notified||{};
+    L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification((REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
+  var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&uiMode()==='simple'&&!document.querySelector('.ov')&&!document.hidden)render();}}
+setInterval(remTick,60*1000);document.addEventListener('visibilitychange',function(){if(!document.hidden)remTick();});
+function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(function(r){var c=remCfg(r.k);
+  return h('div',{class:'remrow','data-remrow':r.k},h('span',{class:'rl'},r.i+' '+r.l),
+    r.t?h('input',{type:'time',class:'rtime',value:c.t,onchange:function(){remSet(r.k,{t:this.value||r.t});}}):h('span',{class:'muted small'},'every ~3 h'),
+    h('button',{class:'tog'+(c.on?' on':''),role:'switch','aria-checked':String(c.on),'aria-label':r.l,onclick:function(){remSet(r.k,{on:!remCfg(r.k).on});render();}},h('i')));}));}
+function allICS(){var t=today(),ev=[];REMS.forEach(function(r){if(!remOn(r.k))return;
+  if(r.k==='water')waterTimes().forEach(function(tm,i){ev=ev.concat(icsEvent('greta-water-'+i,icsDT(t,tm),'💧 Water break','FREQ=DAILY','Tap +1 in Health Tracker'));});
+  else ev=ev.concat(icsEvent('greta-rem-'+r.k,icsDT(t,remCfg(r.k).t),r.i+' '+remMsg(r.k),'FREQ=DAILY','Tap Done in Health Tracker'));});return icsWrap(ev);}
+setTimeout(remTick,300);
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go(['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
