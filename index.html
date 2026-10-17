@@ -191,6 +191,34 @@ p{margin:6px 0}
 .pick-list .it{min-height:64px}
 .check.supp.on .bx{background:#e0a43b;border-color:#e0a43b}
 .check .nm small{font-size:13px}
+
+.brow{padding:6px 0}.brow+.brow{border-top:1px solid var(--line)}
+.blab{font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:4px 2px 6px}
+.bopts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.bopt{min-height:54px;border:2px solid transparent;border-radius:16px;background:var(--soft);font-size:26px;font-weight:750}
+.brow:nth-child(3) .bopt{font-size:18px}
+.bopt.on{border-color:var(--accent);background:#fbe3ec}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.tile{border:2px solid transparent;background:var(--card);border-radius:18px;box-shadow:var(--shadow);min-height:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:8px 4px}
+.tile .ti{font-size:30px}.tile b{font-size:14px}.tile small{font-size:12px;color:var(--muted)}
+.tile.on{border-color:#5fb98a;background:#e9f7ef}
+.pop{animation:pop .45s ease}@keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.15)}100%{transform:scale(1)}}
+.burst{position:fixed;z-index:95;pointer-events:none;font-size:22px;animation:burst .85s ease-out forwards}
+@keyframes burst{from{transform:translate(-50%,-50%);opacity:1}to{transform:translate(calc(-50% + var(--dx)),calc(-50% + var(--dy))) scale(1.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){.pop,.burst{animation:none}.burst{display:none}}
+.undo-bar{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;transition:.25s;z-index:91;background:#2d2a32;color:#fff;border-radius:16px;padding:6px 6px 6px 16px;display:flex;align-items:center;gap:12px;font-size:15px;max-width:92vw}
+.undo-bar.show{opacity:1;transform:translateX(-50%);pointer-events:auto}
+.undo-bar button{border:0;background:var(--accent);color:#fff;border-radius:12px;min-height:44px;padding:0 16px;font-weight:700;font-size:15px}
+.logged{text-align:center;color:var(--muted);margin:4px 0 14px;font-size:15px}
+.wgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;text-align:center}
+.wc b{display:block;font-size:18px}.wc span{display:block;font-size:11px;color:var(--muted)}.wc .wi{font-size:20px}.mini{width:100%;height:22px;margin-top:4px}
+.pcard{background:#fdeef3}.pq{font-size:19px;font-weight:700;text-align:center}
+.kcal-big{font-size:16px;color:var(--muted);text-align:center;margin:0 0 12px}.kcal-big b{font-size:40px;color:var(--text);display:block}
+.favs{display:grid;gap:8px;margin-bottom:10px}
+.fav{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:56px;border:0;background:var(--card);box-shadow:var(--shadow);border-radius:16px;padding:8px 16px;font-size:16px;font-weight:620;text-align:left}
+.fav .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fav small{color:var(--muted);flex:none}
+.search{width:100%;min-height:54px;border:2px solid var(--line);border-radius:16px;padding:0 16px;font-size:17px;background:var(--card);color:var(--text);margin:6px 0 10px}
+@media (prefers-color-scheme:dark){.bopt.on{background:#3a2632}.tile.on{background:#1f3328}.pcard{background:#33222b}}
 </style>
 </head>
 <body>
@@ -256,7 +284,7 @@ function wUnit(){return D.settings.unit==='kg'?'kg':'lb';}
 function toUnit(lb){return D.settings.unit==='kg'?lb*LB2KG:lb;}
 function fmtW(lb,noUnit){return fmtN(toUnit(lb),1)+(noUnit?'':' '+wUnit());}
 
-function blank(){return {version:1,createdAt:today(),settings:{unit:'lb',waterGoal:8,calGoal:2000,macros:{p:30,c:40,f:30},supps:[],a2hsHidden:false,lastExport:null,skin:{am:['Cleanser','Vitamin C serum','Moisturizer','Sunscreen'],pm:['Cleanser','Retinol / treatment','Night cream']}},periods:[],cycleDays:[],mood:[],food:[],water:{},weight:[],alcohol:[],skin:[],gym:[],sleep:[],labs:[],supps:[],customFoods:[]};}
+function blank(){return {version:1,createdAt:today(),settings:{unit:'lb',waterGoal:8,calGoal:2000,macros:{p:30,c:40,f:30},supps:[],a2hsHidden:false,lastExport:null,skin:{am:['Cleanser','Vitamin C serum','Moisturizer','Sunscreen'],pm:['Cleanser','Retinol / treatment','Night cream']}},periods:[],cycleDays:[],mood:[],food:[],water:{},weight:[],alcohol:[],skin:[],gym:[],sleep:[],labs:[],supps:[],customFoods:[],quick:{}};}
 function normalize(o){
   var b=blank(); if(!o||typeof o!=='object'||Array.isArray(o)) return b;
   var r=Object.assign({},b,o); r.settings=Object.assign({},b.settings,o.settings||{});
@@ -269,6 +297,7 @@ function normalize(o){
   if(!(r.settings.calGoal>0))r.settings.calGoal=2000;
   if(!Array.isArray(r.customFoods))r.customFoods=[]; r.customFoods.forEach(function(c){if(!c.id)c.id=uid();});
   if(!r.water||typeof r.water!=='object'||Array.isArray(r.water)) r.water={};
+  if(!r.quick||typeof r.quick!=='object'||Array.isArray(r.quick)) r.quick={};
   return r;
 }
 var D;
@@ -1642,9 +1671,163 @@ function vSupps(){
   w.appendChild(listCard('History','supps',D.supps,'supps','No supplements logged yet'));
   return w;
 }
+/* ================= Simple (ADHD-friendly) mode ================= */
+var UIKEY='gretaHealth.ui';
+function uiMode(){try{return localStorage.getItem(UIKEY)==='full'?'full':'simple';}catch(e){return 'simple';}}
+function setUiMode(m){try{localStorage.setItem(UIKEY,m);}catch(e){}renderTabbar();go('today');}
+function qd(d){if(!D.quick||typeof D.quick!=='object'||Array.isArray(D.quick))D.quick={};return D.quick[d]||(D.quick[d]={});}
+var undoSnap=null, undoT;
+function snap(){undoSnap=JSON.stringify(D);}
+function undoLast(){if(!undoSnap)return;D=normalize(JSON.parse(undoSnap));undoSnap=null;save();hideUndo();render();toast('Undone');}
+function hideUndo(){var u=$('#undo-bar');if(u)u.classList.remove('show');}
+function showUndo(msg){var u=$('#undo-bar');if(!u){u=h('div',{id:'undo-bar',class:'undo-bar',role:'status'},h('span',{class:'um'}),h('button',{id:'undo-btn',onclick:undoLast},'Undo'));document.body.appendChild(u);}
+  u.querySelector('.um').textContent=msg;u.classList.add('show');clearTimeout(undoT);undoT=setTimeout(hideUndo,6000);}
+function celebrate(el,emoji){
+  if(el){el.classList.remove('pop');void el.offsetWidth;el.classList.add('pop');}
+  var r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  for(var i=0;i<5;i++){var s=h('span',{class:'burst','aria-hidden':'true',style:'left:'+(r.left+r.width/2)+'px;top:'+(r.top+r.height/2)+'px;--dx:'+(Math.random()*120-60).toFixed(0)+'px;--dy:'+(-50-Math.random()*70).toFixed(0)+'px'},emoji||'✨');document.body.appendChild(s);(function(s){setTimeout(function(){s.remove();},900);})(s);}
+}
+/* one-tap action: snapshot → mutate → save → animate → undo */
+function tap(ev,msg,emoji,fn){var el=ev&&ev.currentTarget;snap();fn();if(!save()){undoLast();return;}render();
+  var sel=el&&el.dataset&&el.dataset.t?'[data-t="'+el.dataset.t+'"]':null;celebrate(sel?$(sel):null,emoji);showUndo(msg);}
+
+function todayMood(t){return sortDesc(D.mood.filter(function(m){return m.date===t;}))[0];}
+function energyOn(d){var m=sortDesc(D.mood.filter(function(x){return x.date===d&&typeof x.energy==='number';}))[0];if(m)return m.energy;var q=D.quick&&D.quick[d];return q&&typeof q.energy==='number'?q.energy:null;}
+function setMood(t,v){var m=todayMood(t);if(m&&m.quick){m.mood=v;}else{var q=qd(t);D.mood.push({id:uid(),date:t,time:nowTime(),mood:v,energy:typeof q.energy==='number'?q.energy:null,stress:null,tags:[],note:'',quick:true});}}
+function setEnergy(t,v){var m=todayMood(t);if(m)m.energy=v;qd(t).energy=v;}
+function setSleep(t,hrs){var s=D.sleep.find(function(x){return x.date===t;});if(s)s.hours=hrs;else D.sleep.push({id:uid(),date:t,hours:hrs,score:null,note:'',quick:true});}
+function allVitamins(t){var ids=suppList().map(function(s){return s.id;}),e=suppDay(t);if(e){ids.forEach(function(id){if(e.taken.indexOf(id)<0)e.taken.push(id);});}else D.supps.push({id:uid(),date:t,taken:ids,note:''});}
+function gymDone(t){D.gym.push({id:uid(),date:t,type:'Workout',duration:null,exercises:[],note:'',unit:D.settings.unit,quick:true});}
+function addDrink(t){var last=sortDesc(D.alcohol)[0],type=last?last.type:'wine',e=D.alcohol.find(function(a){return a.date===t&&a.quick&&a.type===type;});if(e)e.count=(e.count||0)+1;else D.alcohol.push({id:uid(),date:t,type:type,count:1,note:'',quick:true});}
+function skinRoutine(t,which){var e=D.skin.find(function(s){return s.date===t;});if(!e){e={id:uid(),date:t,am:[],pm:[],rating:null,note:''};D.skin.push(e);}e[which]=D.settings.skin[which].slice();}
+
+/* period prompts: ask once a day until "Yes" */
+function periodPrompt(t){
+  var cs=cycleStats(), last=cs.last, q=(D.quick&&D.quick[t])||{};
+  if(last&&!last.end&&last.start<t){return q.periodNo==='end'?null:'end';}
+  if(last&&!last.end&&last.start===t)return null;
+  if(last&&t>=addDays(cs.next,-2))return q.periodNo==='start'?null:'start';
+  return null;
+}
+function periodCard(t){
+  var p=periodPrompt(t); if(!p)return null;
+  var yes=function(ev){tap(ev,p==='start'?'Period start saved 🌸':'Period end saved',p==='start'?'🌸':'💗',function(){
+    if(p==='start')D.periods.push({id:uid(),start:t,end:null,note:''});else{var l=cycleStats().last;var r=D.periods.find(function(x){return x.id===l.id;});r.end=t;}});};
+  var no=function(ev){tap(ev,'Okay — I\u2019ll ask tomorrow','💗',function(){qd(t).periodNo=p;});};
+  return h('div',{class:'card pcard',id:'period-ask'},h('div',{class:'pq'},p==='start'?'🌸 Did your period start?':'🌸 Did your period end?'),
+    h('div',{class:'btns',style:'margin:10px 0 0'},h('button',{class:'btn',id:'period-yes','data-t':'pyes',onclick:yes},'Yes, today'),h('button',{class:'btn sec',id:'period-no','data-t':'pno',onclick:no},'Not yet')));
+}
+
+function loggedDays(month){var s={};function a(d){if(d&&d.slice(0,7)===month)s[d]=1;}
+  Object.keys(COLL).forEach(function(k){D[k].forEach(function(e){a(dateOf(e));});});Object.keys(D.water).forEach(a);Object.keys(D.quick||{}).forEach(function(d){var q=D.quick[d];if(q&&typeof q.energy==='number')a(d);});return Object.keys(s).length;}
+function weekData(){var t=today(),days=[];for(var i=6;i>=0;i--)days.push(addDays(t,-i));
+  return days.map(function(d){var m=D.mood.filter(function(x){return x.date===d;}),s=D.sleep.find(function(x){return x.date===d;});
+    return {d:d,mood:mean(m.map(function(x){return x.mood;})),energy:energyOn(d),sleep:s&&s.hours?s.hours:null,gym:D.gym.some(function(x){return x.date===d;}),drinks:drinksOn(d),water:D.water[d]||0};});}
+function weekSummary(){var w=weekData();return {days:w,mood:mean(w.map(function(x){return x.mood;})),energy:mean(w.map(function(x){return x.energy;})),sleep:mean(w.map(function(x){return x.sleep;})),gym:w.filter(function(x){return x.gym;}).length,drinks:w.reduce(function(s,x){return s+x.drinks;},0)};}
+function miniBars(vals,max,color){return '<svg viewBox="0 0 70 24" class="mini" aria-hidden="true">'+vals.map(function(v,i){var hh=v?Math.max(2,v/max*22):0;return '<rect x="'+(i*10+1)+'" y="'+(24-hh)+'" width="8" height="'+hh+'" rx="2" fill="'+color+'"/>';}).join('')+'</svg>';}
+function weekCard(full){
+  var s=weekSummary(), c=h('div',{class:'card week',id:'week-card',onclick:full?null:function(){go('week');}});
+  c.appendChild(h('h2',null,'📅 This week',full?null:h('span',{class:'chev muted'},'›')));
+  var cells=[['😊',s.mood==null?'–':fmtN(s.mood),'mood',s.days.map(function(x){return x.mood;}),5,CATS.mood.c],['⚡',s.energy==null?'–':fmtN(s.energy),'energy',s.days.map(function(x){return x.energy;}),5,'#e0b93b'],
+    ['🌙',s.sleep==null?'–':fmtN(s.sleep)+'h','sleep',s.days.map(function(x){return x.sleep;}),10,CATS.sleep.c],['🏋️',String(s.gym),'gym days',s.days.map(function(x){return x.gym?1:0;}),1,CATS.gym.c],['🍷',fmtN(s.drinks,0),'drinks',s.days.map(function(x){return x.drinks;}),Math.max(3,Math.max.apply(null,s.days.map(function(x){return x.drinks;}))),CATS.alcohol.c]];
+  c.appendChild(h('div',{class:'wgrid'},cells.map(function(x){return h('div',{class:'wc','data-w':x[2]},h('div',{class:'wi'},x[0]),h('b',null,x[1]),h('span',null,x[2]),h('div',{html:miniBars(x[3],x[4],x[5])}));})));
+  return c;
+}
+function vWeek(){var w=h('div');w.appendChild(hdr('This week',{sub:'Last 7 days'}));w.appendChild(weekCard(true));
+  var s=weekSummary(), L=function(d){return WD[parseD(d).getDay()].slice(0,2);};
+  w.appendChild(chartCard('😊 Mood',barChart(s.days.map(function(x){return {label:L(x.d),v:x.mood||0};}),{color:CATS.mood.c,min:5,empty:'No mood taps yet — that\u2019s okay'})));
+  w.appendChild(chartCard('🌙 Sleep hours',barChart(s.days.map(function(x){return {label:L(x.d),v:x.sleep||0};}),{color:CATS.sleep.c,min:8,empty:'No sleep logged yet'})));
+  w.appendChild(h('p',{class:'muted small',style:'text-align:center'},'Empty days are fine 💗'));
+  return w;}
+
+function bigRow(label,key,opts,cur,onPick){
+  return h('div',{class:'brow'},h('div',{class:'blab'},label),h('div',{class:'bopts'},opts.map(function(o){
+    return h('button',{class:'bopt'+(cur===o[0]?' on':''),'data-t':key+'-'+o[0],'aria-label':label+' '+(o[2]||o[0]),onclick:function(ev){onPick(ev,o[0]);}},o[1]);})));}
+function tile(key,icon,label,sub,done,fn){return h('button',{class:'tile'+(done?' on':''),'data-t':key,onclick:fn},h('span',{class:'ti'},icon),h('b',null,label),h('small',null,sub||'\u00a0'));}
+
+function vHome(){
+  var t=today(), w=h('div'), hr=new Date().getHours();
+  w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
+  var pc=periodCard(t); if(pc)w.appendChild(pc);
+  var md=todayMood(t), en=energyOn(t), sl=D.sleep.find(function(x){return x.date===t;});
+  var c=h('div',{class:'card simple-card',id:'quick'});
+  c.appendChild(bigRow('Mood','mood',MOODF.map(function(m,i){return [i+1,m[0],m[1]];}),md?md.mood:null,function(ev,v){tap(ev,'Mood saved '+MOODF[v-1][0],MOODF[v-1][0],function(){setMood(t,v);});}));
+  c.appendChild(bigRow('Energy','energy',[[1,'🪫','Drained'],[2,'😴','Low'],[3,'🙂','OK'],[4,'💪','Good'],[5,'⚡','Great']],en,function(ev,v){tap(ev,'Energy saved','⚡',function(){setEnergy(t,v);});}));
+  c.appendChild(bigRow('Sleep','sleep',[[5,'5h'],[6,'6h'],[7,'7h'],[8,'8h'],[9,'9h+']],sl&&sl.hours?Math.max(5,Math.min(9,Math.round(sl.hours))):null,function(ev,v){tap(ev,'Sleep saved · '+v+'h','🌙',function(){setSleep(t,v);});}));
+  w.appendChild(c);
+  var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
+  w.appendChild(h('div',{class:'tiles'},
+    tile('water','💧','Water +1',wa+' today',wa>0,function(ev){tap(ev,'💧 '+(wa+1)+' glasses','💧',function(){D.water[t]=wa+1;});}),
+    tile('vitamins','💊',ss.done?'Vitamins ✓':'Vitamins',ss.of?ss.n+'/'+ss.of:'set up list',ss.done,function(ev){if(!ss.of){go('supps');return;}tap(ev,'Vitamins taken 💊','💊',function(){allVitamins(t);});}),
+    tile('gym','🏋️',gy?'Gym ✓':'Gym done',gy?gy+' today':'',gy>0,function(ev){tap(ev,'Workout saved 💪','💪',function(){gymDone(t);});}),
+    tile('drink','🍷','Drink +1',dk?fmtN(dk,0)+' today':'',false,function(ev){tap(ev,'Drink logged','🍷',function(){addDrink(t);});}),
+    tile('skin-am','☀️','Skin AM',skinDone(sk,'am')?'done ✓':'',skinDone(sk,'am'),function(ev){tap(ev,'AM skin care ✓','✨',function(){skinRoutine(t,'am');});}),
+    tile('skin-pm','🌙','Skin PM',skinDone(sk,'pm')?'done ✓':'',skinDone(sk,'pm'),function(ev){tap(ev,'PM skin care ✓','✨',function(){skinRoutine(t,'pm');});})));
+  var mo=t.slice(0,7), n=loggedDays(mo);
+  w.appendChild(h('div',{class:'logged',id:'days-logged'},'🌱 ',h('b',null,n+' day'+(n===1?'':'s')),' logged in '+MONL[+mo.slice(5)-1]));
+  w.appendChild(weekCard(false));
+  return w;
+}
+
+/* Eat: favorites/recent + search + optional details */
+function mealLabel(e){return e.desc||(e.items||[]).map(function(i){return i.manual||!i.name?i.line:i.name.replace(/ \(.*\)$/,'');}).join(', ');}
+function favMeals(){var by={};sortDesc(D.food).forEach(function(e){var k=mealLabel(e).trim().toLowerCase();if(!k)return;if(!by[k])by[k]={e:e,n:0};by[k].n++;});
+  return Object.keys(by).map(function(k){return by[k];}).sort(function(a,b){return b.n-a.n||(dateOf(a.e)<dateOf(b.e)?1:-1);}).slice(0,6).map(function(x){return x.e;});}
+function logMealCopy(ev,src){var t=today();tap(ev,'Meal saved'+(src.cal?' · '+src.cal+' kcal':''),'🥗',function(){
+  var o=JSON.parse(JSON.stringify(src));delete o.id;delete o.photo;o.date=t;o.time=nowTime();o.meal=defMeal();o.note='';D.food.push(Object.assign(o,{id:uid()}));});}
+function logFoodItem(ev,f){var r=evalLine('1 '+(f.custom?(f.srvLabel||'serving'):'')+' '+f.n,f);if(!r||r.kcal==null)r=evalLine(f.n,f);delete r.food;delete r.parsed;
+  var t=today();tap(ev,f.n+' · '+(r.kcal||0)+' kcal','🥗',function(){D.food.push({id:uid(),date:t,time:nowTime(),meal:defMeal(),desc:'',note:'',cal:r.kcal,items:[r],protein:r.p,carbs:r.c,fat:r.f,calManual:false});});}
+var eatQ='';
+function vEat(){
+  var t=today(), w=h('div'), dn=dayNutrition(t);
+  w.appendChild(hdr('Food',{sub:fmtDL(t)}));
+  w.appendChild(h('div',{class:'kcal-big',id:'eat-total'},h('b',null,Math.round(dn.kcal).toLocaleString()),' kcal today · '+dn.meals+' meal'+(dn.meals===1?'':'s')));
+  var fav=favMeals();
+  if(fav.length){w.appendChild(h('div',{class:'sec-t'},'⭐ Tap to log again'));
+    w.appendChild(h('div',{class:'favs',id:'favs'},fav.map(function(e,i){return h('button',{class:'fav','data-t':'fav'+i,onclick:function(ev){logMealCopy(ev,e);}},h('span',{class:'fn'},mealLabel(e)),h('small',null,e.cal?e.cal+' kcal':''));})));}
+  var res=h('div',{class:'favs',id:'search-res'});
+  var inp=h('input',{type:'search',id:'food-search',class:'search',placeholder:'🔍 Search food…',value:eatQ,autocomplete:'off',oninput:function(){eatQ=inp.value;fill();}});
+  function fill(){res.innerHTML='';if(!eatQ.trim())return;searchFoods(eatQ,6).forEach(function(f,i){var e=evalLine('1 '+f.n,f);
+    res.appendChild(h('button',{class:'fav','data-t':'res'+i,onclick:function(ev){eatQ='';logFoodItem(ev,f);}},h('span',{class:'fn'},f.n),h('small',null,e&&e.kcal!=null?'~'+e.kcal+' kcal':'')));});}
+  w.appendChild(inp);w.appendChild(res);fill();
+  w.appendChild(h('div',{class:'btns',style:'margin-top:14px'},h('button',{class:'btn sec',id:'detail-meal',onclick:function(){openFood();}},'✏️ Details'),h('button',{class:'btn sec',onclick:function(){state.foodDate=t;go('food');}},'📋 Full log')));
+  return w;
+}
+
+/* More */
+function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
+function vMore(){var w=h('div');w.appendChild(hdr('More'));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(reminderCard());
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
+  return w;}
+
+/* Reminders */
+function icsText(time){var p=(time||'20:00').split(':'),d=new Date();var st=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(+p[0])+pad(+p[1])+'00';
+  var now=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+  return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Greta Health Tracker//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:greta-health-daily-'+st+'@gretamolo.github.io','DTSTAMP:'+now,'DTSTART:'+st,'DURATION:PT5M','RRULE:FREQ=DAILY',
+    'SUMMARY:Log today \u2013 30 seconds','DESCRIPTION:Open Health Tracker: https://gretamolo.github.io/health-tracker/','URL:https://gretamolo.github.io/health-tracker/','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Log today \u2013 30 seconds','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n')+'\r\n';}
+function downloadICS(time){var b=new Blob([icsText(time)],{type:'text/calendar'}),u=URL.createObjectURL(b),a=h('a',{href:u,download:'health-reminder.ics',style:'display:none'});document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},4000);toast('Open the file to add it to Calendar 📅');}
+var REMTXT='Log today \u2013 30 seconds \u{1F449} https://gretamolo.github.io/health-tracker/';
+function copyReminder(){function fb(){var ta=h('textarea',{style:'position:fixed;opacity:0'});ta.value=REMTXT;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();toast('Copied ✓');}
+  try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(REMTXT).then(function(){toast('Copied ✓');},fb);else fb();}catch(e){fb();}}
+function reminderCard(){var tm=h('input',{type:'time',id:'rem-time',value:(D.settings.remindAt||'20:00'),onchange:function(){D.settings.remindAt=tm.value||'20:00';save();}});
+  return h('div',{class:'card',id:'reminder'},h('h2',null,'⏰ Daily reminder'),
+    h('div',{class:'row',style:'justify-content:space-between;margin-bottom:10px'},h('span',null,'Time'),tm),
+    h('div',{style:'display:grid;gap:10px'},h('button',{class:'btn',id:'ics-btn',onclick:function(){downloadICS(tm.value);}},'📅 Add to Calendar'),h('button',{class:'btn sec',id:'copy-rem',onclick:copyReminder},'📋 Copy reminder')),
+    h('p',{class:'hint'},'iPhone tip: open Reminders → New → paste → set Repeat: Daily.'));}
+function modeCard(){var m=uiMode();return h('div',{class:'card',id:'mode-card'},h('div',{class:'row',style:'justify-content:space-between'},h('span',null,'App style'),
+  h('div',{class:'seg'},[['simple','Simple'],['full','Full']].map(function(x){return h('button',{class:m===x[0]?'on':'','data-mode':x[0],onclick:function(){setUiMode(x[0]);}},x[1]);}))));}
+
+var TABSETS={
+ simple:[['today','Today','<path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/>'],['eat','Food','<path d="M7 3v8m-2-8v5a2 2 0 0 0 4 0V3M7 11v10M16 3c-2 2-3 5-3 8h3v10"/>'],['week','Week','<path d="M4 20h16M6.5 16v-4M11 16V7M15.5 16v-6M20 16V4"/>'],['more','More','<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>']],
+ full:[['today','Today','<path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/>'],['cycle','Cycle','<path d="M12 3.5s6 6.4 6 10.9a6 6 0 0 1-12 0C6 9.9 12 3.5 12 3.5z"/>'],['track','Track','<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>'],['insights','Insights','<path d="M4 20h16M6.5 16v-4M11 16V7M15.5 16v-6M20 16V4"/>'],['settings','Settings','<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>']]};
+var tabMode=null;
+function renderTabbar(){var m=uiMode();if(tabMode===m)return;tabMode=m;var nb=$('#tabbar');nb.innerHTML=TABSETS[m].map(function(x){return '<a href="#/'+x[0]+'" data-r="'+x[0]+'"><svg viewBox="0 0 24 24">'+x[2]+'</svg>'+x[1]+'</a>';}).join('');}
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
-  return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go(state.lastTab==='today'?'today':state.lastTab==='insights'?'insights':'track');}},'‹'):null,
+  return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go(['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
     h('div',{style:'flex:1;min-width:0'},o.sub?h('div',{class:'sub'},o.sub):null,h('h1',null,title)),o.right||null);}
 function stat(v,l){return h('div',{class:'stat'},h('b',null,v),h('span',null,l));}
 function isStandalone(){return (window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;}
@@ -1669,7 +1852,7 @@ function vToday(){
   var cs=cycleStats(), g=h('div',{class:'list'});
   g.appendChild(glance('🌸',CATS.cycle.c,'Cycle',!cs.last?'Log your period to see predictions':cs.ongoing?'Period · day '+cs.cycleDay:(function(){var u=diffDays(t,cs.next);return 'Day '+cs.cycleDay+' · '+(u>0?'next period in '+u+' day'+(u===1?'':'s'):u===0?'period expected today':'period '+(-u)+' day'+(u===-1?'':'s')+' late');})(),function(){go('cycle');}));
   var md=sortDesc(D.mood.filter(function(m){return m.date===t;}))[0];
-  g.appendChild(glance(md?MOODF[md.mood-1][0]:'😊',CATS.mood.c,'Mood',md?MOODF[md.mood-1][1]+' · energy '+md.energy+'/5 · stress '+md.stress+'/5':'Not logged yet',function(){go('mood');}));
+  g.appendChild(glance(md?MOODF[(md.mood||3)-1][0]:'😊',CATS.mood.c,'Mood',md?MOODF[(md.mood||3)-1][1]+(md.energy!=null?' · energy '+md.energy+'/5':'')+(md.stress!=null?' · stress '+md.stress+'/5':''):'Not logged yet',function(){go('mood');}));
   var fd=D.food.filter(function(f){return f.date===t;}), cal=fd.reduce(function(s,f){return s+(f.cal||0);},0);
   g.appendChild(glance('🥗',CATS.food.c,'Food & water',fd.length+' meal'+(fd.length===1?'':'s')+(cal?' · '+cal.toLocaleString()+' kcal':'')+' · 💧 '+(D.water[t]||0)+'/'+D.settings.waterGoal,function(){state.foodDate=t;go('food');}));
   var ss=suppStatus(t);
@@ -2010,7 +2193,8 @@ function patterns(){
 
 function vSettings(){
   var w=h('div'), u=usage(), le=D.settings.lastExport;
-  w.appendChild(hdr('Settings'));
+  w.appendChild(hdr('Settings',{back:uiMode()==='simple'}));
+  w.appendChild(modeCard());w.appendChild(reminderCard());
   var imp=h('input',{type:'file',accept:'.json,application/json',id:'import-file',style:'display:none',onchange:function(){var f=imp.files[0];if(f)importData(f);imp.value='';}});
   w.appendChild(imp);
   w.appendChild(h('div',{class:'card'},h('h2',null,'Preferences'),
@@ -2057,16 +2241,17 @@ function importData(file){
 }
 
 /* ================= Router / init ================= */
-var TABS=['today','cycle','track','insights','settings'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps};
+var TABS=['today','cycle','track','insights','settings','eat','week','more'];
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
   var r=location.hash.replace(/^#\/?/,'')||'today'; if(!VIEWS[r])r='today';
   if(TABS.indexOf(r)>=0)state.lastTab=r;
   var y=window.scrollY, main=$('#main');
-  main.innerHTML='';main.appendChild(VIEWS[r]());
-  [].forEach.call(document.querySelectorAll('.tabbar a'),function(a){a.classList.toggle('on',a.dataset.r===(TABS.indexOf(r)>=0?r:'track'));});
+  renderTabbar(); var simple=uiMode()==='simple';
+  main.innerHTML='';main.appendChild(r==='today'&&simple?vHome():VIEWS[r]());
+  var fb=simple?'more':'track';[].forEach.call(document.querySelectorAll('.tabbar a'),function(a){a.classList.toggle('on',a.dataset.r===(TABS.indexOf(r)>=0&&!(simple&&r==='settings')?r:fb));});
   window.scrollTo(0,r!==lastRoute?0:y); lastRoute=r;
 }
 window.addEventListener('hashchange',render);
