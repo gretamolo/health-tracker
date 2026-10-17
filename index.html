@@ -219,6 +219,8 @@ p{margin:6px 0}
 .fav .fn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.fav small{color:var(--muted);flex:none}
 .search{width:100%;min-height:54px;border:2px solid var(--line);border-radius:16px;padding:0 16px;font-size:17px;background:var(--card);color:var(--text);margin:6px 0 10px}
 @media (prefers-color-scheme:dark){.bopt.on{background:#3a2632}.tile.on{background:#1f3328}.pcard{background:#33222b}}
+.wring svg{display:block}.nudge{background:#e8f5fc}.wtime{flex:1;min-width:0;min-height:44px;border:1.5px solid var(--line);border-radius:12px;padding:0 6px;font-size:15px;background:var(--card);color:var(--text)}
+@media (prefers-color-scheme:dark){.nudge{background:#1d2b33}}
 </style>
 </head>
 <body>
@@ -251,7 +253,7 @@ var SKINR=[['😣','Bad'],['😕','Meh'],['😐','OK'],['🙂','Good'],['✨','G
 var MOODTAGS=['Happy','Calm','Grateful','Motivated','Productive','Social','Anxious','Irritable','Sad','Tired','Overwhelmed','Sick'];
 var MEALS=[{v:'breakfast',l:'Breakfast'},{v:'lunch',l:'Lunch'},{v:'dinner',l:'Dinner'},{v:'snack',l:'Snack'}];
 var DRINKS=[{v:'wine',l:'🍷 Wine'},{v:'beer',l:'🍺 Beer'},{v:'cocktail',l:'🍸 Cocktail'},{v:'spirit',l:'🥃 Spirit'}];
-var DRINKI={wine:'🍷',beer:'🍺',cocktail:'🍸',spirit:'🥃'};
+var DRINKI={wine:'🍷',beer:'🍺',cocktail:'🍸',spirit:'🥃',none:'🫗'};
 var WORKOUTS=['Strength','Cardio','HIIT','Run','Cycling','Pilates','Yoga','Walk','Swim','Other'].map(function(x){return {v:x,l:x};});
 var TESTS=['Hemoglobin','Hematocrit','WBC','Platelets','Ferritin','Iron','Vitamin D (25-OH)','Vitamin B12','Folate','TSH','Free T4','Glucose (fasting)','HbA1c','Total cholesterol','LDL','HDL','Triglycerides','ALT','AST','Creatinine','eGFR','Sodium','Potassium','Calcium','CRP','Magnesium','Estradiol','Progesterone','Testosterone'];
 
@@ -569,7 +571,7 @@ function openMood(e){
   sheet({title:e.id?'Edit mood':'How are you feeling?',body:f.el,onSave:function(){var v=f.get();if(!v.mood){alert('Pick a mood.');return false;}upsert('mood',Object.assign({},e,v));toast('Mood saved');},onDelete:e.id&&function(){removeE('mood',e.id);}});
 }
 function defMeal(){var hr=new Date().getHours()+new Date().getMinutes()/60;return hr<10.5?'breakfast':hr<14.5?'lunch':hr<17?'snack':hr<21?'dinner':'snack';}
-function addWater(date,d,showToast){var n=Math.max(0,(D.water[date]||0)+d);if(n)D.water[date]=n;else delete D.water[date];save();render();if(showToast)toast('💧 Water: '+n+' / '+D.settings.waterGoal+' glasses');}
+function addWater(date,d,showToast){if(d>0&&date===today())qd(date).waterAt=Date.now();var n=Math.max(0,(D.water[date]||0)+d);if(n)D.water[date]=n;else delete D.water[date];save();render();if(showToast)toast('💧 Water: '+n+' / '+D.settings.waterGoal+' glasses');}
 function openWeight(e){
   e=e||{}; var v0=e.value!=null?+toUnit(e.value).toFixed(1):null;
   var f=form([{k:'date',t:'date',label:'Date',half:1,max:today()},{k:'value',t:'num',label:'Weight ('+wUnit()+')',half:1,step:'0.1',ph:wUnit()},{k:'note',t:'text',label:'Note (optional)'}],Object.assign({},e,{value:v0}));
@@ -1698,7 +1700,7 @@ function setEnergy(t,v){var m=todayMood(t);if(m)m.energy=v;qd(t).energy=v;}
 function setSleep(t,hrs){var s=D.sleep.find(function(x){return x.date===t;});if(s)s.hours=hrs;else D.sleep.push({id:uid(),date:t,hours:hrs,score:null,note:'',quick:true});}
 function allVitamins(t){var ids=suppList().map(function(s){return s.id;}),e=suppDay(t);if(e){ids.forEach(function(id){if(e.taken.indexOf(id)<0)e.taken.push(id);});}else D.supps.push({id:uid(),date:t,taken:ids,note:''});}
 function gymDone(t){D.gym.push({id:uid(),date:t,type:'Workout',duration:null,exercises:[],note:'',unit:D.settings.unit,quick:true});}
-function addDrink(t){var last=sortDesc(D.alcohol)[0],type=last?last.type:'wine',e=D.alcohol.find(function(a){return a.date===t&&a.quick&&a.type===type;});if(e)e.count=(e.count||0)+1;else D.alcohol.push({id:uid(),date:t,type:type,count:1,note:'',quick:true});}
+function addDrink(t){D.alcohol=D.alcohol.filter(function(a){return !(a.date===t&&a.type==='none');});var last=sortDesc(D.alcohol)[0],type=last?last.type:'wine',e=D.alcohol.find(function(a){return a.date===t&&a.quick&&a.type===type;});if(e)e.count=(e.count||0)+1;else D.alcohol.push({id:uid(),date:t,type:type,count:1,note:'',quick:true});}
 function skinRoutine(t,which){var e=D.skin.find(function(s){return s.date===t;});if(!e){e={id:uid(),date:t,am:[],pm:[],rating:null,note:''};D.skin.push(e);}e[which]=D.settings.skin[which].slice();}
 
 /* period prompts: ask once a day until "Yes" */
@@ -1749,6 +1751,8 @@ function vHome(){
   var t=today(), w=h('div'), hr=new Date().getHours();
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
   var pc=periodCard(t); if(pc)w.appendChild(pc);
+  var dc=drinkCard(t); if(dc)w.appendChild(dc);
+  var wc=waterNudge(t); if(wc)w.appendChild(wc);
   var md=todayMood(t), en=energyOn(t), sl=D.sleep.find(function(x){return x.date===t;});
   var c=h('div',{class:'card simple-card',id:'quick'});
   c.appendChild(bigRow('Mood','mood',MOODF.map(function(m,i){return [i+1,m[0],m[1]];}),md?md.mood:null,function(ev,v){tap(ev,'Mood saved '+MOODF[v-1][0],MOODF[v-1][0],function(){setMood(t,v);});}));
@@ -1757,7 +1761,7 @@ function vHome(){
   w.appendChild(c);
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
   w.appendChild(h('div',{class:'tiles'},
-    tile('water','💧','Water +1',wa+' today',wa>0,function(ev){tap(ev,'💧 '+(wa+1)+' glasses','💧',function(){D.water[t]=wa+1;});}),
+    waterTile(t,wa),
     tile('vitamins','💊',ss.done?'Vitamins ✓':'Vitamins',ss.of?ss.n+'/'+ss.of:'set up list',ss.done,function(ev){if(!ss.of){go('supps');return;}tap(ev,'Vitamins taken 💊','💊',function(){allVitamins(t);});}),
     tile('gym','🏋️',gy?'Gym ✓':'Gym done',gy?gy+' today':'',gy>0,function(ev){tap(ev,'Workout saved 💪','💪',function(){gymDone(t);});}),
     tile('drink','🍷','Drink +1',dk?fmtN(dk,0)+' today':'',false,function(ev){tap(ev,'Drink logged','🍷',function(){addDrink(t);});}),
@@ -1807,15 +1811,16 @@ function vMore(){var w=h('div');w.appendChild(hdr('More'));
 function icsText(time){var p=(time||'20:00').split(':'),d=new Date();var st=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(+p[0])+pad(+p[1])+'00';
   var now=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
   return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Greta Health Tracker//EN','CALSCALE:GREGORIAN','BEGIN:VEVENT','UID:greta-health-daily-'+st+'@gretamolo.github.io','DTSTAMP:'+now,'DTSTART:'+st,'DURATION:PT5M','RRULE:FREQ=DAILY',
-    'SUMMARY:Log today \u2013 30 seconds','DESCRIPTION:Open Health Tracker: https://gretamolo.github.io/health-tracker/','URL:https://gretamolo.github.io/health-tracker/','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Log today \u2013 30 seconds','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n')+'\r\n';}
+    'SUMMARY:Log today + did you drink? \u2013 30 seconds','DESCRIPTION:Open Health Tracker: https://gretamolo.github.io/health-tracker/','URL:https://gretamolo.github.io/health-tracker/','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:Log today \u2013 30 seconds','TRIGGER:PT0M','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n')+'\r\n';}
 function downloadICS(time){var b=new Blob([icsText(time)],{type:'text/calendar'}),u=URL.createObjectURL(b),a=h('a',{href:u,download:'health-reminder.ics',style:'display:none'});document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},4000);toast('Open the file to add it to Calendar 📅');}
-var REMTXT='Log today \u2013 30 seconds \u{1F449} https://gretamolo.github.io/health-tracker/';
+var REMTXT='Log today + did you drink? \u2013 30 seconds \u{1F449} https://gretamolo.github.io/health-tracker/';
 function copyReminder(){function fb(){var ta=h('textarea',{style:'position:fixed;opacity:0'});ta.value=REMTXT;document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}ta.remove();toast('Copied ✓');}
   try{if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(REMTXT).then(function(){toast('Copied ✓');},fb);else fb();}catch(e){fb();}}
 function reminderCard(){var tm=h('input',{type:'time',id:'rem-time',value:(D.settings.remindAt||'20:00'),onchange:function(){D.settings.remindAt=tm.value||'20:00';save();}});
-  return h('div',{class:'card',id:'reminder'},h('h2',null,'⏰ Daily reminder'),
+  return h('div',{class:'card',id:'reminder'},h('h2',null,'⏰ Reminders'),
     h('div',{class:'row',style:'justify-content:space-between;margin-bottom:10px'},h('span',null,'Time'),tm),
-    h('div',{style:'display:grid;gap:10px'},h('button',{class:'btn',id:'ics-btn',onclick:function(){downloadICS(tm.value);}},'📅 Add to Calendar'),h('button',{class:'btn sec',id:'copy-rem',onclick:copyReminder},'📋 Copy reminder')),
+    h('div',{style:'display:grid;gap:10px'},h('button',{class:'btn',id:'ics-btn',onclick:function(){downloadICS(tm.value);}},'📅 Daily log reminder'),h('button',{class:'btn sec',id:'copy-rem',onclick:copyReminder},'📋 Copy reminder')),
+    waterRemBlock(), periodRemBlock(), notifBlock(),
     h('p',{class:'hint'},'iPhone tip: open Reminders → New → paste → set Repeat: Daily.'));}
 function modeCard(){var m=uiMode();return h('div',{class:'card',id:'mode-card'},h('div',{class:'row',style:'justify-content:space-between'},h('span',null,'App style'),
   h('div',{class:'seg'},[['simple','Simple'],['full','Full']].map(function(x){return h('button',{class:m===x[0]?'on':'','data-mode':x[0],onclick:function(){setUiMode(x[0]);}},x[1]);}))));}
@@ -1825,6 +1830,59 @@ var TABSETS={
  full:[['today','Today','<path d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/>'],['cycle','Cycle','<path d="M12 3.5s6 6.4 6 10.9a6 6 0 0 1-12 0C6 9.9 12 3.5 12 3.5z"/>'],['track','Track','<rect x="3.5" y="3.5" width="7" height="7" rx="2"/><rect x="13.5" y="3.5" width="7" height="7" rx="2"/><rect x="3.5" y="13.5" width="7" height="7" rx="2"/><rect x="13.5" y="13.5" width="7" height="7" rx="2"/>'],['insights','Insights','<path d="M4 20h16M6.5 16v-4M11 16V7M15.5 16v-6M20 16V4"/>'],['settings','Settings','<path d="M4 7h9M17 7h3M4 12h3M11 12h9M4 17h11M19 17h1"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="17" r="2"/>']]};
 var tabMode=null;
 function renderTabbar(){var m=uiMode();if(tabMode===m)return;tabMode=m;var nb=$('#tabbar');nb.innerHTML=TABSETS[m].map(function(x){return '<a href="#/'+x[0]+'" data-r="'+x[0]+'"><svg viewBox="0 0 24 24">'+x[2]+'</svg>'+x[1]+'</a>';}).join('');}
+
+/* ===== Water ===== */
+function waterTile(t,wa){var g=D.settings.waterGoal||8,pct=Math.min(1,wa/g);
+  return h('button',{class:'tile'+(wa>=g?' on':''),'data-t':'water',onclick:function(ev){tap(ev,'💧 '+(wa+1)+' / '+g+' glasses','💧',function(){D.water[t]=wa+1;qd(t).waterAt=Date.now();});}},
+    h('span',{class:'wring',html:ringSVG(pct,'#4fb3e0',46,5,'<text x="23" y="29" text-anchor="middle" font-size="18">💧</text>')}),h('b',null,'Water +1'),h('small',{id:'water-count'},wa+' / '+g));}
+function waterDue(t){var hr=new Date().getHours(),wa=D.water[t]||0,g=D.settings.waterGoal||8,q=(D.quick&&D.quick[t])||{};
+  if(hr<9||hr>=21||wa>=g)return false;var last=q.waterAt||null;
+  if(q.waterSnooze&&Date.now()-q.waterSnooze<3*36e5)return false;
+  if(last)return Date.now()-last>=3*36e5;return hr>=12;}
+function waterNudge(t){if(!waterDue(t))return null;
+  return h('div',{class:'card nudge',id:'water-nudge'},h('div',{class:'pq'},'💧 Sip of water?'),
+    h('div',{class:'btns',style:'margin:10px 0 0'},h('button',{class:'btn',id:'nudge-water','data-t':'nudge',onclick:function(ev){var wa=D.water[t]||0;tap(ev,'💧 '+(wa+1)+' glasses','💧',function(){D.water[t]=wa+1;qd(t).waterAt=Date.now();});}},'+1 glass'),
+      h('button',{class:'btn sec',id:'nudge-later',onclick:function(ev){qd(t).waterSnooze=Date.now();save();render();}},'Later')));}
+var nudgeShown=null,lastNotif=0;
+function tickNudge(){if(document.hidden||document.querySelector('.ov'))return;var t=today(),due=waterDue(t),r=location.hash.replace(/^#\/?/,'')||'today';
+  if(r==='today'&&uiMode()==='simple'&&due!==!!$('#water-nudge'))render();
+  if(due&&window.Notification&&Notification.permission==='granted'&&Date.now()-lastNotif>3*36e5){lastNotif=Date.now();try{new Notification('💧 Sip of water?',{body:'Tap +1 in Health Tracker'});}catch(e){}}}
+setInterval(tickNudge,5*60*1000);
+
+/* ===== Alcohol daily prompt ===== */
+function drinkAnswered(d){return D.alcohol.some(function(a){return a.date===d;});}
+function drinkAskDay(t){var y=addDays(t,-1);
+  if(!drinkAnswered(y)&&y>=startDate()&&!(D.quick[y]&&D.quick[y].drinkSkip))return y;
+  if(new Date().getHours()>=17&&!drinkAnswered(t))return t;return null;}
+var drinkUI={};
+function drinkCard(t){
+  if(drinkUI.typeFor){var e=D.alcohol.find(function(a){return a.id===drinkUI.typeFor;});if(e)return h('div',{class:'card pcard',id:'drink-type'},h('div',{class:'pq'},'What kind? (optional)'),
+    h('div',{class:'bopts',style:'grid-template-columns:repeat(5,1fr);margin-top:10px'},DRINKS.map(function(x){return h('button',{class:'bopt'+(e.type===x.v?' on':''),'data-drinktype':x.v,'aria-label':x.l,onclick:function(){e.type=x.v;drinkUI={};save();render();toast('Saved '+DRINKI[x.v]);}},DRINKI[x.v]);}).concat([h('button',{class:'bopt',id:'drink-type-skip',style:'font-size:15px',onclick:function(){drinkUI={};render();}},'Skip')])));drinkUI={};}
+  var d=drinkAskDay(t);if(!d)return null;var label=d===t?'today':'yesterday';
+  var c=h('div',{class:'card pcard',id:'drink-ask','data-day':d},h('div',{class:'pq'},'🍷 Did you drink '+label+'?'));
+  if(drinkUI.yes===d){c.appendChild(h('div',{class:'bopts',style:'grid-template-columns:repeat(3,1fr);margin-top:10px'},[1,2,3].map(function(n){return h('button',{class:'bopt','data-t':'dk'+n,id:'drink-n'+n,onclick:function(ev){var last=sortDesc(D.alcohol.filter(function(a){return a.count>0;}))[0],id=uid();
+      tap(ev,n+' drink'+(n>1?'s':'')+' saved','🍷',function(){D.alcohol.push({id:id,date:d,type:last?last.type:'wine',count:n,note:'',quick:true});drinkUI={typeFor:id};});render();}},'+'+n);})));}
+  else c.appendChild(h('div',{class:'btns',style:'margin:10px 0 0'},h('button',{class:'btn',id:'drink-no','data-t':'dno',onclick:function(ev){tap(ev,'Alcohol-free day saved','💧',function(){D.alcohol.push({id:uid(),date:d,type:'none',count:0,note:'',quick:true});});}},'No'),
+    h('button',{class:'btn sec',id:'drink-yes',onclick:function(){drinkUI={yes:d};render();}},'Yes')));
+  return c;}
+
+/* ===== Calendar files ===== */
+function icsWrap(events){return ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Greta Health Tracker//EN','CALSCALE:GREGORIAN'].concat(events).concat(['END:VCALENDAR']).join('\r\n')+'\r\n';}
+function icsStamp(){return new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');}
+function icsEvent(uidS,start,summary,rrule,desc){return ['BEGIN:VEVENT','UID:'+uidS+'@gretamolo.github.io','DTSTAMP:'+icsStamp(),'DTSTART:'+start,'DURATION:PT5M'].concat(rrule?['RRULE:'+rrule]:[]).concat(['SUMMARY:'+summary,'DESCRIPTION:'+(desc||'Open Health Tracker')+': https://gretamolo.github.io/health-tracker/','URL:https://gretamolo.github.io/health-tracker/','BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+summary,'TRIGGER:PT0M','END:VALARM','END:VEVENT']);}
+function icsDT(date,time){var p=(time||'09:00').split(':');return date.replace(/-/g,'')+'T'+pad(+p[0])+pad(+p[1])+'00';}
+function dlFile(name,text){var b=new Blob([text],{type:'text/calendar'}),u=URL.createObjectURL(b),a=h('a',{href:u,download:name,style:'display:none'});document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(u);a.remove();},4000);toast('Open the file to add it to Calendar 📅');}
+function waterTimes(){var w=D.settings.waterTimes;return Array.isArray(w)&&w.length===3?w:['10:00','13:00','16:00'];}
+function waterICS(){var t=today();return icsWrap([].concat.apply([],waterTimes().map(function(tm,i){return icsEvent('greta-water-'+i,icsDT(t,tm),'💧 Water break',
+  'FREQ=DAILY','Tap +1 in Health Tracker');})));}
+function periodICS(next){return icsWrap(icsEvent('greta-period-next',icsDT(next,'09:00'),'🌸 Period expected? Tap to confirm in the app',null,'Tap to confirm in the app'));}
+function waterRemBlock(){var ins=waterTimes().map(function(tm,i){return h('input',{type:'time',class:'wtime','data-i':i,value:tm,onchange:function(){var w=waterTimes().slice();w[i]=this.value||w[i];D.settings.waterTimes=w;save();}});});
+  return h('div',{class:'remblk'},h('div',{class:'row',style:'justify-content:space-between;gap:6px;margin:14px 0 8px'},ins),h('button',{class:'btn sec',id:'ics-water',onclick:function(){dlFile('water-reminders.ics',waterICS());}},'💧 Water reminders (3× daily)'));}
+function periodRemBlock(){var cs=cycleStats();if(!cs.last)return null;var nx=cs.next,old=D.settings.periodIcsFor;
+  return h('div',{class:'remblk',style:'margin-top:10px'},h('button',{class:'btn sec',id:'ics-period',onclick:function(){D.settings.periodIcsFor=nx;save();dlFile('period-'+nx+'.ics',periodICS(nx));render();}},'🌸 Next period: '+fmtD(nx)),
+    old&&old!==nx?h('p',{class:'hint',id:'period-changed'},'Prediction moved from '+fmtD(old)+' – tap to get the new date.'):null);}
+function notifBlock(){if(!window.Notification)return null;if(Notification.permission==='granted')return h('p',{class:'hint'},'🔔 In-app water nudges on (only while the app is open).');
+  if(Notification.permission==='denied')return null;return h('button',{class:'link',id:'notif-btn',style:'margin-top:10px',onclick:function(){Notification.requestPermission().then(function(){render();});}},'🔔 Allow nudges while app is open (optional)');}
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go(['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
