@@ -257,6 +257,10 @@ p{margin:6px 0}
 .exthumb{width:56px;height:56px;flex:none;border:0;padding:0;border-radius:12px;overflow:hidden;background:#fff;font-size:24px}.exthumb img{width:100%;height:100%;object-fit:cover;display:block}.exthumb.noimg{background:var(--soft)}
 #ex-big{width:100%;max-height:52vh;object-fit:contain;border-radius:16px;background:#fff;display:block}.exframes{display:flex;gap:10px;margin:8px 0 12px}.exfr{flex:1;border:2px solid var(--line);border-radius:12px;background:#fff;padding:4px;color:var(--text)}.exfr.on{border-color:var(--accent,#d6739a)}.exfr img{width:100%;height:90px;object-fit:contain;display:block}
 .warmstrip{display:flex;gap:10px;overflow-x:auto;margin:4px 0 8px}.warmstrip .wi{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:12px;color:var(--muted);min-width:64px}
+.kidsec{border-radius:14px;padding:10px 12px;margin-top:10px}.kidacts{margin-top:4px;color:var(--muted)}.kchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.kchip{border:1.5px solid var(--line);background:var(--card);border-radius:999px;min-height:40px;padding:0 12px;font-size:14px;color:var(--text)}.kchip small{opacity:.7}.kchip.on{color:#fff}
+.fampop{position:relative;overflow:hidden}.fambar{position:absolute;left:0;right:0;top:0;height:8px}.famwho{text-align:center;font-weight:800;font-size:17px;margin-top:6px}
+.kday{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.kday.today .kdn{color:var(--accent,#d6739a)}.kdn{width:40px;font-weight:800;flex:none}.kdl{flex:1;display:flex;flex-direction:column;gap:6px}.kact{border:0;border-radius:10px;padding:8px 10px;text-align:left;font-size:14px;color:var(--text);min-height:40px}
+.labent{padding:8px 0;border-top:1px solid var(--line)}.labrow.flag{color:#b06a00}
 </style>
 </head>
 <body>
@@ -270,7 +274,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-17 16:01-d707519';
+var BUILD_ID='2026-10-18 12:11-a4a0998';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1806,6 +1810,7 @@ function vHome(){
   var sw=saunaWaterCard(t); if(sw)w.appendChild(sw);
   if(checkinOn())w.appendChild(feelCard(t));
   var sr=stackRows(t); if(sr)w.appendChild(sr);
+  var kc=kidsCard(t); if(kc)w.appendChild(kc);
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
   w.appendChild(h('div',{class:'tiles'},
     waterTile(t,wa),
@@ -1850,7 +1855,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -1943,12 +1948,13 @@ function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
   case 'gym':return D.gym.some(function(x){return x.date===t;})||!!(D.quick[t]&&D.quick[t].rest);case 'teetham':return habitOn(t,'teeth-am');case 'teethpm':return habitOn(t,'teeth-pm');case 'sauna':return habitOn(t,'sauna');case 'cold':return habitOn(t,'cold');case 'evening':return drinkAnswered(t)&&!bottlePending(t);}return true;}
 function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
   if(isSkipped(t,k))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
-function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t));
+function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t)).concat(famDue(t));
   return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:((b.st&&!b.sip?1:0)-(a.st&&!a.sip?1:0))||a._i-b._i;});}
 function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',teetham:'Brush your teeth',teethpm:'Brush your teeth',sauna:'Sauna time?',cold:'Cold plunge?',evening:'Log today – did you drink?'}[k];}
 function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
   if(r.rt)return routinePopup(t,r,L.length);
   if(r.st)return stackPopup(t,r,L.length);
+  if(r.fam)return famPopup(t,r,L.length);
   if(k==='evening'&&drinkAnswered(t))return bottlePopup(t,L.length);
   function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
   var btns;
@@ -1966,9 +1972,9 @@ function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
     k==='skinpm'&&needlingSoon(t)?h('div',{class:'hintbox',id:'retinol-hint'},'🌿 Microneedling coming up – skip retinol & acids tonight'):null,
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat('+btns.length+',1fr)'},btns),L.length>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(L.length-1)+' more after this'):null);}
 var dueKey='';
-function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;}));
+function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});
   if(window.Notification&&Notification.permission==='granted'){var q=qd(t),ch=false;q.notified=q.notified||{};
-    L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
+    L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(FL[k]?FL[k]:k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
   var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&uiMode()==='simple'&&!document.querySelector('.ov')&&!document.hidden)render();}}
 setInterval(remTick,60*1000);document.addEventListener('visibilitychange',function(){if(!document.hidden)remTick();});
 function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(function(r){var c=remCfg(r.k);
@@ -1977,7 +1983,7 @@ function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(funct
     h('button',{class:'tog'+(c.on?' on':''),role:'switch','aria-checked':String(c.on),'aria-label':r.l,onclick:function(){remSet(r.k,{on:!remCfg(r.k).on});render();}},h('i')));}));}
 function allICS(){var t=today(),ev=[];REMS.forEach(function(r){if(!remOn(r.k))return;
   if(r.k==='water')waterTimes().forEach(function(tm,i){ev=ev.concat(icsEvent('greta-water-'+i,icsDT(t,tm),'💧 Water break','FREQ=DAILY','Tap +1 in Health Tracker'));});
-  else{var c=remCfg(r.k);ev=ev.concat(splitDaily('greta-rem-'+r.k,t,c.tWD,c.timeWE,r.i+' '+remMsg(r.k),'Tap Done in Health Tracker'));}});routines().forEach(function(r){if(r.on!==false&&r.remind!==false)ev=ev.concat(routineEvent(r));});stacks().forEach(function(x){if(x.on!==false)ev=ev.concat(stackEvents(x));});return icsWrap(ev);}
+  else{var c=remCfg(r.k);ev=ev.concat(splitDaily('greta-rem-'+r.k,t,c.tWD,c.timeWE,r.i+' '+remMsg(r.k),'Tap Done in Health Tracker'));}});routines().forEach(function(r){if(r.on!==false&&r.remind!==false)ev=ev.concat(routineEvent(r));});stacks().forEach(function(x){if(x.on!==false)ev=ev.concat(stackEvents(x));});ev=ev.concat(famEvents());return icsWrap(ev);}
 setTimeout(remTick,300);
 
 /* ===== Non-daily routines ===== */
@@ -2207,11 +2213,11 @@ function skipIt(t,k){var q=qd(t);q.skip=q.skip||{};q.skip[k]=1;if(k.slice(0,2)==
 function skipBtn(t,k){return h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){tap(ev,'Skipped – no worries 🌿','🌿',function(){skipIt(t,k);});}},'Skip');}
 function fromLine(tm){if(!tm)return null;var n=nowHM();var p=tm.split(':'),m=+p[0]*60+ +p[1],q=n.split(':'),nm=+q[0]*60+ +q[1];if(nm-m<15)return null;return h('div',{class:'from muted small',style:'text-align:center'},'from '+fmtTime(tm).replace(':00 ',' ').replace(' AM',' AM').replace(' PM',' PM'));}
 function catchUpBtn(t){var L=dueList(t);if(L.length<2)return null;return h('button',{class:'btn sec catchup',id:'catch-up',onclick:function(){openCatchUp(t);}},'🧺 Catch up ('+L.length+')');}
-function doneFn(t,x){var k=x.k;if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
+function doneFn(t,x){var k=x.k;if(x.fam)return function(){famDone(t,x);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
   if(x.rt){if(x.rt.type==='injection')return null;return function(){routineDone(t,x.rt);};}
   return {skinam:function(){skinRoutine(t,'am');},skinpm:function(){skinRoutine(t,'pm');},teetham:function(){logHabit(t,'teeth-am');},teethpm:function(){logHabit(t,'teeth-pm');},
     sauna:function(){logHabit(t,'sauna',D.settings.saunaMin||15);},cold:function(){logHabit(t,'cold',D.settings.coldMin||3);}}[k]||null;}
-function dueLabel(x){if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
+function dueLabel(x){if(x.fam)return famLabel(x);if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
 function openCatchUp(t){var body=h('div',{id:'catch-list'});var s;
   function draw(){body.innerHTML='';var L=dueList(t);if(!L.length){body.appendChild(h('div',{class:'empty'},'All caught up ✨'));return;}
     L.forEach(function(x){var f=doneFn(t,x);body.appendChild(h('div',{class:'card cu-row','data-cu':x.k},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,dueLabel(x)),h('span',{class:'muted small'},'from '+fmtTime(x.tm))),
@@ -2507,6 +2513,148 @@ function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
 window.__ex={EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
+/* ===== Family: people, kid tasks, weekly activities, medical records ===== */
+function fam(){var s=D.settings;if(!Array.isArray(s.people))s.people=[];if(!Array.isArray(s.kidTasks))s.kidTasks=[];if(!Array.isArray(s.activities))s.activities=[];
+  if(!Array.isArray(D.kidLog))D.kidLog=[];if(!D.famMed||typeof D.famMed!=='object')D.famMed={};['labs','visits','vaccines'].forEach(function(k){if(!Array.isArray(D.famMed[k]))D.famMed[k]=[];});return s.people;}
+function people(){return fam();}
+function person(pid){if(pid==='me')return {id:'me',name:'Me',emoji:'🙋‍♀️',color:'#d6739a'};return people().find(function(p){return p.id===pid;})||{id:pid,name:'?',emoji:'👤',color:'#999'};}
+function pTag(pids){var P=pids.map(person);return P.map(function(p){return p.emoji;}).join('')+' '+P.map(function(p){return p.name;}).join(' & ');}
+var KT=[['vit','💊','Vitamins','06:45','09:30',null],['teetham','🦷','Teeth (morning)','07:00','09:00',null],['teethpm','🦷','Teeth (evening)','20:00',null,null],['cream','🧴','Skin cream','20:00',null,null],
+ ['hair','🛁','Hair wash','19:00',null,[3,0]],['calm','🧩','Calm game','19:30',null,null],['focus','🎯','Focus game','16:00',null,null],['piano','🎹','Piano practice','18:00',null,null],['homework','📚','Homework','16:00',null,[1,2,3,4,5]]];
+var GAMES_URL='https://gretamolo.github.io/zaidimu-planas/';
+function defaultKidTasks(pid){return KT.map(function(k){return {id:uid(),pid:pid,k:k[0],icon:k[1],label:k[2],time:k[3],timeWE:k[4],days:k[5],on:true,sched:(k[0]==='piano'||k[0]==='homework')?k[0]:null,link:k[0]==='focus'&&GAMES_URL?GAMES_URL:null};});}
+function kidTasks(pid){return fam(),D.settings.kidTasks.filter(function(x){return !pid||x.pid===pid;});}
+function hmAdd(tm,m){var p=tm.split(':'),v=+p[0]*60+ +p[1]+m;v=(v+1440)%1440;return pad(Math.floor(v/60))+':'+pad(v%60);}
+function actsOn(d,pid){var wd=parseD(d).getDay();return (fam(),D.settings.activities).filter(function(a){return a.day===wd&&a.on!==false&&(!pid||a.pids.indexOf(pid)>=0);}).sort(function(a,b){return a.start<b.start?-1:1;});}
+function actCovers(a,key){return new RegExp(key,'i').test(a.name);}
+function coveringAct(task,d){if(!task.sched)return null;return actsOn(d,task.pid).find(function(a){return actCovers(a,task.sched);})||null;}
+function taskOn(task,d){return task.on!==false&&(!task.days||task.days.indexOf(parseD(d).getDay())>=0);}
+function taskTime(task,d){var a=coveringAct(task,d);if(a)return /class/i.test(a.name)?hmAdd(a.start,-15):a.start;return effTime(task,d,'09:00');}
+function kLog(key,d){return D.kidLog.find(function(x){return x.key===key&&x.date===d;});}
+function kMark(key,d,status,pid){var e=kLog(key,d);if(e)e.status=status;else D.kidLog.push({id:uid(),key:key,date:d,status:status,pid:pid||null});}
+function actSilent(a){return /homework|piano/i.test(a.name);}
+function famDue(t){fam();var hm=nowHM(),out=[];
+  kidTasks().forEach(function(x){if(!taskOn(x,t))return;var k='k:'+x.id;if(kLog(k,t)||isSkipped(t,k)||snoozed(t,k))return;var tm=taskTime(x,t);if(hm>=tm)out.push({k:k,fam:1,kt:x,pids:[x.pid],tm:tm,i:x.icon,l:x.label});});
+  actsOn(t).forEach(function(a){if(actSilent(a))return;var k='a:'+a.id,tm=hmAdd(a.start,-15);if(kLog(k,t)||isSkipped(t,k)||snoozed(t,k))return;if(hm>=tm&&hm<(a.end||'23:59'))out.push({k:k,fam:1,act:a,pids:a.pids,tm:tm,i:a.icon||'📅',l:a.name});});
+  D.famMed.visits.forEach(function(v){if(v.next!==t)return;var k='v:'+v.id;if(kLog(k,t)||isSkipped(t,k)||snoozed(t,k))return;if(hm>='07:30')out.push({k:k,fam:1,visit:v,pids:[v.pid],tm:'07:30',i:'📅',l:(v.type||'Appointment')});});
+  return out;}
+function famLabel(x){var w=pTag(x.pids);if(x.act)return w+' — '+(x.act.icon||'📅')+' '+x.act.name+' '+fmtTime(x.act.start)+(x.act.end?'–'+fmtTime(x.act.end):'');if(x.visit)return w+' — 📅 '+(x.visit.type||'Appointment')+' today'+(x.visit.nextTime?' '+fmtTime(x.visit.nextTime):'');return w+' — '+x.i+' '+x.l;}
+function famDone(t,x){kMark(x.k,t,'done',x.pids[0]);}
+function famPopup(t,r,n){var p=person(r.pids[0]),k=r.k;function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
+  var col=r.pids.length>1?'linear-gradient(90deg,'+person(r.pids[0]).color+','+person(r.pids[1]).color+')':p.color;
+  var title=r.act?(r.act.icon||'📅')+' '+r.act.name:r.visit?'📅 '+(r.visit.type||'Appointment')+' today':r.i+' '+r.l;
+  var sub=r.act?(r.act.startUnknown?'start time? · ':'')+fmtTime(r.act.start)+(r.act.end?' – '+fmtTime(r.act.end):'')+' · starts in ~15 min':r.visit?((r.visit.clinic||'')+(r.visit.nextTime?' · '+fmtTime(r.visit.nextTime):'')):null;
+  return h('div',{class:'card rempop fampop',id:'rem-pop','data-rem':k,role:'alert',style:'border-color:'+p.color},h('div',{class:'fambar',style:'background:'+col}),
+    h('div',{class:'famwho',id:'fam-who',style:'color:'+p.color},r.pids.map(function(id){return person(id).emoji+' '+person(id).name;}).join('  ')),h('div',{class:'pq'},title),sub?h('div',{class:'muted small',style:'text-align:center'},sub):null,fromLine(r.tm),
+    r.kt&&r.kt.link?h('a',{class:'btn sec',id:'open-games',href:r.kt.link,target:'_blank',rel:'noopener',style:'display:block;text-align:center;margin-top:10px;text-decoration:none'},'🎮 Open games'):null,
+    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat(3,1fr)'},h('button',{class:'btn',id:'rem-done','data-t':'remdone',onclick:function(ev){tap(ev,p.name+' ✓ '+(r.l||''),'⭐',function(){famDone(t,r);});}},r.act?'✓ OK':'✓ Done'),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k)),n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
+function kidStars(pid){return D.kidLog.filter(function(x){return x.pid===pid&&x.status==='done'&&x.key.slice(0,2)==='k:';}).length;}
+function kidsCard(t){var P=people().filter(function(p){return p.kid;});if(!P.length)return null;
+  return h('div',{class:'card',id:'kids-card'},h('div',{class:'row',style:'justify-content:space-between'},h('h2',{style:'margin:0'},'👧👦 Kids today'),h('button',{class:'btn sec sm',id:'kids-link',onclick:function(){go('kids');}},'Schedule →')),
+    P.map(function(p){var T=kidTasks(p.id).filter(function(x){return taskOn(x,t);}).sort(function(a,b){return taskTime(a,t)<taskTime(b,t)?-1:1;}),A=actsOn(t,p.id).filter(function(a){return !actSilent(a);});
+      var dn=T.filter(function(x){var e=kLog('k:'+x.id,t);return e&&e.status==='done';}).length;
+      return h('div',{class:'kidsec','data-kid':p.name,style:'border-left:5px solid '+p.color+';background:'+p.color+'14'},h('div',{class:'row',style:'justify-content:space-between'},h('b',{style:'color:'+p.color},p.emoji+' '+p.name),h('span',{class:'muted small'},dn+'/'+T.length+(D.settings.kidStars!==false?' · ⭐ '+kidStars(p.id):''))),
+        A.length?h('div',{class:'small kidacts'},A.map(function(a){return (a.icon||'📅')+' '+a.name+' '+fmtTime(a.start);}).join(' · ')):null,
+        h('div',{class:'kchips'},T.map(function(x){var e=kLog('k:'+x.id,t),d=e&&e.status==='done';return h('button',{class:'kchip'+(d?' on':''),'data-kt':p.name+':'+x.k,style:d?'background:'+p.color+';border-color:'+p.color:'',onclick:function(ev){if(d){snap();D.kidLog=D.kidLog.filter(function(y){return y!==e;});save();render();return;}tap(ev,p.name+' ✓ '+x.label,'⭐',function(){kMark('k:'+x.id,t,'done',p.id);});}},x.icon+' '+x.label.replace(/ \((morning|evening)\)/,function(m,a){return a==='morning'?' AM':' PM';})+' ',h('small',null,fmtTime(taskTime(x,t)).replace(':00','').replace(' AM','a').replace(' PM','p')));})));}));}
+/* ICS */
+function famEvent(uidS,date,start,end,summary,rrule,alarmMin){var dur=end?Math.max(5,(+end.slice(0,2)*60+ +end.slice(3))-(+start.slice(0,2)*60+ +start.slice(3))):5;
+  return ['BEGIN:VEVENT','UID:'+uidS+'@health-tracker','DTSTAMP:'+icsStamp(),'DTSTART:'+icsDT(date,start),'DURATION:PT'+dur+'M'].concat(rrule?['RRULE:'+rrule]:[]).concat(['SUMMARY:'+summary,'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+summary,'TRIGGER:'+(alarmMin?'-PT'+alarmMin+'M':'PT0M'),'END:VALARM','END:VEVENT']);}
+function nextWd(wd){var t=today();for(var i=0;i<7;i++){var d=addDays(t,i);if(parseD(d).getDay()===wd)return d;}return t;}
+function famEvents(){fam();var ev=[];
+  kidTasks().forEach(function(x){if(x.on===false)return;var p=person(x.pid),g={};(x.days||[0,1,2,3,4,5,6]).forEach(function(wd){var tm=taskTime(x,nextWd(wd));(g[tm]=g[tm]||[]).push(wd);});
+    Object.keys(g).forEach(function(tm){var ds=g[tm].sort();ev=ev.concat(famEvent('kid-'+x.id+'-'+tm.replace(':',''),nextWd(ds[0]),tm,null,p.emoji+' '+p.name+' — '+x.icon+' '+x.label,'FREQ=WEEKLY;BYDAY='+ds.map(function(d){return WD2[d];}).join(','),0));});});
+  D.settings.activities.forEach(function(a){if(a.on===false)return;ev=ev.concat(famEvent('act-'+a.id,nextWd(a.day),a.start,a.end,pTag(a.pids)+' — '+(a.icon||'📅')+' '+a.name,'FREQ=WEEKLY;BYDAY='+WD2[a.day],15));});
+  D.famMed.visits.forEach(function(v){if(v.next&&v.next>=today())ev=ev.concat(famEvent('visit-'+v.id,v.next,v.nextTime||'09:00',null,person(v.pid).emoji+' '+person(v.pid).name+' — 📅 '+(v.type||'Appointment')+(v.clinic?' ('+v.clinic+')':''),null,60*24));});
+  return ev;}
+/* Kids schedule + tasks screen */
+function vKids(){fam();var w=h('div');w.appendChild(hdr('Kids & schedule',{back:true,sub:'This week'}));var P=people().filter(function(p){return p.kid;});
+  var ws=weekStart(today()),wk=h('div',{class:'card',id:'kids-week'},h('h2',null,'📅 This week'));
+  for(var i=0;i<7;i++){var d=addDays(ws,i),A=actsOn(d);wk.appendChild(h('div',{class:'kday'+(d===today()?' today':''),'data-day':WD[parseD(d).getDay()]},h('div',{class:'kdn'},WD[parseD(d).getDay()]),
+    h('div',{class:'kdl'},A.length?A.map(function(a){var c=a.pids.length>1?'linear-gradient(90deg,'+person(a.pids[0]).color+'33,'+person(a.pids[1]).color+'33)':person(a.pids[0]).color+'26';
+      return h('button',{class:'kact','data-act':a.name,style:'background:'+c,onclick:function(){openActivity(a);}},h('b',null,fmtTime(a.start).replace(' PM','').replace(' AM','')+(a.end?'–'+fmtTime(a.end).replace(' PM','').replace(' AM',''):'')+(a.startUnknown?' (start?)':'')),' '+(a.icon||'')+' '+a.name+' · ',h('span',null,a.pids.map(function(id){return person(id).emoji;}).join('')));}):h('span',{class:'muted small'},'Free'))));}
+  wk.appendChild(h('button',{class:'btn sec',id:'add-activity',style:'margin-top:10px',onclick:function(){openActivity();}},'+ Add activity'));w.appendChild(wk);
+  P.forEach(function(p){var c=h('div',{class:'card','data-kidtasks':p.name,style:'border-top:5px solid '+p.color},h('h2',{style:'color:'+p.color},p.emoji+' '+p.name+' · daily reminders'));
+    kidTasks(p.id).forEach(function(x){c.appendChild(h('div',{class:'remrow','data-ktrow':x.k},h('button',{class:'rl link',style:'text-align:left;min-height:44px',onclick:function(){openKidTask(x);}},x.icon+' '+x.label+' · '+(x.sched?'schedule / ':'')+fmtTime(x.time)+(x.timeWE&&x.timeWE!==x.time?' / '+fmtTime(x.timeWE)+' wknd':'')+(x.days?' · '+x.days.map(function(d){return WD[d];}).join(' '):'')),
+      h('button',{class:'tog'+(x.on!==false?' on':''),role:'switch','aria-checked':String(x.on!==false),'aria-label':p.name+' '+x.label,onclick:function(){x.on=x.on===false;save();render();}},h('i'))));});
+    w.appendChild(c);});
+  w.appendChild(h('button',{class:'btn sec',id:'add-person',onclick:function(){openPerson();}},'+ Add family member'));
+  w.appendChild(h('button',{class:'btn sec',id:'kids-ics',style:'margin-top:10px',onclick:function(){dlFile('family-reminders.ics',icsWrap(famEvents()));}},'📅 Download kids calendar (.ics)'));
+  return w;}
+function daysChips(sel,onPick){return h('div',{class:'chips'},[1,2,3,4,5,6,0].map(function(d){return h('button',{type:'button',class:'chip big'+(sel.indexOf(d)>=0?' on':''),'data-v':d,onclick:function(){onPick(d);}},WD[d]);}));}
+function openKidTask(x){var o=JSON.parse(JSON.stringify(x)),body=h('div',{class:'form',id:'kt-form'});function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
+  function draw(){body.innerHTML='';var ti=h('input',{type:'time',class:'stin',id:'kt-time',value:o.time,onchange:function(){o.time=ti.value||o.time;}});body.appendChild(sec(o.sched?'Time (on days without a scheduled '+o.sched+' block)':'Time',ti));
+    var we=h('input',{type:'time',class:'stin',id:'kt-time-we',value:o.timeWE||'',onchange:function(){o.timeWE=we.value||null;}});body.appendChild(sec('Weekends time (optional)',we));
+    var sel=o.days||[0,1,2,3,4,5,6];body.appendChild(sec('Days',daysChips(sel,function(d){var s=sel.slice(),i=s.indexOf(d);if(i>=0){if(s.length>1)s.splice(i,1);}else s.push(d);o.days=s.length===7?null:s;draw();})));}
+  draw();sheet({title:person(o.pid).emoji+' '+person(o.pid).name+' — '+o.label,body:body,onSave:function(){Object.assign(x,o);save();render();toast('Saved');}});}
+function openActivity(a){var o=JSON.parse(JSON.stringify(a||{name:'',icon:'📅',pids:people().filter(function(p){return p.kid;}).slice(0,1).map(function(p){return p.id;}),day:1,start:'15:00',end:'16:00',on:true})),body=h('div',{class:'form',id:'act-form'});
+  function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
+  function draw(){body.innerHTML='';var nm=h('input',{type:'text',class:'stin',id:'act-name',value:o.name,placeholder:'e.g. Swimming',oninput:function(){o.name=nm.value;}});body.appendChild(sec('Name',nm));
+    body.appendChild(sec('Who',h('div',{class:'chips',id:'act-who'},people().map(function(p){var on=o.pids.indexOf(p.id)>=0;return h('button',{type:'button',class:'chip big'+(on?' on':''),'data-v':p.name,onclick:function(){if(on){if(o.pids.length>1)o.pids=o.pids.filter(function(i){return i!==p.id;});}else o.pids.push(p.id);draw();}},p.emoji+' '+p.name);}))));
+    body.appendChild(sec('Day',h('div',{class:'chips',id:'act-day'},[1,2,3,4,5,6,0].map(function(d){return h('button',{type:'button',class:'chip big'+(o.day===d?' on':''),'data-v':d,onclick:function(){o.day=d;draw();}},WD[d]);}))));
+    var st=h('input',{type:'time',class:'stin',id:'act-start',value:o.start,onchange:function(){o.start=st.value||o.start;o.startUnknown=false;}}),en=h('input',{type:'time',class:'stin',id:'act-end',value:o.end||'',onchange:function(){o.end=en.value||null;}});
+    body.appendChild(sec('Start'+(o.startUnknown?' (start time? – please check)':''),st));body.appendChild(sec('End',en));}
+  draw();sheet({title:a?'Edit activity':'New activity',body:body,onSave:function(){if(!o.name.trim()){alert('Give it a name.');return false;}o.name=o.name.trim();if(!a){o.id=uid();D.settings.activities.push(o);}else Object.assign(a,o);save();render();toast('Saved 📅');},
+    onDelete:a&&function(){D.settings.activities=D.settings.activities.filter(function(y){return y!==a;});save();render();},deleteLabel:'Remove activity',deleteMsg:'Remove this activity?'});}
+var PCOLS=['#e86aa6','#4a8fe0','#5fb98a','#e0a03b','#9b7be0'];
+function openPerson(){var o={name:'',emoji:'🧒',color:PCOLS[people().length%PCOLS.length],kid:true},body=h('div',{class:'form',id:'person-form'});
+  var nm=h('input',{type:'text',class:'stin',id:'person-name',placeholder:'Name',oninput:function(){o.name=nm.value;}});body.appendChild(nm);
+  var em=h('div',{class:'chips',id:'person-emoji',style:'margin-top:10px'},['🧒','👧','👦','🩷','💙','💚','💛','💜'].map(function(e){return h('button',{type:'button',class:'chip big','data-v':e,onclick:function(){o.emoji=e;[].forEach.call(em.children,function(c){c.classList.toggle('on',c.dataset.v===e);});}},e);}));body.appendChild(em);
+  body.appendChild(h('p',{class:'hint'},'Adds daily reminders (vitamins, teeth, cream, hair wash, games, piano, homework) – edit or switch off any.'));
+  sheet({title:'Add family member',body:body,onSave:function(){if(!o.name.trim()){alert('Add a name.');return false;}o.name=o.name.trim();o.id=uid();fam();D.settings.people.push(o);D.settings.kidTasks=D.settings.kidTasks.concat(defaultKidTasks(o.id));save();render();toast('Added '+o.name);}});}
+/* Medical */
+var medWho='me';
+function labFlag(r){var v=parseFloat(String(r.value).replace(',','.'));if(isNaN(v))return '';var lo=r.low!=null&&r.low!==''?+r.low:null,hi=r.high!=null&&r.high!==''?+r.high:null;if(lo!=null&&v<lo)return 'low';if(hi!=null&&v>hi)return 'high';return '';}
+function medLabs(pid){return pid==='me'?D.labs.map(function(x){return x;}):D.famMed.labs.filter(function(x){return x.pid===pid;});}
+function vMedical(){fam();var w=h('div');w.appendChild(hdr('Medical records',{back:true}));var P=[person('me')].concat(people());
+  w.appendChild(h('div',{class:'chips',id:'med-who',style:'margin-bottom:12px'},P.map(function(p){return h('button',{class:'chip big'+(medWho===p.id?' on':''),'data-v':p.name,style:medWho===p.id?'background:'+p.color+';border-color:'+p.color+';color:#fff':'',onclick:function(){medWho=p.id;render();}},p.emoji+' '+p.name);})));
+  var pid=medWho,p=person(pid),isKid=pid!=='me';
+  var L=sortDesc(medLabs(pid)),c=h('div',{class:'card',id:'med-labs'},h('h2',null,'🩸 Blood work'));
+  if(!L.length)c.appendChild(h('div',{class:'empty'},'No results yet.'));
+  L.slice(0,6).forEach(function(e){var out=(e.results||[]).filter(labFlag);c.appendChild(h('div',{class:'labent'},h('b',null,fmtD(e.date)+(e.panel||e.lab?' · '+(e.panel||e.lab):'')),
+    (e.results||[]).map(function(r){var f=labFlag(r);return h('div',{class:'small labrow'+(f?' flag':'')},(f?'🔸 ':'')+r.test+': '+r.value+' '+(r.unit||'')+(r.low!=null||r.high!=null?'  (lab range '+(r.low!=null?r.low:'')+'–'+(r.high!=null?r.high:'')+')':'')+(f?' · '+f:''));}),
+    out.length?h('div',{class:'hint'},'Some values are outside the lab’s printed range – ask your doctor what it means for you.'):null));});
+  c.appendChild(h('button',{class:'btn sec',id:'add-lab',onclick:function(){openLab(pid);}},'+ Add blood work'));w.appendChild(c);
+  var V=sortDesc(D.famMed.visits.filter(function(v){return v.pid===pid;})),vc=h('div',{class:'card',id:'med-visits'},h('h2',null,'🩺 Doctor visits'));
+  if(!V.length)vc.appendChild(h('div',{class:'empty'},'No visits yet.'));
+  V.forEach(function(v){vc.appendChild(h('div',{class:'labent','data-visit':v.type},h('b',null,fmtD(v.date)+' · '+(v.type||'Visit')+(v.clinic?' · '+v.clinic:'')),v.notes?h('div',{class:'small'},v.notes):null,v.next?h('div',{class:'small',style:'color:#2f8a5c'},'📅 Next: '+fmtD(v.next)+(v.nextTime?' '+fmtTime(v.nextTime):'')+' (reminder on)'):null));});
+  vc.appendChild(h('button',{class:'btn sec',id:'add-visit',onclick:function(){openVisit(pid);}},'+ Add visit'));w.appendChild(vc);
+  var VX=sortDesc(D.famMed.vaccines.filter(function(v){return v.pid===pid;})),xc=h('div',{class:'card',id:'med-vax'},h('h2',null,'💉 Vaccines (optional)'));
+  VX.forEach(function(v){xc.appendChild(h('div',{class:'small',style:'padding:4px 0'},fmtD(v.date)+' · '+v.name));});
+  var vn=h('input',{type:'text',class:'stin',id:'vax-name',placeholder:'e.g. Flu shot'}),vd=h('input',{type:'date',class:'stin',id:'vax-date',value:today()});
+  xc.appendChild(h('div',{class:'row',style:'gap:8px;margin-top:8px'},vn,vd));xc.appendChild(h('button',{class:'btn sec',id:'add-vax',style:'margin-top:8px',onclick:function(){if(!vn.value.trim())return;D.famMed.vaccines.push({id:uid(),pid:pid,name:vn.value.trim(),date:vd.value||today()});save();render();}},'+ Add vaccine'));w.appendChild(xc);
+  w.appendChild(h('div',{class:'card',id:'med-tips'},h('h2',null,'💡 Tips & reminders'),h('ul',{class:'tips'},(isKid?[
+    'Well-child checkup once a year from age 3 (AAP Bright Futures)','Dentist every 6 months (AAPD); fluoride toothpaste, a pea-sized amount from age 3','Vision screening at checkups; eye exam if the screening or school flags anything (AAP/AAO)','Flu shot every fall for everyone 6 months+ (CDC)','Age 4–6 boosters (DTaP, polio, MMR, chickenpox) per the CDC schedule']:
+    ['Yearly preventive checkup with your doctor','Dentist cleaning every 6–12 months','Flu shot every fall (CDC); ask about other vaccines due','Cervical screening every 3–5 years, age 21–65 (USPSTF)','Eye exam every 1–2 years or as advised']).map(function(x){return h('li',null,x);})),h('p',{class:'muted small'},'General information from US guidance – not medical advice. Ask your doctor what’s right for '+(isKid?p.name:'you')+'.')));
+  return w;}
+function openLab(pid){var o={date:today(),panel:'',results:[{test:'',value:'',unit:'',low:'',high:''}]},body=h('div',{class:'form',id:'lab-form'});
+  function draw(){body.innerHTML='';var d=h('input',{type:'date',class:'stin',id:'lab-date',value:o.date,onchange:function(){o.date=d.value||o.date;}}),l=h('input',{type:'text',class:'stin',id:'lab-name',value:o.panel,placeholder:'Lab / panel (optional)',oninput:function(){o.panel=l.value;}});body.appendChild(d);body.appendChild(l);
+    o.results.forEach(function(r,i){function inp(k,ph,w){var e=h('input',{type:'text',class:'stin lab-'+k,value:r[k],placeholder:ph,style:'flex:'+w,oninput:function(){r[k]=e.value;}});return e;}
+      body.appendChild(h('div',{class:'row labin',style:'gap:6px;margin-top:8px'},inp('test','Marker',3),inp('value','Value',1.3),inp('unit','Unit',1.2)));
+      body.appendChild(h('div',{class:'row',style:'gap:6px;margin-top:4px'},h('span',{class:'muted small'},'Lab range'),inp('low','low',1),inp('high','high',1)));});
+    body.appendChild(h('button',{type:'button',class:'btn sec sm',id:'lab-addrow',style:'margin-top:8px',onclick:function(){o.results.push({test:'',value:'',unit:'',low:'',high:''});draw();}},'+ Marker'));
+    body.appendChild(h('p',{class:'hint'},'Use the reference range printed on the lab report – children’s ranges differ from adults’.'));}
+  draw();sheet({title:'Blood work · '+person(pid).name,body:body,onSave:function(){var R=o.results.filter(function(r){return r.test.trim();}).map(function(r){return {test:r.test.trim(),value:r.value,unit:r.unit,low:r.low===''?null:+r.low,high:r.high===''?null:+r.high};});if(!R.length){alert('Add at least one marker.');return false;}
+    var e={id:uid(),date:o.date,panel:o.panel,results:R};if(pid==='me')D.labs.push(e);else{e.pid=pid;D.famMed.labs.push(e);}save();render();toast('Saved 🩸');}});}
+function openVisit(pid){var o={type:'Pediatrician',clinic:'',date:today(),notes:'',next:'',nextTime:''},body=h('div',{class:'form',id:'visit-form'});if(pid==='me')o.type='Checkup';
+  function draw(){body.innerHTML='';body.appendChild(h('div',{class:'chips',id:'visit-type'},['Pediatrician','Checkup','Dentist','Eye','Specialist','Other'].map(function(t){return h('button',{type:'button',class:'chip big'+(o.type===t?' on':''),'data-v':t,onclick:function(){o.type=t;draw();}},t);})));
+    function f(k,type,ph){var e=h('input',{type:type,class:'stin',id:'visit-'+k,value:o[k],placeholder:ph,oninput:function(){o[k]=e.value;},onchange:function(){o[k]=e.value;}});return h('div',{class:'fld'},h('span',{class:'lbl'},ph),e);}
+    body.appendChild(f('date','date','Date'));body.appendChild(f('clinic','text','Doctor / clinic'));body.appendChild(f('notes','text','Notes'));body.appendChild(f('next','date','Next appointment (optional)'));body.appendChild(f('nextTime','time','Next appointment time'));}
+  draw();sheet({title:'Doctor visit · '+person(pid).name,body:body,onSave:function(){var e=Object.assign({id:uid(),pid:pid},o);if(!e.next)delete e.next;if(!e.nextTime)delete e.nextTime;D.famMed.visits.push(e);save();render();toast('Saved 🩺');}});}
+window.__fam={famDue:function(){return famDue(today());},famEvents:famEvents};
+/* Greta's family (her build only – excluded from the share copy) */
+function seedFamily(){fam();if(D.settings.familySeeded)return;var P=D.settings.people;
+  function add(name,emoji,color){var p=P.find(function(x){return x.name===name;});if(!p){p={id:uid(),name:name,emoji:emoji,color:color,kid:true};P.push(p);D.settings.kidTasks=D.settings.kidTasks.concat(defaultKidTasks(p.id));}return p.id;}
+  var M=add('Maya','🩷','#e86aa6'),K=add('Kai','💙','#4a8fe0'),A=D.settings.activities;
+  function act(day,pids,name,icon,s,e,unk){A.push({id:uid(),day:day,pids:pids,name:name,icon:icon,start:s,end:e,on:true,startUnknown:!!unk});}
+  if(!A.length){act(1,[M],'Drama','🎭','15:15','16:30');act(1,[K],'Soccer','⚽','15:30','16:00');act(1,[M,K],'Homework + piano + English + Spanish','📚','17:00','19:00');
+    act(2,[M,K],'Homework','📚','15:00','16:00');act(2,[M],'Ice skating','⛸️','16:00','17:00');act(2,[M,K],'Piano','🎹','17:00','18:00');
+    act(3,[M,K],'Homework','📚','15:00','16:30');act(3,[M],'Reading class','📖','16:30','17:30');
+    act(4,[K],'Drama','🎭','15:15','16:00');act(4,[M],'Tennis','🎾','16:30','17:30',true);act(4,[M,K],'Homework','📚','19:00','20:00');
+    act(5,[M,K],'Piano class','🎹','15:15','15:45');act(5,[M,K],'Homework','📚','17:00','19:00');}
+  D.settings.familySeeded=true;save();}
+if((D.settings.supps||[]).length||(D.settings.stacks||[]).length||D.settings.setupChoice==='greta')seedFamily();
+(function(){var lg=loadGretaSetup;loadGretaSetup=function(){lg();seedFamily();};})();
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
@@ -2924,7 +3072,7 @@ function importData(file){
 
 /* ================= Router / init ================= */
 var TABS=['today','cycle','track','insights','settings','eat','week','more'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart};
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
