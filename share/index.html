@@ -263,6 +263,7 @@ p{margin:6px 0}
 .fampop{position:relative;overflow:hidden}.fambar{position:absolute;left:0;right:0;top:0;height:8px}.famwho{text-align:center;font-weight:800;font-size:17px;margin-top:6px}
 .kday{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.kday.today .kdn{color:var(--accent,#d6739a)}.kdn{width:40px;font-weight:800;flex:none}.kdl{flex:1;display:flex;flex-direction:column;gap:6px}.kact{border:0;border-radius:10px;padding:8px 10px;text-align:left;font-size:14px;color:var(--text);min-height:40px}
 .labent{padding:8px 0;border-top:1px solid var(--line)}.labrow.flag{color:#b06a00}
+.li-row{padding:10px 0;border-top:1px solid var(--line)}.li-row .stin{flex:1;min-width:0}.li-row .rtime{width:96px}.li-row .btn.sm{flex:none;min-width:40px}.listpop .pq{line-height:1.25}
 </style>
 </head>
 <body>
@@ -276,7 +277,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-18 12:17-sef53532';
+var BUILD_ID='2026-10-18 20:41-saa96999';
 (function(){
 'use strict';
 /* ===== Share copy: no personal data, visitor's own name (prefix) ===== */
@@ -1827,6 +1828,7 @@ function vHome(){
   var sw=saunaWaterCard(t); if(sw)w.appendChild(sw);
   if(checkinOn())w.appendChild(feelCard(t));
   var sr=stackRows(t); if(sr)w.appendChild(sr);
+  eveListCards(t).forEach(function(c){w.appendChild(c);});
   var kc=kidsCard(t); if(kc)w.appendChild(kc);
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
   w.appendChild(h('div',{class:'tiles'},
@@ -1872,7 +1874,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -1965,16 +1967,18 @@ function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
   case 'gym':return D.gym.some(function(x){return x.date===t;})||!!(D.quick[t]&&D.quick[t].rest);case 'teetham':return habitOn(t,'teeth-am');case 'teethpm':return habitOn(t,'teeth-pm');case 'sauna':return habitOn(t,'sauna');case 'cold':return habitOn(t,'cold');case 'evening':return drinkAnswered(t)&&!bottlePending(t);}return true;}
 function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
   if(isSkipped(t,k))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
-function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t)).concat(famDue(t));
+function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t)).concat(listDue(t)).concat(famDue(t));
   return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:((b.st&&!b.sip?1:0)-(a.st&&!a.sip?1:0))||a._i-b._i;});}
 function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',teetham:'Brush your teeth',teethpm:'Brush your teeth',sauna:'Sauna time?',cold:'Cold plunge?',evening:'Log today – did you drink?'}[k];}
 function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
   if(r.rt)return routinePopup(t,r,L.length);
   if(r.st)return stackPopup(t,r,L.length);
   if(r.fam)return famPopup(t,r,L.length);
+  if(r.list)return listPopup(t,r,L.length);
   if(k==='evening'&&drinkAnswered(t))return bottlePopup(t,L.length);
   function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
   var btns;
+  var editList=k==='evening'?h('button',{class:'btn sec',id:'edit-evening-list',style:'margin-top:10px;width:100%',onclick:function(){openListEditor('evening');}},(lists().evening.items.length?'✏️ Edit my evening list':'✏️ Create my evening list')):null;
   if(k==='evening')btns=[h('button',{class:'btn',id:'rem-done','data-t':'remdone',onclick:function(ev){tap(ev,'Alcohol-free day saved','💧',function(){D.alcohol.push({id:uid(),date:t,type:'none',count:0,note:'',quick:true});});}},'No drinks'),
     h('button',{class:'btn sec',id:'rem-drank',onclick:function(){var q=qd(t);q.snooze=q.snooze||{};q.snooze.evening=Date.now()+36e5;drinkUI={yes:t};save();render();}},'I drank')];
   else if(k==='vit')btns=[h('button',{class:'btn',id:'rem-done',onclick:function(){vitChecklist(t);}},'💊 Open checklist')];
@@ -1987,9 +1991,9 @@ function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
     k==='vit'?h('div',{class:'muted small',style:'text-align:center'},suppList().map(function(s){return s.name;}).join(' · ')):null,
     k==='evening'&&bottlePending(t)?bottleRow(t):null,
     k==='skinpm'&&needlingSoon(t)?h('div',{class:'hintbox',id:'retinol-hint'},'🌿 Microneedling coming up – skip retinol & acids tonight'):null,
-    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat('+btns.length+',1fr)'},btns),L.length>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(L.length-1)+' more after this'):null);}
+    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat('+btns.length+',1fr)'},btns),editList,L.length>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(L.length-1)+' more after this'):null);}
 var dueKey='';
-function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});
+function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;})).concat(listDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});listDue(t).forEach(function(x){FL[x.k]=listLabel(x);});
   if(window.Notification&&Notification.permission==='granted'){var q=qd(t),ch=false;q.notified=q.notified||{};
     L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(FL[k]?FL[k]:k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
   var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&uiMode()==='simple'&&!document.querySelector('.ov')&&!document.hidden)render();}}
@@ -2217,11 +2221,11 @@ function skipIt(t,k){var q=qd(t);q.skip=q.skip||{};q.skip[k]=1;if(k.slice(0,2)==
 function skipBtn(t,k){return h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){tap(ev,'Skipped – no worries 🌿','🌿',function(){skipIt(t,k);});}},'Skip');}
 function fromLine(tm){if(!tm)return null;var n=nowHM();var p=tm.split(':'),m=+p[0]*60+ +p[1],q=n.split(':'),nm=+q[0]*60+ +q[1];if(nm-m<15)return null;return h('div',{class:'from muted small',style:'text-align:center'},'from '+fmtTime(tm).replace(':00 ',' ').replace(' AM',' AM').replace(' PM',' PM'));}
 function catchUpBtn(t){var L=dueList(t);if(L.length<2)return null;return h('button',{class:'btn sec catchup',id:'catch-up',onclick:function(){openCatchUp(t);}},'🧺 Catch up ('+L.length+')');}
-function doneFn(t,x){var k=x.k;if(x.fam)return function(){famDone(t,x);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
+function doneFn(t,x){var k=x.k;if(x.list)return function(){listDone(t,x);};if(x.fam)return function(){famDone(t,x);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
   if(x.rt){if(x.rt.type==='injection')return null;return function(){routineDone(t,x.rt);};}
   return {skinam:function(){skinRoutine(t,'am');},skinpm:function(){skinRoutine(t,'pm');},teetham:function(){logHabit(t,'teeth-am');},teethpm:function(){logHabit(t,'teeth-pm');},
     sauna:function(){logHabit(t,'sauna',D.settings.saunaMin||15);},cold:function(){logHabit(t,'cold',D.settings.coldMin||3);}}[k]||null;}
-function dueLabel(x){if(x.fam)return famLabel(x);if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
+function dueLabel(x){if(x.list)return listLabel(x);if(x.fam)return famLabel(x);if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
 function openCatchUp(t){var body=h('div',{id:'catch-list'});var s;
   function draw(){body.innerHTML='';var L=dueList(t);if(!L.length){body.appendChild(h('div',{class:'empty'},'All caught up ✨'));return;}
     L.forEach(function(x){var f=doneFn(t,x);body.appendChild(h('div',{class:'card cu-row','data-cu':x.k},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,dueLabel(x)),h('span',{class:'muted small'},'from '+fmtTime(x.tm))),
@@ -2374,6 +2378,7 @@ function confetti(){var E=['🎉','⭐','💪','✨','🎊','💖'];for(var i=0;
 function starsOn(d){var n=0;todaysStacksAt(d).forEach(function(){});
   n+=D.stackLog?D.stackLog.filter(function(x){return x.date===d&&x.done;}).length:0;
   if((D.water[d]||0)>=(D.settings.waterGoal||8))n+=1;
+  n+=(D.listLog||[]).filter(function(x){return x.date===d&&x.status==='done';}).length;
   habits().forEach(function(x){if(x.date===d)n+=1;});
   if(D.gym.some(function(g){return g.date===d;}))n+=3;
   var sk=D.skin.find(function(x){return x.date===d;});if(skinDone(sk,'am'))n+=1;if(skinDone(sk,'pm'))n+=1;
@@ -2382,7 +2387,7 @@ function starsOn(d){var n=0;todaysStacksAt(d).forEach(function(){});
   if(D.mood.some(function(m){return m.date===d;}))n+=1;
   return n;}
 function todaysStacksAt(){return [];}
-function allDays(){var s={};function a(d){if(d)s[d]=1;}Object.keys(COLL).forEach(function(k){D[k].forEach(function(e){a(dateOf(e));});});Object.keys(D.water).forEach(a);habits().forEach(function(x){a(x.date);});(D.stackLog||[]).forEach(function(x){a(x.date);});(D.routineLog||[]).forEach(function(x){a(x.date);});return Object.keys(s).sort();}
+function allDays(){var s={};function a(d){if(d)s[d]=1;}(D.listLog||[]).forEach(function(x){a(x.date);});Object.keys(COLL).forEach(function(k){D[k].forEach(function(e){a(dateOf(e));});});Object.keys(D.water).forEach(a);habits().forEach(function(x){a(x.date);});(D.stackLog||[]).forEach(function(x){a(x.date);});(D.routineLog||[]).forEach(function(x){a(x.date);});return Object.keys(s).sort();}
 function starsEarned(){return allDays().reduce(function(s,d){return s+starsOn(d);},0);}
 function starsSpent(){return (D.rewardLog||[]).reduce(function(s,x){return s+(x.cost||0);},0);}
 function starBalance(){return starsEarned()-starsSpent();}
@@ -2607,6 +2612,59 @@ function openVisit(pid){var o={type:'Pediatrician',clinic:'',date:today(),notes:
     body.appendChild(f('date','date','Date'));body.appendChild(f('clinic','text','Doctor / clinic'));body.appendChild(f('notes','text','Notes'));body.appendChild(f('next','date','Next appointment (optional)'));body.appendChild(f('nextTime','time','Next appointment time'));}
   draw();sheet({title:'Doctor visit · '+person(pid).name,body:body,onSave:function(){var e=Object.assign({id:uid(),pid:pid},o);if(!e.next)delete e.next;if(!e.nextTime)delete e.nextTime;D.famMed.visits.push(e);save();render();toast('Saved 🩺');}});}
 window.__fam={famDue:function(){return famDue(today());},famEvents:famEvents};
+
+/* ===== Evening / morning lists: one item at a time ===== */
+var LISTDEF={evening:{icon:'🌙',name:'Evening list',start:'20:00',on:true},morning:{icon:'☀️',name:'Morning list',start:'07:00',on:false}};
+function lists(){var s=D.settings;if(!s.lists||typeof s.lists!=='object')s.lists={};Object.keys(LISTDEF).forEach(function(k){var L=s.lists[k];if(!L||typeof L!=='object')L=s.lists[k]={};if(!Array.isArray(L.items))L.items=[];if(L.on==null)L.on=LISTDEF[k].on;if(!L.start)L.start=LISTDEF[k].start;if(L.gap==null)L.gap=0;});if(!Array.isArray(D.listLog))D.listLog=[];return s.lists;}
+function lLog(id,d){return D.listLog.find(function(x){return x.id2===id&&x.date===d;});}
+function lMark(id,d,st){var e=lLog(id,d);if(e)e.status=st;else D.listLog.push({id:uid(),id2:id,date:d,status:st});}
+function lClosed(id,d){return !!lLog(id,d);}
+function listProgress(lk,t){var L=lists()[lk],I=L.items;return {done:I.filter(function(x){var e=lLog(x.id,t);return e&&e.status==='done';}).length,closed:I.filter(function(x){return lClosed(x.id,t);}).length,total:I.length};}
+function listDue(t){var out=[],hm=nowHM(),LS=lists();Object.keys(LS).forEach(function(lk){var L=LS[lk];if(!L.on||!L.items.length||hm<L.start)return;
+  var gu=D.quick[t]&&D.quick[t].listGap&&D.quick[t].listGap[lk];if(gu&&Date.now()<gu)return;
+  var I=L.items,pos=0;for(var i=0;i<I.length;i++){var x=I[i];if(lClosed(x.id,t))continue;pos++;var k='l:'+x.id;if(snoozed(t,k))continue;if(x.time&&hm<x.time)continue;
+    out.push({k:k,list:1,lk:lk,li:x,tm:x.time||L.start,i:LISTDEF[lk].icon,l:x.name});break;}});return out;}
+function listLabel(x){return x.i+' '+x.li.name;}
+function listDone(t,x){lMark(x.li.id,t,'done');var L=lists()[x.lk];if(L.gap){var q=qd(t);q.listGap=q.listGap||{};q.listGap[x.lk]=Date.now()+L.gap*60000;}}
+function listFinishedCheck(t,lk){var p=listProgress(lk,t);if(p.total&&p.closed===p.total){confetti();toast(LISTDEF[lk].icon+' '+LISTDEF[lk].name+' finished – lovely! ⭐ +'+p.done);}}
+function listPopup(t,r,n){var L=lists()[r.lk],x=r.li,p=listProgress(r.lk,t),k=r.k;
+  function later(min){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+min*60000;save();render();toast('Okay, in '+min+' min ⏰');}
+  return h('div',{class:'card rempop listpop',id:'rem-pop','data-rem':k,role:'alert'},h('div',{class:'muted small',style:'text-align:center',id:'list-pos'},LISTDEF[r.lk].icon+' '+LISTDEF[r.lk].name+' · '+(p.closed+1)+' of '+p.total),
+    h('div',{class:'pq',style:'font-size:26px;margin:10px 0',id:'list-item'},x.name),x.tip?h('div',{class:'hintbox'},'💡 '+x.tip):null,fromLine(r.tm),
+    h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'margin-top:12px',onclick:function(ev){tap(ev,x.name+' ✓','⭐',function(){listDone(t,r);});listFinishedCheck(t,r.lk);}},'✓ Done'),
+    h('div',{class:'row',style:'gap:8px;margin-top:8px'},h('span',{class:'muted small',style:'flex:none'},'Later:'),[10,30,60].map(function(m){return h('button',{class:'btn sec sm','data-later':m,id:m===10?'rem-later':null,style:'flex:1',onclick:function(){later(m);}},m+' min');})),
+    h('button',{class:'btn sec',id:'rem-skip',style:'margin-top:8px',onclick:function(ev){tap(ev,'Skipped tonight – fine 🌿','🌿',function(){lMark(x.id,t,'skip');});listFinishedCheck(t,r.lk);}},'Skip tonight'),
+    n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
+function eveListCards(t){var LS=lists(),out=[];var EV=LS.evening;if(EV.on&&!EV.items.length&&!D.settings.listPromptOff&&nowHM()>=EV.start)out.push(h('div',{class:'card',id:'list-create-card'},h('div',{class:'pq'},'🌙 Make your evening list?'),h('p',{class:'muted small',style:'text-align:center'},'Type a few small things – the app reminds you one at a time.'),h('div',{class:'btns',style:'margin-top:8px'},h('button',{class:'btn',id:'list-create',onclick:function(){openListEditor('evening');}},'✏️ Create my evening list'),h('button',{class:'btn sec',id:'list-create-no',onclick:function(){D.settings.listPromptOff=true;save();render();}},'Not now'))));Object.keys(LS).forEach(function(lk){var L=LS[lk];if(!L.on||!L.items.length)return;var p=listProgress(lk,t);
+  out.push(h('div',{class:'card listcard',id:'list-card-'+lk},h('div',{class:'row',style:'justify-content:space-between'},h('h2',{style:'margin:0'},LISTDEF[lk].icon+' '+LISTDEF[lk].name+' '+p.done+'/'+p.total),h('button',{class:'btn sec sm',onclick:function(){openListEditor(lk);}},'✏️ Edit')),
+    h('div',{class:'muted small'},'Starts '+fmtTime(L.start)+' · one at a time'),
+    h('div',{class:'kchips'},L.items.map(function(x){var e=lLog(x.id,t),d=e&&e.status==='done',sk=e&&e.status==='skip';return h('button',{class:'kchip'+(d?' on':''),'data-li':x.name,style:d?'background:#5fb98a;border-color:#5fb98a':sk?'opacity:.5':'',onclick:function(ev){if(e){snap();D.listLog=D.listLog.filter(function(y){return y!==e;});save();render();return;}tap(ev,x.name+' ✓','⭐',function(){lMark(x.id,t,'done');});listFinishedCheck(t,lk);}},(d?'✓ ':'')+x.name);}))));});
+  return out;}
+var LSUGG=[['Pack school bags',null],['Lay out clothes',null],['Pack lunches',null],['Tidy kitchen 10 min','Set a 10-minute timer'],['Run the dishwasher',null],['Charge phone',null],['Set alarm',null],
+  ['Skin care',function(){return remOn('skinpm');}],['Brush teeth',function(){return remOn('teethpm');}],['Kids’ teeth & skin cream',function(){return typeof kidTasks==='function'&&kidTasks().some(function(x){return (x.k==='teethpm'||x.k==='cream')&&x.on!==false;});}]];
+var listTab='evening';
+function openListEditor(lk){listTab=lk||'evening';go('lists');}
+function vLists(){lists();var w=h('div');w.appendChild(hdr('My lists',{back:true,sub:'Reminds you one item at a time'}));var lk=listTab,L=lists()[lk];
+  w.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:12px'},Object.keys(LISTDEF).map(function(k){return h('button',{class:k===lk?'on':'','data-list':k,onclick:function(){listTab=k;render();}},LISTDEF[k].icon+' '+LISTDEF[k].name);})));
+  var c=h('div',{class:'card',id:'list-editor'});
+  c.appendChild(h('div',{class:'remrow'},h('span',{class:'rl'},'Reminders on'),h('button',{class:'tog'+(L.on?' on':''),id:'list-on',role:'switch','aria-checked':String(!!L.on),onclick:function(){L.on=!L.on;save();render();}},h('i'))));
+  c.appendChild(h('div',{class:'remrow'},h('span',{class:'rl'},'Start time'),h('input',{type:'time',class:'rtime',id:'list-start',value:L.start,onchange:function(){L.start=this.value||L.start;save();render();}})));
+  c.appendChild(h('div',{class:'remrow'},h('span',{class:'rl'},'After Done, next item'),h('div',{class:'chips',id:'list-gap'},[[0,'right away'],[5,'5 min'],[10,'10 min']].map(function(g){return h('button',{class:'chip'+(L.gap===g[0]?' on':''),'data-v':g[0],onclick:function(){L.gap=g[0];save();render();}},g[1]);}))));
+  if(!L.items.length)c.appendChild(h('div',{class:'empty'},'Your list is empty – add a few small things below.'));
+  L.items.forEach(function(x,i){var nm=h('input',{type:'text',class:'stin li-name',value:x.name,onchange:function(){if(this.value.trim()){x.name=this.value.trim();save();}}});
+    var tm=h('input',{type:'time',class:'rtime li-time',value:x.time||'',title:'Optional time','aria-label':'Optional time',onchange:function(){x.time=this.value||null;save();}});
+    var tip=h('input',{type:'text',class:'stin li-tip',value:x.tip||'',placeholder:'Tip (optional)',onchange:function(){x.tip=this.value.trim()||null;save();}});
+    c.appendChild(h('div',{class:'li-row','data-item':x.name},h('div',{class:'row',style:'gap:6px'},h('b',{style:'width:22px'},(i+1)+'.'),nm,tm),h('div',{class:'row',style:'gap:6px;margin-top:6px'},tip,
+      h('button',{class:'btn sec sm li-up','aria-label':'Move up',disabled:i===0,onclick:function(){L.items.splice(i-1,0,L.items.splice(i,1)[0]);save();render();}},'↑'),h('button',{class:'btn sec sm li-down','aria-label':'Move down',disabled:i===L.items.length-1,onclick:function(){L.items.splice(i+1,0,L.items.splice(i,1)[0]);save();render();}},'↓'),
+      h('button',{class:'btn sec sm li-del','aria-label':'Delete',onclick:function(){L.items.splice(i,1);save();render();}},'✕'))));});
+  var add=h('input',{type:'text',class:'stin',id:'list-add',placeholder:'Add an item, e.g. charge phone'});
+  function addItem(n,tip){n=(n||'').trim();if(!n)return;if(L.items.some(function(x){return x.name.toLowerCase()===n.toLowerCase();}))return;L.items.push({id:uid(),name:n,time:null,tip:tip||null});save();render();}
+  c.appendChild(h('div',{class:'row',style:'gap:8px;margin-top:12px'},add,h('button',{class:'btn sm',id:'list-add-btn',style:'flex:none',onclick:function(){addItem(add.value);}},'+ Add')));
+  c.appendChild(h('div',{class:'lbl',style:'margin-top:12px'},'Quick add'));
+  c.appendChild(h('div',{class:'chips',id:'list-sugg'},LSUGG.map(function(s){var cov=typeof s[1]==='function'&&s[1](),has=L.items.some(function(x){return x.name.toLowerCase()===s[0].toLowerCase();});
+    return h('button',{class:'chip'+(has?' on':''),'data-sugg':s[0],disabled:cov||has,title:cov?'Already a reminder':'',onclick:function(){addItem(s[0],typeof s[1]==='string'?s[1]:null);}},cov?'✓ '+s[0]+' (already reminded)':(has?'✓ ':'+ ')+s[0]);})));
+  w.appendChild(c);return w;}
+window.__lists={listDue:function(){return listDue(today());}};
 
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
@@ -3025,7 +3083,7 @@ function importData(file){
 
 /* ================= Router / init ================= */
 var TABS=['today','cycle','track','insights','settings','eat','week','more'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical};
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical,lists:vLists};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
