@@ -276,7 +276,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-19 21:45-2f7e213';
+var BUILD_ID='2026-10-20 08:54-826ff3f';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -2553,6 +2553,7 @@ function famPopup(t,r,n){var p=person(r.pids[0]),k=r.k;function later(){var q=qd
   var sub=r.act?(r.act.startUnknown?'start time? · ':'')+fmtTime(r.act.start)+(r.act.end?' – '+fmtTime(r.act.end):'')+' · starts in ~15 min':r.visit?((r.visit.clinic||'')+(r.visit.nextTime?' · '+fmtTime(r.visit.nextTime):'')):null;
   return h('div',{class:'card rempop fampop',id:'rem-pop','data-rem':k,role:'alert',style:'border-color:'+p.color},h('div',{class:'fambar',style:'background:'+col}),
     h('div',{class:'famwho',id:'fam-who',style:'color:'+p.color},r.pids.map(function(id){return person(id).emoji+' '+person(id).name;}).join('  ')),h('div',{class:'pq'},title),sub?h('div',{class:'muted small',style:'text-align:center'},sub):null,fromLine(r.tm),
+    r.kt&&r.kt.note?h('ul',{class:'tips kt-note',id:'kt-note',style:'text-align:left;margin:10px 0 0'},r.kt.note.split('\n').filter(function(l){return l.trim();}).map(function(l){return h('li',{style:/^\(?optional/i.test(l)?'opacity:.75':''},l.trim());})):null,
     r.kt&&r.kt.link?h('a',{class:'btn sec',id:'open-games',href:r.kt.link,target:'_blank',rel:'noopener',style:'display:block;text-align:center;margin-top:10px;text-decoration:none'},'🎮 Open games'):null,
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat(3,1fr)'},h('button',{class:'btn',id:'rem-done','data-t':'remdone',onclick:function(ev){tap(ev,p.name+' ✓ '+(r.l||''),'⭐',function(){famDone(t,r);});}},r.act?'✓ OK':'✓ Done'),
       h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k)),n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
@@ -2592,6 +2593,7 @@ function daysChips(sel,onPick){return h('div',{class:'chips'},[1,2,3,4,5,6,0].ma
 function openKidTask(x){var o=JSON.parse(JSON.stringify(x)),body=h('div',{class:'form',id:'kt-form'});function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
   function draw(){body.innerHTML='';var ti=h('input',{type:'time',class:'stin',id:'kt-time',value:o.time,onchange:function(){o.time=ti.value||o.time;}});body.appendChild(sec(o.sched?'Time (on days without a scheduled '+o.sched+' block)':'Time',ti));
     var we=h('input',{type:'time',class:'stin',id:'kt-time-we',value:o.timeWE||'',onchange:function(){o.timeWE=we.value||null;}});body.appendChild(sec('Weekends time (optional)',we));
+    var nt=h('textarea',{class:'stin',id:'kt-note-in',rows:4,style:'width:100%',placeholder:'What to give / notes (one per line)',oninput:function(){o.note=nt.value.trim()||null;}},o.note||'');body.appendChild(sec('Note (shown on the pop-up)',nt));
     var sel=o.days||[0,1,2,3,4,5,6];body.appendChild(sec('Days',daysChips(sel,function(d){var s=sel.slice(),i=s.indexOf(d);if(i>=0){if(s.length>1)s.splice(i,1);}else s.push(d);o.days=s.length===7?null:s;draw();})));}
   draw();sheet({title:person(o.pid).emoji+' '+person(o.pid).name+' — '+o.label,body:body,onSave:function(){Object.assign(x,o);save();render();toast('Saved');}});}
 function openActivity(a){var o=JSON.parse(JSON.stringify(a||{name:'',icon:'📅',pids:people().filter(function(p){return p.kid;}).slice(0,1).map(function(p){return p.id;}),day:1,start:'15:00',end:'16:00',on:true})),body=h('div',{class:'form',id:'act-form'});
@@ -2769,6 +2771,12 @@ if((D.settings.supps||[]).length||(D.settings.stacks||[]).length||D.settings.set
 (function(){var lg=loadGretaSetup;loadGretaSetup=function(){lg();seedFamily();};})();
 
 if(D.settings.sleepImport==null){D.settings.sleepImport=true;}
+
+/* Kids' vitamins: what to give (v2). Adds the note once to the default 'Vitamins' task; never overwrites her own edits. */
+var KID_VIT_NOTE='Vitamin D3 – 1 drop (Carlson Kid\u2019s Super Daily D3, 400 IU)\nFish oil – Carlson Kid\u2019s Chewable DHA 1–2 chewables (ages 4–8) or Nordic Ultimate Omega Junior 2 mini softgels (ages 9–13)\nVitamin C – ½ chewable (Natural Factors Big Friends, 250 mg tablet)';
+function migrateKidVit(){fam();if(D.settings.kidVitNoteV>=2)return;var ch=false;D.settings.kidTasks.forEach(function(x){if(x.k==='vit'&&x.label==='Vitamins'&&!x.note){x.note=KID_VIT_NOTE;x.label='Vitamins with breakfast';ch=true;}});if(D.settings.people.some(function(p){return p.kid;})){D.settings.kidVitNoteV=2;ch=true;}if(ch)save();}
+migrateKidVit();
+(function(){var sf=seedFamily;seedFamily=function(){sf();migrateKidVit();};})();
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
