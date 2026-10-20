@@ -262,6 +262,7 @@ p{margin:6px 0}
 .kday{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}.kday.today .kdn{color:var(--accent,#d6739a)}.kdn{width:40px;font-weight:800;flex:none}.kdl{flex:1;display:flex;flex-direction:column;gap:6px}.kact{border:0;border-radius:10px;padding:8px 10px;text-align:left;font-size:14px;color:var(--text);min-height:40px}
 .labent{padding:8px 0;border-top:1px solid var(--line)}.labrow.flag{color:#b06a00}
 .li-row{padding:10px 0;border-top:1px solid var(--line)}.li-row .stin{flex:1;min-width:0}.li-row .rtime{width:96px}.li-row .btn.sm{flex:none;min-width:40px}.listpop .pq{line-height:1.25}
+.es-steps{padding-left:22px;margin:0}.es-steps li{margin:0 0 12px;line-height:1.4}.es-steps li.sub{list-style:none;margin-left:6px}.es-steps b{display:block}
 </style>
 </head>
 <body>
@@ -275,7 +276,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-18 20:39-f23faeb';
+var BUILD_ID='2026-10-19 21:45-2f7e213';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1811,6 +1812,7 @@ function vHome(){
   var sw=saunaWaterCard(t); if(sw)w.appendChild(sw);
   if(checkinOn())w.appendChild(feelCard(t));
   var sr=stackRows(t); if(sr)w.appendChild(sr);
+  var slc=sleepCard(t);if(slc)w.appendChild(slc);
   eveListCards(t).forEach(function(c){w.appendChild(c);});
   var kc=kidsCard(t); if(kc)w.appendChild(kc);
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
@@ -1857,7 +1859,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -2699,6 +2701,59 @@ function vLists(){lists();var w=h('div');w.appendChild(hdr('My lists',{back:true
     return h('button',{class:'chip'+(has?' on':''),'data-sugg':s[0],disabled:cov||has,title:cov?'Already a reminder':'',onclick:function(){addItem(s[0],typeof s[1]==='string'?s[1]:null);}},cov?'✓ '+s[0]+' (already reminded)':(has?'✓ ':'+ ')+s[0]);})));
   w.appendChild(c);return w;}
 window.__lists={listDue:function(){return listDue(today());}};
+/* ===== Eight Sleep → Apple Health → Shortcut → clipboard/URL import ===== */
+function parseES(str){if(!str)return null;str=String(str).trim().replace(/^["'\s]+|["'\s]+$/g,'');var m=str.match(/ES1[;,&][^\s]*/i);if(!m)return null;
+  var o={},num=function(v){if(v==null||v==='')return null;v=String(v).trim().toLowerCase().replace(',','.');var mins=/m(in)?$/.test(v),hrs=/h$/.test(v);var n=parseFloat(v);if(!isFinite(n)||n<0)return null;if(mins)n=n/60;return Math.round(n*100)/100;};
+  m[0].split(/[;&]/).slice(1).forEach(function(p){var i=p.indexOf('=');if(i<1)return;o[p.slice(0,i).trim().toLowerCase()]=decodeURIComponent(p.slice(i+1).trim());});
+  var r={date:/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')?o.date:today()};
+  ['deep','rem','light','awake'].forEach(function(k){var v=num(o[k]!=null?o[k]:(k==='light'?o.core:null));if(v!=null&&v<=24)r[k]=v;});
+  var tot=num(o.total);if(tot==null&&(r.deep!=null||r.rem!=null||r.light!=null))tot=Math.round(((r.deep||0)+(r.rem||0)+(r.light||0))*100)/100;
+  if(tot==null||tot<=0||tot>24)return null;r.hours=Math.round(tot*10)/10;
+  var hr=parseFloat(o.hr),rr=parseFloat(o.rr);if(hr>20&&hr<200)r.hr=Math.round(hr);if(rr>3&&rr<60)r.rr=Math.round(rr*10)/10;return r;}
+function upsertSleep(r){var s=D.sleep.find(function(x){return x.date===r.date;}),f={hours:r.hours,src:'eightsleep'};['deep','rem','light','awake','hr','rr'].forEach(function(k){if(r[k]!=null)f[k]=r[k];});
+  if(s){Object.assign(s,f);delete s.quick;return 'updated';}D.sleep.push(Object.assign({id:uid(),date:r.date,score:null,bedtime:'',waketime:'',bedTemp:null,note:''},f));return 'added';}
+function h1(v){return (Math.round(v*10)/10).toString();}
+function sleepLine(s){var a=['Last night '+h1(s.hours)+' h'];if(s.deep!=null)a.push('deep '+h1(s.deep));if(s.rem!=null)a.push('REM '+h1(s.rem));if(s.light!=null)a.push('light '+h1(s.light));return a.join(' · ');}
+function openSleepConfirm(r,raw){var body=h('div',{id:'sleep-confirm'}),ta=h('textarea',{class:'stin',id:'sleep-paste',rows:3,placeholder:'Paste here: ES1;date=…;total=…',style:'width:100%'},raw||''),cur=r,s;
+  function draw(){var box=$('#sc-box',body);box.innerHTML='';if(!cur){box.appendChild(h('div',{class:'muted',id:'sc-none'},raw?'Hmm, that doesn’t look like sleep from the Shortcut. Paste it below.':'Paste the sleep text from your Shortcut below.'));return;}
+    var ex=D.sleep.find(function(x){return x.date===cur.date;});
+    box.appendChild(h('div',{class:'card',id:'sc-card',style:'text-align:center'},h('div',{class:'muted small'},'🛏 Night ending '+fmtD(cur.date)),h('div',{class:'kcal-big',id:'sc-hours'},h1(cur.hours)+' h'),
+      h('div',{class:'muted',id:'sc-stages'},[cur.deep!=null?'Deep '+h1(cur.deep)+' h':null,cur.rem!=null?'REM '+h1(cur.rem)+' h':null,cur.light!=null?'Light '+h1(cur.light)+' h':null,cur.awake!=null?'Awake '+h1(cur.awake)+' h':null].filter(Boolean).join(' · ')),
+      (cur.hr||cur.rr)?h('div',{class:'muted small'},[cur.hr?'❤️ '+cur.hr+' bpm':null,cur.rr?'🫁 '+cur.rr+' br/min':null].filter(Boolean).join(' · ')):null,
+      ex?h('div',{class:'muted small',id:'sc-update'},'Already logged for this night – this will update it.'):null));}
+  body.appendChild(h('div',{id:'sc-box'}));body.appendChild(h('div',{class:'lbl',style:'margin-top:12px'},'Or paste manually'));body.appendChild(ta);
+  ta.addEventListener('input',function(){cur=parseES(ta.value);raw=ta.value;draw();});draw();
+  s=sheet({title:'Last night’s sleep',body:body,saveLabel:'Save',onSave:function(){if(!cur){toast('Paste the sleep text first 🙂');return false;}snap();var how=upsertSleep(cur);save();render();showUndo('Sleep '+(how==='updated'?'updated':'saved')+' 🛏');}});}
+function pasteSleep(){if(navigator.clipboard&&navigator.clipboard.readText){navigator.clipboard.readText().then(function(tx){openSleepConfirm(parseES(tx),tx);},function(){openSleepConfirm(null,'');});}else openSleepConfirm(null,'');}
+function sleepCard(t){var s=D.sleep.find(function(x){return x.date===t;});
+  if(s&&s.hours)return h('div',{class:'muted small',id:'sleep-line',style:'text-align:center;margin:-4px 0 10px'},'🛏 '+sleepLine(s));
+  var q=qd(t);if(q.sleepNo||nowHM()>='14:00'||!D.settings.sleepImport)return nowHM()<'14:00'||!D.settings.sleepImport?null:h('div',{style:'text-align:center;margin:-4px 0 10px'},h('button',{class:'link',id:'sleep-paste-btn',onclick:pasteSleep},'📋 Add last night’s sleep'));
+  return h('div',{class:'card',id:'sleep-offer'},h('div',{class:'row',style:'gap:10px'},h('button',{class:'btn',id:'sleep-paste-btn',style:'flex:2',onclick:pasteSleep},'📋 Add last night’s sleep'),h('button',{class:'btn sec',id:'sleep-no',style:'flex:1',onclick:function(){qd(t).sleepNo=1;save();render();}},'Not today')));}
+function sleepFromURL(){try{var u=new URL(location.href),v=u.searchParams.get('sleep');if(!v)return;var r=parseES(/^ES1/i.test(v)?v:'ES1;'+v);u.searchParams.delete('sleep');history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
+  if(!r){setTimeout(function(){toast('Couldn’t read that sleep link');},300);return;}snap();var how=upsertSleep(r);D.settings.sleepImport=true;save();setTimeout(function(){showUndo('Sleep '+(how==='updated'?'updated':'saved')+' 🛏 '+h1(r.hours)+' h');},300);}catch(e){}}
+var ES_STEPS=[
+ ['In the Eight Sleep app','Open Eight Sleep → tap your Profile → Settings → Apple Health (sometimes under "Integrations") → turn it on and tap "Allow" for Sleep, Heart Rate and Respiratory Rate. (Eight Sleep doesn’t send HRV to Apple Health.)'],
+ ['New Shortcut','Open the Shortcuts app → tap + → name it "Sleep to Health Tracker".'],
+ ['Start at zero','Add "Number" → 0. Add "Set Variable" → name it Deep. Repeat 3 more times for REM, Core, Awake (each: Number 0 → Set Variable).'],
+ ['Find last night','Add "Find Health Samples". Set: Type is Sleep Analysis; tap "Add Filter" → Start Date is in the last 1 days. (Optional: Add Filter → Source is Eight Sleep.) Sort by Start Date.'],
+ ['Go through each piece','Add "Repeat with Each" (the Health Samples go in). Inside the repeat, add:'],
+ ['  a) Start + End','"Get Details of Health Sample" → Start Date of Repeat Item. Add another "Get Details of Health Sample" → End Date of Repeat Item.'],
+ ['  b) Minutes','"Get Time Between Dates" → between Start Date and End Date in Minutes.'],
+ ['  c) Which stage','"Get Details of Health Sample" → Value of Repeat Item.'],
+ ['  d) Add it up','"If" Value contains Deep → "Calculate" Deep + Time Between Dates → "Set Variable" Deep. Otherwise → If Value contains REM → same for REM. Otherwise → If contains Core → same for Core. Otherwise → If contains Awake → same for Awake. (Plain "Asleep" pieces can go into Core; ignore "In Bed".)'],
+ ['Today’s date','After "End Repeat": add "Format Date" → Current Date, Date Format: Custom → yyyy-MM-dd.'],
+ ['(Optional) heart + breathing','"Find Health Samples" → Type is Heart Rate, Start Date in the last 12 hours, Source is Eight Sleep → "Calculate Statistics" → Average. Same with Respiratory Rate.'],
+ ['Build the text','Add "Text" and type exactly (insert the variables where shown): ES1;date=[Formatted Date];deep=[Deep]m;rem=[REM]m;light=[Core]m;awake=[Awake]m   (optional: ;hr=[Average];rr=[Average]). The "m" means minutes – the app turns it into hours.'],
+ ['Copy','Add "Copy to Clipboard" (Text).'],
+ ['Tell me','Add "Show Notification" → "Sleep copied 🛏 – open Health Tracker and tap Add last night’s sleep". Don’t use "Open URL": it opens Safari, which has different storage from the home-screen app.'],
+ ['Run it every morning','Shortcuts → Automation → + → Time of Day → 8:00 AM, Repeat: Weekly, choose Mon–Fri → pick "Run Immediately" → Next → choose "Sleep to Health Tracker". Make a second one for 9:30 AM, Sat + Sun.'],
+ ['In the app','Open Health Tracker → tap "📋 Add last night’s sleep" → allow Paste → check → Save. If paste doesn’t work, paste into the box by hand.']];
+function vEightSleep(){var w=h('div');w.appendChild(hdr('Connect Eight Sleep',{back:true,sub:'via Apple Health + a Shortcut'}));
+  w.appendChild(h('div',{class:'card',id:'es-guide'},h('ol',{class:'es-steps'},ES_STEPS.map(function(x){return h('li',{class:/^\s/.test(x[0])?'sub':''},h('b',null,x[0].trim()),h('div',null,x[1]));}))));
+  w.appendChild(h('div',{class:'card'},h('button',{class:'btn',id:'es-try',onclick:function(){D.settings.sleepImport=true;save();pasteSleep();}},'📋 Add last night’s sleep now'),
+    h('div',{class:'muted small',style:'margin-top:8px'},'Example text: ES1;date=2026-10-19;deep=72m;rem=96m;light=246m;awake=30m – hours also work: total=7.4;deep=1.2')));
+  return w;}
+window.__sleep={parseES:parseES};
 /* Greta's family (her build only – excluded from the share copy) */
 function seedFamily(){fam();if(D.settings.familySeeded)return;var P=D.settings.people;
   function add(name,emoji,color){var p=P.find(function(x){return x.name===name;});if(!p){p={id:uid(),name:name,emoji:emoji,color:color,kid:true};P.push(p);D.settings.kidTasks=D.settings.kidTasks.concat(defaultKidTasks(p.id));}return p.id;}
@@ -2712,6 +2767,8 @@ function seedFamily(){fam();if(D.settings.familySeeded)return;var P=D.settings.p
   D.settings.familySeeded=true;save();}
 if((D.settings.supps||[]).length||(D.settings.stacks||[]).length||D.settings.setupChoice==='greta')seedFamily();
 (function(){var lg=loadGretaSetup;loadGretaSetup=function(){lg();seedFamily();};})();
+
+if(D.settings.sleepImport==null){D.settings.sleepImport=true;}
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
@@ -2954,7 +3011,7 @@ function vGym(){
 
 function vSleep(){
   var w=h('div'),t=today(),from=addDays(t,-29);
-  w.appendChild(hdr('Sleep',{back:1,sub:'Eight Sleep · manual entry'}));
+  w.appendChild(hdr('Sleep',{back:1,sub:'Eight Sleep · manual entry'}));w.appendChild(h('div',{class:'card'},h('button',{class:'btn',id:'sleep-paste-full',onclick:function(){D.settings.sleepImport=true;save();pasteSleep();}},'📋 Add last night’s sleep (Eight Sleep)')));
   var csvIn=h('input',{type:'file',accept:'.csv,text/csv,text/plain',id:'sleep-csv',style:'display:none',onchange:function(){var f=csvIn.files[0];if(!f)return;var r=new FileReader();r.onload=function(){try{var res=importSleepCSV(String(r.result));toast('Imported: '+res.added+' new, '+res.updated+' updated'+(res.skipped?', '+res.skipped+' skipped':''));}catch(err){alert(err.message);}};r.readAsText(f);csvIn.value='';}});
   w.appendChild(csvIn);
   w.appendChild(h('div',{class:'btns'},h('button',{class:'btn',style:'background:'+CATS.sleep.c,id:'log-sleep',onclick:function(){openSleep();}},'🌙 Log sleep'),h('button',{class:'btn sec',id:'import-csv',onclick:function(){csvIn.click();}},'Import CSV')));
@@ -3129,7 +3186,7 @@ function importData(file){
 
 /* ================= Router / init ================= */
 var TABS=['today','cycle','track','insights','settings','eat','week','more'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical,lists:vLists};
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical,lists:vLists,eightsleep:vEightSleep};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
@@ -3147,6 +3204,7 @@ document.addEventListener('visibilitychange',function(){if(!document.hidden&&!do
 (function icon(){try{var c=document.createElement('canvas');c.width=c.height=180;var x=c.getContext('2d'),g=x.createLinearGradient(0,0,180,180);g.addColorStop(0,'#f29bb6');g.addColorStop(1,'#a97cc0');x.fillStyle=g;x.fillRect(0,0,180,180);
   x.fillStyle='#fff';x.beginPath();x.moveTo(90,138);x.bezierCurveTo(28,98,36,46,66,46);x.bezierCurveTo(80,46,87,56,90,63);x.bezierCurveTo(93,56,100,46,114,46);x.bezierCurveTo(144,46,152,98,90,138);x.fill();
   var u=c.toDataURL('image/png');[].forEach.call(document.querySelectorAll('link[rel=icon],link[rel=apple-touch-icon]'),function(l){l.href=u;});}catch(e){}})();
+if(typeof sleepFromURL==='function')sleepFromURL();
 render();
 })();
 </script>
