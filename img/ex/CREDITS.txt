@@ -4,3 +4,6 @@ License: The Unlicense (public domain dedication).
 Resized/re-encoded to WebP for the Health Tracker.
 
 Added 2026-10-21 (same source/license): ab finishers Flat_Bench_Lying_Leg_Raise, Ab_Roller, Air_Bike, Reverse_Crunch, Decline_Crunch; stretches Ankle_On_The_Knee, Hamstring_Stretch, Kneeling_Hip_Flexor, Knee_Across_The_Body, Childs_Pose, Chest_And_Front_Of_Shoulder_Stretch, Standing_Lateral_Stretch, Shoulder_Stretch, Triceps_Stretch, On_Your_Side_Quad_Stretch, Cat_Stretch.
+
+Stretch cool-down v2 (2026-10-21): added free-exercise-db (Unlicense) Hug_Knees_To_Chest, Calf_Stretch_Hands_Against_Wall, Upper_Back-Leg_Grab, Elbows_Back, Kneeling_Forearm_Stretch, 90_90_Hamstring; removed Chest_And_Front_Of_Shoulder_Stretch (not exact).
+Illus_Butterfly, Illus_Cobra, Illus_Biceps_Wall: simple original illustrations made for this app (no accurate solo photo available); public domain (CC0).

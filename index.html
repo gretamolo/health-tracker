@@ -276,7 +276,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-21 09:09-571842c';
+var BUILD_ID='2026-10-21 09:23-2f588ed';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -2337,14 +2337,53 @@ var BODY={glutes:['🍑','Glutes',['Hip thrust (barbell or Smith)','Bulgarian sp
 var ABS=['Hanging knee raise','Cable crunch','Dead bug','Ab wheel rollout','Bicycle crunch','Reverse crunch','Plank','Lying leg raise','Side plank','Decline crunch'];
 function absIdx(){var i=D.settings.absIdx;return typeof i==='number'&&i>=0?i%ABS.length:0;}
 function nextAb(list){for(var k=0;k<ABS.length;k++){var n=ABS[(absIdx()+k)%ABS.length];if(list.indexOf(n)<0)return n;}return ABS[absIdx()];}
-var STRETCH={
- glute:[['Figure-4 glute stretch','30 s /side','Lie back, ankle over knee, gently pull the thigh in'],['Lying hamstring stretch','30 s /side','Leg up with a band or towel, knee soft, no bouncing'],['Kneeling hip flexor stretch','30 s /side','Tuck tailbone, squeeze back glute, lean forward a little'],['Knee-across twist','30 s /side','Shoulders stay down, let the knee drop across'],['Child’s pose','45 s','Sit back to heels, arms long, slow breaths']],
- upper:[['Doorway chest stretch','30 s /side','Forearm on the door frame, step through gently'],['Standing side (lat) stretch','30 s /side','Reach up and over, long through the side'],['Cross-body shoulder stretch','30 s /side','Pull the arm across at chest height'],['Overhead triceps stretch','30 s /side','Hand behind head, gently press the elbow'],['Child’s pose','45 s','Walk hands forward to stretch the back']],
- legcore:[['Side-lying quad stretch','30 s /side','Heel to bum, knees together, hips forward'],['Kneeling hip flexor stretch','30 s /side','Tuck tailbone, squeeze back glute'],['Figure-4 glute stretch','30 s /side','Ankle over knee, pull thigh in'],['Cat–cow','8 slow reps','Round up, then let the belly drop; move with your breath'],['Child’s pose','45 s','Sit back, relax the belly']]};
-function stretchSet(key){var b=key.slice(0,3)==='BP:'?key.slice(3):null;return STRETCH[b?({glutes:'glute',legs:'legcore',core:'legcore'}[b]||'upper'):({D1:'glute',D2:'upper',D3:'legcore'}[key]||'legcore')];}
+/* ===== Cool-down v2: stretches picked from the muscles actually worked =====
+ Evidence: ACSM (Garber et al. 2011, MSSE position stand): static holds 10–30 s, ~60 s total per muscle (2–4 reps). Post-exercise static stretching improves flexibility; it does not prevent soreness much (Herbert et al. 2011, Cochrane) – it's for range of motion and winding down. */
+var MUS={gmax:'Glutes',gmed:'Side glutes (glute med)',ham:'Hamstrings',add:'Inner thighs (adductors)',hipf:'Hip flexors',quad:'Quads',calf:'Calves',lowb:'Lower back',lats:'Lats',upb:'Upper back / rhomboids',chest:'Chest',fdelt:'Front delts',rdelt:'Rear & side delts',bi:'Biceps',tri:'Triceps',fore:'Forearms',abs:'Abs',obl:'Obliques'};
+var STR=[
+ {n:'Figure-4 glute stretch',m:['gmax','gmed'],img:'Ankle_On_The_Knee',hold:'30 s /side',c:['Lie on your back, ankle over the opposite knee','Pull the bottom thigh toward you','Keep head and shoulders relaxed'],f:'Deep in the glute of the crossed leg'},
+ {n:'Lying knee-across stretch',m:['gmed','lowb','gmax'],img:'Knee_Across_The_Body',hold:'30 s /side',c:['Lie on your back, one knee bent','Let it drop across your body with the opposite hand','Both shoulders stay on the floor'],f:'Outer hip and side glute, a little low back'},
+ {n:'Lying hamstring stretch',m:['ham','calf'],img:'Hamstring_Stretch',hold:'30 s /side',c:['On your back, band/towel around one foot','Raise the straight leg until you feel a pull','Other leg long on the floor'],f:'Back of the thigh, not behind the knee'},
+ {n:'90/90 hamstring stretch',m:['ham'],img:'90_90_Hamstring',hold:'30 s /side',c:['On your back, hold behind one thigh at 90°','Slowly straighten that knee','Stop where it pulls – no bouncing'],f:'Middle of the hamstring'},
+ {n:'Butterfly stretch',m:['add'],img:'Illus_Butterfly',hold:'30 s ×2',c:['Sit tall, soles of the feet together','Let knees drop out, hands on feet','Hinge forward a little with a long back'],f:'Inner thighs / groin'},
+ {n:'Kneeling hip flexor stretch',m:['hipf','quad'],img:'Kneeling_Hip_Flexor',hold:'30 s /side',c:['Half-kneel, back knee on a pad','Tuck the tailbone and squeeze the back glute','Shift forward a little – keep ribs down'],f:'Front of the hip of the back leg'},
+ {n:'Side-lying quad stretch',m:['quad','hipf'],img:'On_Your_Side_Quad_Stretch',hold:'30 s /side',c:['Lie on your side, hold top ankle','Heel toward bum, knees together','Push the hip slightly forward'],f:'Front of the thigh'},
+ {n:'Wall calf stretch',m:['calf'],img:'Calf_Stretch_Hands_Against_Wall',hold:'30 s /side',c:['Hands on the wall, one leg back','Back heel down, back knee straight','Lean in until the calf pulls'],f:'Calf of the back leg'},
+ {n:'Knees-to-chest',m:['lowb','gmax'],img:'Hug_Knees_To_Chest',hold:'30 s ×2',c:['On your back, hug both knees in','Let the low back sink into the floor','Breathe slowly'],f:'Low back, gently'},
+ {n:'Child’s pose (arms long)',m:['lats','lowb'],img:'Childs_Pose',hold:'30 s ×2',c:['Kneel, sit back toward your heels','Walk hands far forward, forehead down','Reach a little more to one side, then the other'],f:'Lats along the sides and low back'},
+ {n:'Standing side reach',m:['lats','obl'],img:'Standing_Lateral_Stretch',hold:'30 s /side',c:['Stand tall, one arm overhead','Reach up and over to the opposite side','Hips stay still – don’t twist'],f:'Along the side: lat and obliques'},
+ {n:'Seated upper-back stretch',m:['upb','rdelt'],img:'Upper_Back-Leg_Grab',hold:'30 s ×2',c:['Sit, knees bent, grab behind your thighs','Round your upper back and push it away','Let the head drop gently'],f:'Between the shoulder blades'},
+ {n:'Elbows-back chest stretch',m:['chest','fdelt','bi'],img:'Elbows_Back',hold:'30 s ×2',c:['Stand tall, hands on your lower back','Draw elbows back and together','Lift the chest, chin level'],f:'Across the chest and front of the shoulders'},
+ {n:'Cross-body shoulder stretch',m:['rdelt','upb'],img:'Shoulder_Stretch',hold:'30 s /side',c:['Bring one straight arm across the chest','Pull it in above the elbow','Keep the shoulder down, away from the ear'],f:'Back and side of the shoulder'},
+ {n:'Wall biceps stretch',m:['bi','fdelt','chest'],img:'Illus_Biceps_Wall',hold:'30 s /side',c:['Side-on to a wall, straight arm back at shoulder height','Palm flat on the wall, thumb up','Turn your body slowly away from the wall'],f:'Front of the upper arm and shoulder'},
+ {n:'Overhead triceps stretch',m:['tri','lats'],img:'Triceps_Stretch',hold:'30 s /side',c:['Hand behind your head, elbow up','Other hand gently presses the elbow','Stand tall, ribs down'],f:'Back of the upper arm'},
+ {n:'Kneeling forearm stretch',m:['fore','bi'],img:'Kneeling_Forearm_Stretch',hold:'30 s ×2',c:['On all fours, fingers pointing back to your knees','Palms flat, arms straight','Sit back slowly until it pulls'],f:'Inside of the forearms and wrists'},
+ {n:'Cobra stretch',m:['abs','hipf'],img:'Illus_Cobra',hold:'30 s ×2',c:['Lie face down, hands under shoulders','Press up slowly, hips stay on the floor','Shoulders down, only as high as feels easy'],f:'Front of the belly (abs)'}];
+STR.forEach(function(x){EXIMG[x.n]=[x.img,1];});
+/* exercise → muscles [primary…], [secondary…] */
+var EXM={'Hip thrust (barbell or Smith)':[['gmax'],['ham','quad']],'Hip thrust machine':[['gmax'],['ham']],'Glute bridge (DB)':[['gmax'],['ham']],'Cable kickback':[['gmax'],['ham']],'Glute kickback machine':[['gmax'],['ham']],
+ 'Hip abduction machine':[['gmed'],['gmax']],'Banded seated abduction':[['gmed'],['gmax']],'45° back extension (glute bias)':[['gmax','ham'],['lowb']],'Cable pull-through':[['gmax','ham'],['lowb']],
+ 'Bulgarian split squat':[['quad','gmax'],['add','hipf']],'Smith machine split squat':[['quad','gmax'],['add','hipf']],'Romanian deadlift (DB or barbell)':[['ham','gmax'],['lowb','add','fore']],'Smith machine RDL':[['ham','gmax'],['lowb','add']],
+ 'Seated leg curl':[['ham'],['calf']],'Lying leg curl':[['ham'],['calf']],'Squat (goblet, back or Smith)':[['quad','gmax'],['add','lowb']],'Hack squat machine':[['quad'],['gmax','add']],'Leg press':[['quad','gmax'],['add']],'Goblet squat':[['quad','gmax'],['add','upb']],
+ 'Walking lunge (DB)':[['quad','gmax'],['add','hipf','calf']],'Reverse lunge (Smith)':[['gmax','quad'],['add','hipf']],'Leg extension':[['quad'],[]],'Single-leg extension':[['quad'],[]],
+ 'Lat pulldown':[['lats'],['bi','upb','rdelt']],'Assisted pull-up machine':[['lats'],['bi','upb']],'Chest-supported row (machine or DB)':[['upb','lats'],['rdelt','bi']],'Seated cable row':[['upb','lats'],['bi','rdelt','fore']],'One-arm DB row':[['lats','upb'],['bi','fore']],'Straight-arm pulldown':[['lats'],['tri']],
+ 'Seated DB shoulder press':[['fdelt'],['tri','rdelt']],'Shoulder press machine':[['fdelt'],['tri']],'DB lateral raise':[['rdelt'],['upb']],'Cable lateral raise':[['rdelt'],['upb']],'Reverse pec deck (rear delts)':[['rdelt'],['upb']],'Face pull':[['rdelt','upb'],[]],
+ 'DB biceps curl':[['bi'],['fore']],'Cable curl':[['bi'],['fore']],'Hammer curl':[['bi','fore'],[]],'Triceps pushdown (cable)':[['tri'],[]],'Overhead DB triceps extension':[['tri'],[]],'Overhead cable extension':[['tri'],[]],
+ 'Incline DB press':[['chest','fdelt'],['tri']],'Chest press machine':[['chest'],['tri','fdelt']],'DB bench press':[['chest'],['tri','fdelt']],'Push-up (incline OK)':[['chest'],['tri','fdelt','abs']],'Pec deck / cable fly':[['chest'],['fdelt']],
+ 'Cable crunch':[['abs'],['obl']],'Hanging knee raise':[['abs','hipf'],['fore']],'Dead bug':[['abs'],['hipf']],'Pallof press':[['obl'],['abs']],'Plank':[['abs'],['obl']],'Side plank':[['obl'],['abs','gmed']],
+ 'Lying leg raise':[['abs','hipf'],[]],'Ab wheel rollout':[['abs'],['lats']],'Bicycle crunch':[['abs','obl'],['hipf']],'Reverse crunch':[['abs'],['hipf']],'Decline crunch':[['abs'],['hipf']]};
+function shortEx(n){return n.replace(/\s*\(.*?\)\s*/g,' ').replace(/Romanian deadlift/,'RDL').trim();}
+function coolDown(names){var sc={},by={},bs={};names.forEach(function(n){var m=EXM[n];if(!m)return;m[0].forEach(function(k){sc[k]=(sc[k]||0)+3;(by[k]=by[k]||[]).push(n);});m[1].forEach(function(k){sc[k]=(sc[k]||0)+1;(bs[k]=bs[k]||[]).push(n);});});Object.keys(bs).forEach(function(k){by[k]=(by[k]||[]).concat(bs[k]);});
+  var order=Object.keys(sc).sort(function(a,b){return sc[b]-sc[a]||Object.keys(MUS).indexOf(a)-Object.keys(MUS).indexOf(b);}),out=[],used={},covered={};
+  order.forEach(function(k){var w=by[k].filter(function(v,i,a){return a.indexOf(v)===i;});var prev=out.find(function(o){return o.s.m.indexOf(k)>=0;});
+    if(prev){if(sc[k]>=3){prev.keys.push(k);prev.label+=' & '+MUS[k].replace(/^./,function(c){return c.toLowerCase();});w.forEach(function(v){if(prev.ex.indexOf(v)<0)prev.ex.push(v);});}return;}
+    if(out.length>=6)return;var c=STR.filter(function(x){return x.m.indexOf(k)>=0&&!used[x.n];}).sort(function(a,b){return (a.m[0]===k?0:1)-(b.m[0]===k?0:1);})[0];if(!c)return;used[c.n]=1;
+    out.push({s:c,k:k,keys:[k],score:sc[k],label:MUS[k],ex:w.slice(),hold:sc[k]>=6&&/\/side/.test(c.hold)?'2 × 30 s /side':(/×2/.test(c.hold)?'30 s ×2':c.hold)});});
+  out.forEach(function(o){o.from=o.ex.slice(0,3).map(shortEx);});
+  if(out.length<5)['hipf','lowb','ham','chest'].forEach(function(k){if(out.length>=5||out.some(function(o){return o.k===k||o.s.m.indexOf(k)>=0;}))return;var c=STR.find(function(x){return x.m[0]===k&&!used[x.n];});if(c){used[c.n]=1;out.push({s:c,k:k,keys:[k],score:0,label:MUS[k],from:[],ex:[],hold:c.hold});}});
+  return out;}
 Object.assign(EXIMG,{'Lying leg raise':['Flat_Bench_Lying_Leg_Raise',0],'Ab wheel rollout':['Ab_Roller',1],'Bicycle crunch':['Air_Bike',1],'Reverse crunch':['Reverse_Crunch',1],'Decline crunch':['Decline_Crunch',1],
- 'Figure-4 glute stretch':['Ankle_On_The_Knee',1],'Lying hamstring stretch':['Hamstring_Stretch',1],'Kneeling hip flexor stretch':['Kneeling_Hip_Flexor',1],'Knee-across twist':['Knee_Across_The_Body',1],'Child’s pose':['Childs_Pose',1],
- 'Doorway chest stretch':['Chest_And_Front_Of_Shoulder_Stretch',0],'Standing side (lat) stretch':['Standing_Lateral_Stretch',1],'Cross-body shoulder stretch':['Shoulder_Stretch',0],'Overhead triceps stretch':['Triceps_Stretch',1],'Side-lying quad stretch':['On_Your_Side_Quad_Stretch',1],'Cat–cow':['Cat_Stretch',1]});
+ _x:0});
 var FINISH='Optional finisher: 8–10 min incline walk or bike intervals (30 s hard / 60 s easy).';
 var WHY='Glutes and legs get two days (Day 1 + Day 3) and upper body one focused day. Research basis: weekly sets per muscle drive growth – ~10+ hard sets/week beats fewer (Schoenfeld, Ogborn & Krieger 2017, J Sports Sci); with volume equal, how you split the week matters little, so a body-part split works fine (Schoenfeld, Grgic & Krieger 2019, J Sports Sci). Anywhere from ~6 to 30 reps builds muscle if sets end 1–3 reps short of failure (Schoenfeld et al. 2017, J Strength Cond Res; Stronger by Science / Jeff Nippard use 1–3 reps in reserve). Longer rest (~2 min) on big lifts gives better gains than 1 min (Schoenfeld et al. 2016, J Strength Cond Res). Hip thrusts load glutes more than squats in EMG (Contreras et al. 2015, J Appl Biomech) and grow glutes similarly to squats, while squats also build quads – so both are in (Plotkin et al. 2023, PeerJ). Seated leg curls grew hamstrings more than lying curls (Maeo et al. 2021, Med Sci Sports Exerc); overhead triceps work grew triceps more than pushdowns alone (Maeo et al. 2023, Eur J Sport Sci). Progression follows ACSM (2009): add ~2–10% load once you beat the top of the rep range.';
 function gymGoal(){return D.settings.gymGoal||3;}
@@ -2397,11 +2436,13 @@ function openWorkout(force,bp){finalizeDraft();var t=today(),key=force||(bp?'BP:
     body.appendChild(h('div',{class:'exr abr','data-ex':ab,id:'ab-row'},achk,exThumb(ab,ae[5]),h('div',{class:'tx'},h('b',null,ab),h('div',{class:'small'},(quick?2:ae[2])+' × '+ae[3]+' · rest '+ae[4]),h('div',{class:'muted small'},ae[5]),
       h('div',{class:'swaps'},h('button',{type:'button',class:'chip sm',id:'ab-swap',onclick:function(){openAbSwap(ab,function(n){abPick=n;gsave();draw();});}},'⇄ Swap ab exercise'))),awt));
     rows.push({el:null,get:function(){var o={name:ab,sets:quick?2:ae[2],reps:ae[3],weight:num(awt.value),done:achk.classList.contains('on'),abs:true};o.allHit=o.done;return o;}});
-    var ST=stretchSet(key),sticks=[];
-    var sb=h('div',{class:'card',id:'stretch',style:'margin-top:14px;background:#f3eefb'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'Stretch 🧘 (5 min)'),h('button',{type:'button',class:'chip sm',id:'stretch-all',onclick:function(){var g=G();sticks.forEach(function(c){c.classList.add('on');c.textContent='✓';g.st[c.dataset.n]=true;});save();}},'✓ All done')),
-      h('div',{class:'muted small'},'Gentle, no bouncing – breathe out into each stretch.'));
-    ST.forEach(function(x){var c=mkTick(x[0],'st');c.classList.add('st-tick');c.dataset.n=x[0];sticks.push(c);
-      sb.appendChild(h('div',{class:'exr str','data-stretch':x[0]},c,exThumb(x[0],x[2]),h('div',{class:'tx'},h('b',null,x[0]),h('div',{class:'small'},x[1]),h('div',{class:'muted small'},x[2]))));});
+    var ST=coolDown(list.concat([ab])),sticks=[];
+    var sb=h('div',{class:'card',id:'stretch',style:'margin-top:14px;background:#f3eefb'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'Stretch 🧘 (~'+Math.max(5,ST.length)+' min)'),h('button',{type:'button',class:'chip sm',id:'stretch-all',onclick:function(){var g=G();sticks.forEach(function(c){c.classList.add('on');c.textContent='✓';g.st[c.dataset.n]=true;});save();}},'✓ All done')),
+      h('div',{class:'muted small'},'Picked for the muscles you just worked. Ease in, breathe out, no bouncing – mild pull, never pain.'));
+    ST.forEach(function(o){var x=o.s,c=mkTick(x.n,'st');c.classList.add('st-tick');c.dataset.n=x.n;sticks.push(c);
+      sb.appendChild(h('div',{class:'exr str','data-stretch':x.n,'data-muscle':o.keys.join(' ')},c,exThumb(x.n,x.c.join(' · ')),h('div',{class:'tx'},h('div',{class:'small st-mus',style:'color:#7b5fb0;font-weight:700'},o.label+(o.from.length?' – worked by '+o.from.join(', '):'')),h('b',null,x.n),h('div',{class:'small'},o.hold),
+        h('ul',{class:'muted small st-cues',style:'margin:2px 0 0 16px;padding:0'},x.c.map(function(q){return h('li',null,q);})),h('div',{class:'small st-feel',style:'color:#5a8f6a'},'Feel it: '+x.f))));});
+    sb.appendChild(h('div',{class:'muted small',style:'margin-top:6px'},'Why: ACSM recommends ~30-s holds, about 60 s total per muscle. Stretching after training helps flexibility and winding down (it doesn’t do much for soreness).'));
     stretchTicks=sticks;
     if(!quick)body.appendChild(h('p',{class:'hint'},FINISH));
     body.appendChild(sb);
@@ -2564,7 +2605,7 @@ function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
       h('span',{class:'stime'},'💊'),h('span',{class:'stx'},h('b',null,sp.name),h('small',null,sp.dose||'')),h('span',{class:'sck'},on?'✓':'')));});}
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
-window.openWorkout=openWorkout;window.finalizeDraft=finalizeDraft;window.__ex={ABS:ABS,STRETCH:STRETCH,EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
+window.openWorkout=openWorkout;window.finalizeDraft=finalizeDraft;window.__ex={ABS:ABS,STR:STR,EXM:EXM,coolDown:coolDown,EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
 /* ===== Family: people, kid tasks, weekly activities, medical records ===== */
 function fam(){var s=D.settings;if(!Array.isArray(s.people))s.people=[];if(!Array.isArray(s.kidTasks))s.kidTasks=[];if(!Array.isArray(s.activities))s.activities=[];
   if(!Array.isArray(D.kidLog))D.kidLog=[];if(!D.famMed||typeof D.famMed!=='object')D.famMed={};['labs','visits','vaccines'].forEach(function(k){if(!Array.isArray(D.famMed[k]))D.famMed[k]=[];});return s.people;}
