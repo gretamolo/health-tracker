@@ -264,6 +264,7 @@ p{margin:6px 0}
 .li-row{padding:10px 0;border-top:1px solid var(--line)}.li-row .stin{flex:1;min-width:0}.li-row .rtime{width:96px}.li-row .btn.sm{flex:none;min-width:40px}.listpop .pq{line-height:1.25}
 .es-steps{padding-left:22px;margin:0}.es-steps li{margin:0 0 12px;line-height:1.4}.es-steps li.sub{list-style:none;margin-left:6px}.es-steps b{display:block}
 .it{position:relative}.it-del{background:none;border:0;font-size:18px;padding:8px;margin-left:4px;opacity:.55;min-width:40px;min-height:40px}.dt-row .rl small{font-weight:400}
+.tile{position:relative}.tminus{position:absolute;top:6px;right:6px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#555;line-height:1}
 </style>
 </head>
 <body>
@@ -277,7 +278,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-21 10:24-36cff16';
+var BUILD_ID='2026-10-21 10:41-e97d48b';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1894,7 +1895,7 @@ function renderTabbar(){var m=uiMode();if(tabMode===m)return;tabMode=m;var nb=$(
 /* ===== Water ===== */
 function waterTile(t,wa){var g=D.settings.waterGoal||8,pct=Math.min(1,wa/g);
   return h('button',{class:'tile'+(wa>=g?' on':''),'data-t':'water',onclick:function(ev){tap(ev,'💧 '+(wa+1)+' / '+g+' glasses','💧',function(){D.water[t]=wa+1;qd(t).waterAt=Date.now();});}},
-    h('span',{class:'wring',html:ringSVG(pct,'#4fb3e0',46,5,'<text x="23" y="29" text-anchor="middle" font-size="18">💧</text>')}),h('b',null,'Water +1'),h('small',{id:'water-count'},wa+' / '+g));}
+    h('span',{class:'wring',html:ringSVG(pct,'#4fb3e0',46,5,'<text x="23" y="29" text-anchor="middle" font-size="18">💧</text>')}),h('b',null,'Water +1'),h('small',{id:'water-count'},wa+' / '+g),wa>0?tileMinus('water',t,'glass of water',function(){var n=(D.water[t]||0)-1;if(n>0)D.water[t]=n;else delete D.water[t];}):null);}
 function waterDue(t){var hr=new Date().getHours(),wa=D.water[t]||0,g=D.settings.waterGoal||8,q=(D.quick&&D.quick[t])||{};
   if(hr<9||hr>=21||wa>=g)return false;var last=q.waterAt||null;
   if(q.waterSnooze&&Date.now()-q.waterSnooze<3*36e5)return false;
@@ -2238,26 +2239,33 @@ function openCatchUp(t){var body=h('div',{id:'catch-list'});var s;
 function habits(){if(!Array.isArray(D.habits))D.habits=[];return D.habits;}
 function habitOn(d,type){return habits().some(function(x){return x.date===d&&x.type===type;});}
 function logHabit(d,type,min){habits().push(Object.assign({id:uid(),date:d,type:type,time:nowTime()},min?{min:min}:{}));
-  if(type==='sauna'){qd(d).saunaWaterAsk=1;}}
+  if(type==='sauna'||type==='infrared'){qd(d).saunaWaterAsk=1;}}
 function habitWeek(type,t){var ws=weekStart(t||today());return habits().filter(function(x){return x.type===type&&x.date>=ws&&x.date<=addDays(ws,6);}).length;}
 function tileOn(k){var T=D.settings.tiles||{};return T[k]!==false;}
 function extraTiles(t){var out=[];
   if(tileOn('teeth')){var a=habitOn(t,'teeth-am'),p=habitOn(t,'teeth-pm'),pm=new Date().getHours()>=15;
     out.push(tile('teeth','🦷','Teeth','AM '+(a?'✓':'·')+'  PM '+(p?'✓':'·'),a&&p,function(ev){var w=!pm?(a?null:'teeth-am'):(p?(a?null:'teeth-am'):'teeth-pm');if(!w){toast(pm?'Both done today ✨':'Morning done ✓ – evening later');return;}tap(ev,'🦷 '+(w==='teeth-am'?'Morning':'Evening')+' brush ✓','🦷',function(){logHabit(t,w);});}));}
   if(tileOn('sauna'))out.push(tile('sauna','🧖','Sauna',habitWeek('sauna',t)+' this week',habitOn(t,'sauna'),function(ev){tap(ev,'Sauna '+(D.settings.saunaMin||15)+' min ✓ – sip some water 💧','🧖',function(){logHabit(t,'sauna',D.settings.saunaMin||15);});}));
+  if(tileOn('infrared'))out.push(tile('infrared','♨️','Infrared',habitWeek('infrared',t)+' this week',habitOn(t,'infrared'),function(ev){tap(ev,'♨️ Infrared sauna '+(D.settings.irMin||30)+' min ✓ – sip some water 💧','♨️',function(){logHabit(t,'infrared',D.settings.irMin||30);});}));
   if(tileOn('cold'))out.push(tile('cold','❄️','Cold plunge',habitWeek('cold',t)+' this week',habitOn(t,'cold'),function(ev){var lifted=D.gym.some(function(g){return g.date===t&&g.type==='Strength';});tap(ev,lifted?'❄️ Logged · tip: keep cold ~6 h away from lifting':'❄️ Cold plunge '+(D.settings.coldMin||3)+' min ✓','❄️',function(){logHabit(t,'cold',D.settings.coldMin||3);});}));
+  out.forEach(function(el){var k=el.dataset.t,ty={sauna:'sauna',cold:'cold',infrared:'infrared'}[k];if(ty&&lastHabit(t,ty))el.appendChild(tileMinus(k,t,{cold:'cold plunge',sauna:'sauna',infrared:'infrared sauna'}[k],function(){var x=lastHabit(t,ty);if(x)D.habits=D.habits.filter(function(y){return y!==x;});}));
+    if(k==='teeth'&&(lastHabit(t,'teeth-pm')||lastHabit(t,'teeth-am')))el.appendChild(tileMinus(k,t,'brush',function(){var x=lastHabit(t,'teeth-pm')||lastHabit(t,'teeth-am');if(x)D.habits=D.habits.filter(function(y){return y!==x;});}));});
   return out;}
 function saunaWaterCard(t){var q=D.quick[t];if(!q||q.saunaWaterAsk!==1)return null;
   return h('div',{class:'card nudge',id:'sauna-water'},h('div',{class:'pq'},'🧖 After sauna: a glass of water?'),h('div',{class:'btns',style:'margin:10px 0 0'},
     h('button',{class:'btn',id:'sauna-water-yes','data-t':'sw',onclick:function(ev){tap(ev,'💧 +1 glass','💧',function(){D.water[t]=(D.water[t]||0)+1;qd(t).waterAt=Date.now();qd(t).saunaWaterAsk=2;});}},'+1 glass'),
     h('button',{class:'btn sec',id:'sauna-water-no',onclick:function(){qd(t).saunaWaterAsk=2;save();render();}},'Not now')));}
-function vHeat(){var w=h('div'),t=today();w.appendChild(hdr('Sauna & cold',{back:true}));
+function vHeat(){var w=h('div'),t=today();w.appendChild(hdr('Sauna, infrared & cold',{back:true}));
   var sm=D.settings.saunaMin||15,cm=D.settings.coldMin||3;
   function step(id,val,set){return h('div',{class:'stepper'},h('button',{'aria-label':'Decrease',onclick:function(){set(-1);}},'−'),h('div',{class:'v',id:id},val+' min'),h('button',{'aria-label':'Increase',onclick:function(){set(1);}},'+'));}
   w.appendChild(h('div',{class:'card'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'🧖 Sauna · '+habitWeek('sauna',t)+' this week'),step('sauna-min',sm,function(d){D.settings.saunaMin=Math.max(5,Math.min(45,sm+d*5));save();render();})),
     h('button',{class:'btn',id:'log-sauna',style:'margin-top:10px',onclick:function(ev){tap(ev,'Sauna '+sm+' min ✓','🧖',function(){logHabit(t,'sauna',sm);});}},'Log sauna '+sm+' min'),
     h('ul',{class:'tips'},h('li',null,'Hydrate – have a glass of water after'),h('li',null,'Get out if dizzy; skip with alcohol, illness, pregnancy or heart issues unless your doctor says OK')),
     h('p',{class:'hint'},'Evidence: Finnish cohort studies (Laukkanen et al., JAMA Intern Med 2015) linked sauna 4–7×/week with lower cardiovascular and all-cause mortality vs once a week. Observational – associations, not proof.')));
+  var im=D.settings.irMin||30;w.appendChild(h('div',{class:'card',id:'ir-card'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'♨️ Infrared sauna · '+habitWeek('infrared',t)+' this week'),step('ir-min',im,function(d){D.settings.irMin=Math.max(10,Math.min(60,im+d*5));save();render();})),
+    h('button',{class:'btn',id:'log-infrared',style:'margin-top:10px',onclick:function(ev){tap(ev,'♨️ Infrared sauna '+im+' min ✓','♨️',function(){logHabit(t,'infrared',im);});}},'Log infrared '+im+' min'),
+    h('ul',{class:'tips'},h('li',null,'Lower air temperature (~45–60 °C) than a classic sauna, so sessions are usually longer (20–40 min)'),h('li',null,'Drink water after; skip if unwell, pregnant or with heart issues – check with your doctor')),
+    h('p',{class:'hint'},'Evidence: smaller, shorter studies than for Finnish sauna – some show lower blood pressure and less muscle soreness. Promising but not proven.')));
   w.appendChild(h('div',{class:'card'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'❄️ Cold plunge · '+habitWeek('cold',t)+' this week'),step('cold-min',cm,function(d){D.settings.coldMin=Math.max(1,Math.min(10,cm+d));save();render();})),
     h('button',{class:'btn',id:'log-cold',style:'margin-top:10px',onclick:function(ev){tap(ev,'Cold plunge '+cm+' min ✓','❄️',function(){logHabit(t,'cold',cm);});}},'Log cold '+cm+' min'),
     h('ul',{class:'tips'},h('li',null,'Never plunge alone; get out if numb or shivering hard'),h('li',null,'Avoid with heart problems, high blood pressure or pregnancy – check with your doctor')),
@@ -2502,7 +2510,7 @@ function vRewards(){var w=h('div'),L=levelInfo(),bal=starBalance(),run=runDays()
   var RL=(D.rewardLog||[]).slice(-5).reverse();if(RL.length)w.appendChild(h('div',{class:'card'},h('h2',null,'Treats enjoyed'),RL.map(function(x){return h('div',{class:'small',style:'padding:3px 0'},'🎁 '+x.name+' · '+fmtRel(x.date));})));
   return w;}
 function extrasSettings(){var T=D.settings.tiles||{};function tg(k,l){var on=T[k]!==false;return h('div',{class:'remrow','data-tile':k},h('span',{class:'rl'},l),h('button',{class:'tog'+(on?' on':''),role:'switch','aria-checked':String(on),'aria-label':l,onclick:function(){D.settings.tiles=Object.assign({},D.settings.tiles||{});D.settings.tiles[k]=!on;save();render();}},h('i')));}
-  return h('div',{class:'card',id:'extras-settings'},h('h2',null,'Today screen'),tg('teeth','🦷 Teeth tile'),tg('sauna','🧖 Sauna tile'),tg('cold','❄️ Cold plunge tile'),tg('stars','⭐ Star counter'),h('div',{class:'remrow','data-tile':'checkin'},h('span',{class:'rl'},'😊 Mood/energy/sleep on Today'),h('button',{class:'tog'+(checkinOn()?' on':''),role:'switch','aria-checked':String(checkinOn()),'aria-label':'Mood check-in on Today',onclick:function(){var nv=!checkinOn();D.settings.tiles=Object.assign({},D.settings.tiles||{});D.settings.tiles.checkin=nv;try{localStorage.setItem('gretaHealth.checkin',nv?'1':'0');}catch(e){}save();render();}},h('i'))),
+  return h('div',{class:'card',id:'extras-settings'},h('h2',null,'Today screen'),tg('teeth','🦷 Teeth tile'),tg('sauna','🧖 Sauna tile'),tg('infrared','♨️ Infrared sauna tile'),tg('cold','❄️ Cold plunge tile'),tg('stars','⭐ Star counter'),h('div',{class:'remrow','data-tile':'checkin'},h('span',{class:'rl'},'😊 Mood/energy/sleep on Today'),h('button',{class:'tog'+(checkinOn()?' on':''),role:'switch','aria-checked':String(checkinOn()),'aria-label':'Mood check-in on Today',onclick:function(){var nv=!checkinOn();D.settings.tiles=Object.assign({},D.settings.tiles||{});D.settings.tiles.checkin=nv;try{localStorage.setItem('gretaHealth.checkin',nv?'1':'0');}catch(e){}save();render();}},h('i'))),
     h('div',{class:'remrow'},h('span',{class:'rl'},'🏋️ Weekly gym goal'),h('div',{class:'stepper'},h('button',{'aria-label':'Decrease',onclick:function(){D.settings.gymGoal=Math.max(1,gymGoal()-1);save();render();}},'−'),h('div',{class:'v',id:'gym-goal'},gymGoal()),h('button',{'aria-label':'Increase',id:'gym-goal-inc',onclick:function(){D.settings.gymGoal=Math.min(7,gymGoal()+1);save();render();}},'+'))));}
 
 /* ===== Setup (fresh install) ===== */
@@ -2876,17 +2884,40 @@ function jremove(id){var j=journal();j.e=j.e.filter(function(x){return x.id!==id
 function undoEntry(e){jundo(e.ops);jremove(e.id);D=normalize(D);save();render();}
 showUndo=function(msg){lastJ=jrecord(msg);var u=$('#undo-bar');if(!u){u=h('div',{id:'undo-bar',class:'undo-bar',role:'status'},h('span',{class:'um'}),h('button',{id:'undo-btn',onclick:function(){undoLast();}},'Undo'));document.body.appendChild(u);}
   u.querySelector('.um').textContent=msg;u.classList.add('show');clearTimeout(undoT);undoT=setTimeout(hideUndo,8000);};
-undoLast=function(){if(lastJ){var e=lastJ;lastJ=null;undoEntry(e);hideUndo();toast('Undone ↩');return;}if(!undoSnap)return;D=normalize(JSON.parse(undoSnap));undoSnap=null;save();hideUndo();render();toast('Undone ↩');};
+undoLast=function(){if(lastJ){var e=lastJ;lastJ=null;undoEntry(e);var prev=journal().e.slice(-1)[0];if(prev&&Date.now()-prev.ts<5*60000){lastJ=prev;var u=$('#undo-bar');u.querySelector('.um').textContent='Undone ↩ · also undo: '+prev.label+'?';u.classList.add('show');clearTimeout(undoT);undoT=setTimeout(hideUndo,8000);}else{hideUndo();toast('Undone ↩');}return;}if(!undoSnap)return;D=normalize(JSON.parse(undoSnap));undoSnap=null;save();hideUndo();render();toast('Undone ↩');};
 function tagNext(t){undoTag=t;}
 function undoByTag(tag,label,fallback){var j=journal(),e=j.e.slice().reverse().find(function(x){return x.tag===tag;});
   if(!confirm('Undo "'+label+'"?'))return;if(e){undoEntry(e);toast('Undone ↩');return;}if(fallback){fallback();save();render();toast('Undone ↩');}}
-function openDoneToday(){var body=h('div',{id:'done-today'}),s;function draw(){body.innerHTML='';var E=journal().e.slice().reverse();
-    if(!E.length){body.appendChild(h('div',{class:'empty'},'Nothing to undo today ✨'));return;}
-    body.appendChild(h('p',{class:'hint'},'Marked something by mistake? Tap ↩ to undo it – stars, water and counts go back too.'));
-    E.forEach(function(e){var tm=new Date(e.ts);body.appendChild(h('div',{class:'remrow dt-row','data-label':e.label},h('span',{class:'rl'},h('b',null,e.label||'Logged'),h('small',{class:'muted',style:'display:block'},fmtTime(pad(tm.getHours())+':'+pad(tm.getMinutes())))),
-      h('button',{class:'btn sec sm dt-undo',onclick:function(){if(!confirm('Undo "'+e.label+'"?'))return;undoEntry(e);toast('Undone ↩');draw();}},'↩ Undo')));});}
+/* "Done today" is built from the STORED logs (so items logged before this feature, or on another build, can be undone too) */
+var HAB={infrared:'♨️ Infrared sauna',sauna:'🧖 Sauna','cold':'❄️ Cold plunge','teeth-am':'🦷 Teeth (morning)','teeth-pm':'🦷 Teeth (evening)'};
+function doneToday(t){var R=[];function add(o){R.push(o);}
+  var w=D.water[t]||0;for(var g=w;g>=1;g--)(function(g){add({k:'w'+g,ts:0,label:'💧 Water glass '+g+(g===w?'':''),fn:function(){var n=(D.water[t]||0)-1;if(n>0)D.water[t]=n;else delete D.water[t];}});})(g);
+  (D.habits||[]).filter(function(x){return x.date===t;}).forEach(function(x){add({k:'h'+x.id,time:x.time,label:(HAB[x.type]||('✓ '+x.type))+(x.min?' '+x.min+' min':''),fn:function(){D.habits=D.habits.filter(function(y){return y.id!==x.id;});}});});
+  (D.stackLog||[]).filter(function(x){return x.date===t&&x.done;}).forEach(function(x){var st=(D.settings.stacks||[]).find(function(y){return y.id===x.sid;});if(!st)return;var tm=new Date(x.done);
+    add({k:'s'+x.id,time:pad(tm.getHours())+':'+pad(tm.getMinutes()),label:'💊 '+st.name,fn:function(){delete x.done;var other={};(D.stackLog||[]).forEach(function(y){if(y.date===t&&y.done&&y!==x){var o=(D.settings.stacks||[]).find(function(z){return z.id===y.sid;});(o&&o.items||[]).forEach(function(id){other[id]=1;});}});
+      var day=suppDay(t);if(day)day.taken=day.taken.filter(function(id){return other[id]||(st.items||[]).indexOf(id)<0;});if(st.water>0){var n=Math.max(0,(D.water[t]||0)-st.water);if(n)D.water[t]=n;else delete D.water[t];}}});});
+  var day=suppDay(t);if(day){var inSt={};(D.stackLog||[]).forEach(function(y){if(y.date===t&&y.done){var o=(D.settings.stacks||[]).find(function(z){return z.id===y.sid;});(o&&o.items||[]).forEach(function(id){inSt[id]=1;});}});
+    day.taken.filter(function(id){return !inSt[id];}).forEach(function(id){var sp=suppById(id);add({k:'v'+id,label:'💊 '+(sp?sp.name:'Vitamin'),fn:function(){day.taken=day.taken.filter(function(x){return x!==id;});}});});}
+  var sk=D.skin.find(function(x){return x.date===t;});if(sk){if(sk.am&&sk.am.length)add({k:'skam',label:'☀️ Skin care AM',fn:function(){sk.am=[];}});if(sk.pm&&sk.pm.length)add({k:'skpm',label:'🌙 Skin care PM',fn:function(){sk.pm=[];}});}
+  D.gym.filter(function(x){return x.date===t;}).forEach(function(x){add({k:'g'+x.id,label:'🏋️ '+(x.note||x.type||'Workout'),fn:function(){D.gym=D.gym.filter(function(y){return y!==x;});}});});
+  (D.routineLog||[]).filter(function(x){return x.date===t;}).forEach(function(x){add({k:'r'+x.id,label:'🔁 '+x.name+(x.status==='skip'?' (skipped)':''),fn:function(){D.routineLog=D.routineLog.filter(function(y){return y!==x;});var q=D.quick[t];if(q&&q.skip)delete q.skip['r:'+x.rid];}});});
+  (D.kidLog||[]).filter(function(x){return x.date===t;}).forEach(function(x){var lab='';try{var kt=(D.settings.kidTasks||[]).find(function(y){return 'k:'+y.id===x.key;});var pp=person(x.pid||(kt&&kt.pid));lab=(pp?pp.emoji+' '+pp.name+' – ':'')+(kt?kt.label:'');}catch(e){}add({k:'k'+x.id,label:(lab||'👧 Kids task')+(x.status==='done'?'':' ('+x.status+')'),fn:function(){D.kidLog=D.kidLog.filter(function(y){return y!==x;});}});});
+  (D.listLog||[]).filter(function(x){return x.date===t;}).forEach(function(x){var it=null;Object.keys(lists()).forEach(function(lk){it=it||lists()[lk].items.find(function(y){return y.id===x.id2;});});add({k:'l'+x.id,label:'🌙 '+(it?it.name:'List item')+(x.status==='skip'?' (skipped)':''),fn:function(){D.listLog=D.listLog.filter(function(y){return y!==x;});}});});
+  D.alcohol.filter(function(x){return x.date===t;}).forEach(function(x){add({k:'a'+x.id,label:x.count?'🍷 '+x.count+' drink'+(x.count>1?'s':''):'🍷 No drinks today',fn:function(){D.alcohol=D.alcohol.filter(function(y){return y!==x;});}});});
+  D.sleep.filter(function(x){return x.date===t;}).forEach(function(x){add({k:'z'+x.id,label:'🛏 Sleep '+x.hours+' h',fn:function(){D.sleep=D.sleep.filter(function(y){return y!==x;});}});});
+  var q=D.quick[t];if(q&&q.skip)Object.keys(q.skip).forEach(function(k){if(k.slice(0,2)==='r:')return;var x=null;try{var L=REMS.find(function(r){return r.k===k;});x=L?L.i+' '+L.l:null;}catch(e){}add({k:'x'+k,label:'⏭ '+(x||'Reminder')+' skipped',fn:function(){delete q.skip[k];}});});
+  return R;}
+function undoDerived(t,r){snap();r.fn();save();showUndo('Undone: '+r.label);render();}
+function openDoneToday(){var t=today(),body=h('div',{id:'done-today'}),s;function draw(){body.innerHTML='';var E=doneToday(t);
+    if(!E.length){body.appendChild(h('div',{class:'empty'},'Nothing logged today yet ✨'));return;}
+    body.appendChild(h('p',{class:'hint'},'Marked something by mistake? Tap ↩ – stars, water and counts go back too.'));
+    E.forEach(function(r){body.appendChild(h('div',{class:'remrow dt-row','data-k':r.k,'data-label':r.label},h('span',{class:'rl'},h('b',null,r.label),r.time?h('small',{class:'muted',style:'display:block'},fmtTime(r.time)):null),
+      h('button',{class:'btn sec sm dt-undo',onclick:function(){if(!confirm('Undo "'+r.label+'"?'))return;undoDerived(t,r);draw();}},'↩ Undo')));});}
   draw();s=sheet({title:'↩ Done today',body:body});}
-function undoLink(){var n=journal().e.length;if(!n)return null;return h('div',{style:'text-align:center;margin:4px 0 10px'},h('button',{class:'link',id:'open-done-today',onclick:openDoneToday},'↩ Fix a mistake ('+n+' today)'));}
+function undoLink(){var n=doneToday(today()).length;if(!n)return null;return h('div',{style:'text-align:center;margin:4px 0 10px'},h('button',{class:'link',id:'open-done-today',onclick:openDoneToday},'↩ Fix a mistake ('+n+' today)'));}
+/* small − on repeatable tiles (water, sauna, cold) */
+function tileMinus(key,t,label,fn){var b=h('span',{class:'tminus',role:'button',tabindex:0,'data-minus':key,'aria-label':'Remove one '+label,onclick:function(ev){ev.stopPropagation();ev.preventDefault();snap();fn();save();showUndo('−1 '+label);render();}},'−');return b;}
+function lastHabit(t,type){var L=(D.habits||[]).filter(function(x){return x.date===t&&x.type===type;});return L[L.length-1];}
 var _item=item;item=function(coll,e,noDate){var el=_item(coll,e,noDate);if(!D[coll]||!Array.isArray(D[coll]))return el;
   el.appendChild(h('button',{class:'it-del','aria-label':'Delete entry',title:'Delete',onclick:function(ev){ev.stopPropagation();if(!confirm('Delete this entry?'))return;snap();D[coll]=D[coll].filter(function(x){return x!==e&&!(e.id!=null&&x.id===e.id);});save();render();showUndo('Entry deleted');}},'🗑'));return el;};
 window.__undo={journal:journal,jdiff:jdiff};
