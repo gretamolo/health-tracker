@@ -2,3 +2,5 @@ Exercise photos from free-exercise-db by yuhonas
 https://github.com/yuhonas/free-exercise-db
 License: The Unlicense (public domain dedication).
 Resized/re-encoded to WebP for the Health Tracker.
+
+Added 2026-10-21 (same source/license): ab finishers Flat_Bench_Lying_Leg_Raise, Ab_Roller, Air_Bike, Reverse_Crunch, Decline_Crunch; stretches Ankle_On_The_Knee, Hamstring_Stretch, Kneeling_Hip_Flexor, Knee_Across_The_Body, Childs_Pose, Chest_And_Front_Of_Shoulder_Stretch, Standing_Lateral_Stretch, Shoulder_Stretch, Triceps_Stretch, On_Your_Side_Quad_Stretch, Cat_Stretch.

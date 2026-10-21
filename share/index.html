@@ -278,7 +278,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-20 08:58-s95fb1a4';
+var BUILD_ID='2026-10-21 09:03-s4fdd15f';
 (function(){
 'use strict';
 /* ===== Share copy: no personal data, visitor's own name (prefix) ===== */
@@ -2319,7 +2319,12 @@ var EXL=[
  ['Dead bug','core',3,'8 /side','45 s','Low back glued to floor, slow','Plank'],
  ['Pallof press','core',3,'10 /side','45 s','Stand side-on to cable, press out, resist the twist','Side plank'],
  ['Plank','core',3,'30–45 s','45 s','Ribs down, squeeze glutes','Dead bug'],
- ['Side plank','core',2,'20–30 s /side','45 s','Hips high, straight line','Pallof press']];
+ ['Side plank','core',2,'20–30 s /side','45 s','Hips high, straight line','Pallof press'],
+ ['Lying leg raise','core',3,'10–12','60 s','Hands under hips, low back down, lower legs slowly','Reverse crunch'],
+ ['Ab wheel rollout','core',3,'6–10','60 s','From knees, ribs down, roll only as far as back stays flat','Plank'],
+ ['Bicycle crunch','core',3,'12 /side','45 s','Slow: elbow toward opposite knee, other leg long','Dead bug'],
+ ['Reverse crunch','core',3,'10–15','45 s','Curl hips off the floor, no swinging, lower slowly','Lying leg raise'],
+ ['Decline crunch','core',3,'10–15','60 s','Short range, curl ribs toward hips, slow down','Cable crunch']];
 function exByName(n){var e=EXL.find(function(x){return x[0]===n;});return e||[n,'other',3,'8–12','90 s','',null];}
 var DAYS={D1:{n:'Day 1 · Glutes & Hamstrings',min:50,ex:['Hip thrust (barbell or Smith)','Romanian deadlift (DB or barbell)','Bulgarian split squat','Seated leg curl','Cable kickback','Hip abduction machine'],warm:'Warm-up 5–8 min: bike or incline walk, then 2×10 glute bridges, 10 bodyweight good-mornings, 10 banded side steps each way; 1–2 light sets of the first lift.'},
  D2:{n:'Day 2 · Upper body',min:50,ex:['Lat pulldown','Chest-supported row (machine or DB)','Seated DB shoulder press','Incline DB press','DB lateral raise','DB biceps curl','Triceps pushdown (cable)'],warm:'Warm-up 5–8 min: rower or arm bike, then 15 band pull-aparts, 10 arm circles each way, 10 band face pulls; 1–2 light sets of pulldown.'},
@@ -2331,6 +2336,18 @@ var BODY={glutes:['🍑','Glutes',['Hip thrust (barbell or Smith)','Bulgarian sp
  arms:['💪','Arms',['DB biceps curl','Triceps pushdown (cable)','Hammer curl','Overhead DB triceps extension','Cable curl']],
  chest:['🫀','Chest',['Incline DB press','Chest press machine','Push-up (incline OK)','Pec deck / cable fly']],
  core:['🧘‍♀️','Core / Abs',['Cable crunch','Dead bug','Pallof press','Hanging knee raise','Side plank']]};
+/* 6-pack finisher: one ab exercise per visit, rotating (rectus/obliques/deep core mix) */
+var ABS=['Hanging knee raise','Cable crunch','Dead bug','Ab wheel rollout','Bicycle crunch','Reverse crunch','Plank','Lying leg raise','Side plank','Decline crunch'];
+function absIdx(){var i=D.settings.absIdx;return typeof i==='number'&&i>=0?i%ABS.length:0;}
+function nextAb(list){for(var k=0;k<ABS.length;k++){var n=ABS[(absIdx()+k)%ABS.length];if(list.indexOf(n)<0)return n;}return ABS[absIdx()];}
+var STRETCH={
+ glute:[['Figure-4 glute stretch','30 s /side','Lie back, ankle over knee, gently pull the thigh in'],['Lying hamstring stretch','30 s /side','Leg up with a band or towel, knee soft, no bouncing'],['Kneeling hip flexor stretch','30 s /side','Tuck tailbone, squeeze back glute, lean forward a little'],['Knee-across twist','30 s /side','Shoulders stay down, let the knee drop across'],['Child’s pose','45 s','Sit back to heels, arms long, slow breaths']],
+ upper:[['Doorway chest stretch','30 s /side','Forearm on the door frame, step through gently'],['Standing side (lat) stretch','30 s /side','Reach up and over, long through the side'],['Cross-body shoulder stretch','30 s /side','Pull the arm across at chest height'],['Overhead triceps stretch','30 s /side','Hand behind head, gently press the elbow'],['Child’s pose','45 s','Walk hands forward to stretch the back']],
+ legcore:[['Side-lying quad stretch','30 s /side','Heel to bum, knees together, hips forward'],['Kneeling hip flexor stretch','30 s /side','Tuck tailbone, squeeze back glute'],['Figure-4 glute stretch','30 s /side','Ankle over knee, pull thigh in'],['Cat–cow','8 slow reps','Round up, then let the belly drop; move with your breath'],['Child’s pose','45 s','Sit back, relax the belly']]};
+function stretchSet(key){var b=key.slice(0,3)==='BP:'?key.slice(3):null;return STRETCH[b?({glutes:'glute',legs:'legcore',core:'legcore'}[b]||'upper'):({D1:'glute',D2:'upper',D3:'legcore'}[key]||'legcore')];}
+Object.assign(EXIMG,{'Lying leg raise':['Flat_Bench_Lying_Leg_Raise',0],'Ab wheel rollout':['Ab_Roller',1],'Bicycle crunch':['Air_Bike',1],'Reverse crunch':['Reverse_Crunch',1],'Decline crunch':['Decline_Crunch',1],
+ 'Figure-4 glute stretch':['Ankle_On_The_Knee',1],'Lying hamstring stretch':['Hamstring_Stretch',1],'Kneeling hip flexor stretch':['Kneeling_Hip_Flexor',1],'Knee-across twist':['Knee_Across_The_Body',1],'Child’s pose':['Childs_Pose',1],
+ 'Doorway chest stretch':['Chest_And_Front_Of_Shoulder_Stretch',0],'Standing side (lat) stretch':['Standing_Lateral_Stretch',1],'Cross-body shoulder stretch':['Shoulder_Stretch',0],'Overhead triceps stretch':['Triceps_Stretch',1],'Side-lying quad stretch':['On_Your_Side_Quad_Stretch',1],'Cat–cow':['Cat_Stretch',1]});
 var FINISH='Optional finisher: 8–10 min incline walk or bike intervals (30 s hard / 60 s easy).';
 var WHY='Glutes and legs get two days (Day 1 + Day 3) and upper body one focused day. Research basis: weekly sets per muscle drive growth – ~10+ hard sets/week beats fewer (Schoenfeld, Ogborn & Krieger 2017, J Sports Sci); with volume equal, how you split the week matters little, so a body-part split works fine (Schoenfeld, Grgic & Krieger 2019, J Sports Sci). Anywhere from ~6 to 30 reps builds muscle if sets end 1–3 reps short of failure (Schoenfeld et al. 2017, J Strength Cond Res; Stronger by Science / Jeff Nippard use 1–3 reps in reserve). Longer rest (~2 min) on big lifts gives better gains than 1 min (Schoenfeld et al. 2016, J Strength Cond Res). Hip thrusts load glutes more than squats in EMG (Contreras et al. 2015, J Appl Biomech) and grow glutes similarly to squats, while squats also build quads – so both are in (Plotkin et al. 2023, PeerJ). Seated leg curls grew hamstrings more than lying curls (Maeo et al. 2021, Med Sci Sports Exerc); overhead triceps work grew triceps more than pushdowns alone (Maeo et al. 2023, Eur J Sport Sci). Progression follows ACSM (2009): add ~2–10% load once you beat the top of the rep range.';
 function gymGoal(){return D.settings.gymGoal||3;}
@@ -2345,7 +2362,7 @@ function planList(key){var base=key.slice(0,3)==='BP:'?BODY[key.slice(3)][2]:DAY
 function openSwap(key,i,cur,done){var part=exByName(cur)[1],alt=exByName(cur)[6],L=EXL.filter(function(x){return x[1]===part&&x[0]!==cur;});L.sort(function(a,b){return (b[0]===alt)-(a[0]===alt);});var s;
   var body=h('div',{id:'swap-list'},h('p',{class:'hint'},'Swap '+cur+' for another '+(BODY[part]?BODY[part][1].toLowerCase():part)+' exercise:'),L.map(function(x){return h('button',{class:'srow','data-swap':x[0],onclick:function(){swaps()[key+':'+i]=x[0];save();s.close();setTimeout(done,280);}},h('span',{class:'stime'},x[0]===alt?'⇄':'•'),h('span',{class:'stx'},h('b',null,x[0]),h('small',null,(x[0]===alt?'Machine/DB alternative · ':'')+x[2]+' × '+x[3])),h('span',{class:'sck'},''));}));
   s=sheet({title:'Swap exercise',body:body});}
-function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan()),quick=false,s;var body=h('div',{id:'workout'});
+function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan()),quick=false,s,abPick=null,stretchTicks=[];var body=h('div',{id:'workout'});
   function draw(){body.innerHTML='';
     body.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:10px'},[['D1','Day 1'],['D2','Day 2'],['D3','Day 3'],['BP','Body part'],['O','Other']].map(function(k){var on=k[0]==='BP'?key.slice(0,3)==='BP:'||key==='BP':key===k[0];return h('button',{class:on?'on':'','data-plan':k[0],onclick:function(){key=k[0]==='BP'?'BP':k[0];draw();}},k[1]);})));
     if(key==='BP'){body.appendChild(h('div',{class:'pq',style:'margin:6px 0 10px'},'Pick a body part'));body.appendChild(h('div',{class:'tmpl-grid',id:'bp-grid'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){key='BP:'+b;draw();}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return;}
@@ -2365,11 +2382,25 @@ function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan())
       var el=h('div',{class:'exr','data-ex':n},chk,exThumb(n,e[5]),h('div',{class:'tx'},h('b',null,n),h('div',{class:'small'},sets+' × '+e[3]+' · rest '+e[4]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[5]),sw),wt);
       return {el:el,get:function(){var o={name:n,sets:sets,reps:e[3],weight:num(wt.value),done:chk.classList.contains('on')};o.allHit=o.done;return o;}};});
     rows.forEach(function(r){body.appendChild(r.el);});
+    var ab=abPick||nextAb(planList(key)),ae=exByName(ab),alast=lastEx(ab),awt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:alast&&alast.weight?alast.weight:''});
+    var achk=h('button',{type:'button',class:'tick','aria-label':'Done '+ab,onclick:function(){achk.classList.toggle('on');achk.textContent=achk.classList.contains('on')?'✓':'';}});
+    body.appendChild(h('div',{class:'lbl',style:'margin-top:14px'},'🔥 6-pack finisher'));
+    body.appendChild(h('div',{class:'exr abr','data-ex':ab,id:'ab-row'},achk,exThumb(ab,ae[5]),h('div',{class:'tx'},h('b',null,ab),h('div',{class:'small'},(quick?2:ae[2])+' × '+ae[3]+' · rest '+ae[4]),h('div',{class:'muted small'},ae[5]),
+      h('div',{class:'swaps'},h('button',{type:'button',class:'chip sm',id:'ab-swap',onclick:function(){openAbSwap(ab,function(n){abPick=n;draw();});}},'⇄ Swap ab exercise'))),awt));
+    rows.push({el:null,get:function(){var o={name:ab,sets:quick?2:ae[2],reps:ae[3],weight:num(awt.value),done:achk.classList.contains('on'),abs:true};o.allHit=o.done;return o;}});
+    var ST=stretchSet(key),sticks=[];
+    var sb=h('div',{class:'card',id:'stretch',style:'margin-top:14px;background:#f3eefb'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'Stretch 🧘 (5 min)'),h('button',{type:'button',class:'chip sm',id:'stretch-all',onclick:function(){sticks.forEach(function(c){c.classList.add('on');c.textContent='✓';});}},'✓ All done')),
+      h('div',{class:'muted small'},'Gentle, no bouncing – breathe out into each stretch.'));
+    ST.forEach(function(x){var c=h('button',{type:'button',class:'tick st-tick','aria-label':'Done '+x[0],onclick:function(){c.classList.toggle('on');c.textContent=c.classList.contains('on')?'✓':'';}});sticks.push(c);
+      sb.appendChild(h('div',{class:'exr str','data-stretch':x[0]},c,exThumb(x[0],x[2]),h('div',{class:'tx'},h('b',null,x[0]),h('div',{class:'small'},x[1]),h('div',{class:'muted small'},x[2]))));});
+    stretchTicks=sticks;
     if(!quick)body.appendChild(h('p',{class:'hint'},FINISH));
-    body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key,quick20:quick||undefined,duration:quick?20:mins,exercises:rows.map(function(r){return r.get();}),note:title,unit:D.settings.unit,quick:true});}},'✓ Done workout'));
+    body.appendChild(sb);
+    body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key,quick20:quick||undefined,duration:quick?20:mins,exercises:rows.map(function(r){return r.get();}),stretch:stretchTicks.filter(function(c){return c.classList.contains('on');}).length,note:title,unit:D.settings.unit,quick:true});D.settings.absIdx=(ABS.indexOf(ab)+1)%ABS.length;save();}},'✓ Done workout'));
     body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},WHY),h('p',{class:'muted small',id:'photo-credit'},'Exercise photos: free-exercise-db by yuhonas (github.com/yuhonas/free-exercise-db), public domain (Unlicense). Some photos show a very similar movement.')));}
   function saveGym(o){s.close();snap();var before=gymWeek(t);D.gym.push(o);if(!save()){undoLast();return;}render();celebrate($('[data-t="gym"]'),'💪');showUndo('Workout saved 💪');var after=gymWeek(t);if(before<gymGoal()&&after>=gymGoal())gymParty();}
   draw();s=sheet({title:'💪 Workout',body:body});}
+function openAbSwap(cur,cb){var s,body=h('div',{id:'ab-swap-list'},h('p',{class:'hint'},'Pick another ab exercise for today:'),ABS.filter(function(n){return n!==cur;}).map(function(n){var e=exByName(n);return h('button',{class:'srow','data-swap':n,onclick:function(){s.close();setTimeout(function(){cb(n);},280);}},h('span',{class:'stime'},'•'),h('span',{class:'stx'},h('b',null,n),h('small',null,e[2]+' × '+e[3])),h('span',{class:'sck'},''));}));s=sheet({title:'Swap ab exercise',body:body});}
 function vBodyPart(){var w=h('div');w.appendChild(hdr('Pick by body part',{back:true,sub:'Tap one for a ready workout'}));
   w.appendChild(h('div',{class:'tmpl-grid',id:'bp-screen'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){openWorkout(null,b);}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return w;}
 function gymParty(){confetti();toast(gymGoal()+'/'+gymGoal()+' this week! 🎉');}
@@ -2483,7 +2514,7 @@ function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
       h('span',{class:'stime'},'💊'),h('span',{class:'stx'},h('b',null,sp.name),h('small',null,sp.dose||'')),h('span',{class:'sck'},on?'✓':'')));});}
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
-window.__ex={EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
+window.openWorkout=openWorkout;window.__ex={ABS:ABS,STRETCH:STRETCH,EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
 
 /* ===== Family: people, kid tasks, weekly activities, medical records ===== */
 function fam(){var s=D.settings;if(!Array.isArray(s.people))s.people=[];if(!Array.isArray(s.kidTasks))s.kidTasks=[];if(!Array.isArray(s.activities))s.activities=[];
