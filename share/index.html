@@ -278,7 +278,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-21 09:03-s4fdd15f';
+var BUILD_ID='2026-10-21 09:13-s46f593e';
 (function(){
 'use strict';
 /* ===== Share copy: no personal data, visitor's own name (prefix) ===== */
@@ -1830,6 +1830,7 @@ function vHome(){
   if(checkinOn())w.appendChild(feelCard(t));
   var sr=stackRows(t); if(sr)w.appendChild(sr);
   var slc=sleepCard(t);if(slc)w.appendChild(slc);
+  var cwc=continueCard();if(cwc)w.appendChild(cwc);
   eveListCards(t).forEach(function(c){w.appendChild(c);});
   var kc=kidsCard(t); if(kc)w.appendChild(kc);
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
@@ -2362,10 +2363,22 @@ function planList(key){var base=key.slice(0,3)==='BP:'?BODY[key.slice(3)][2]:DAY
 function openSwap(key,i,cur,done){var part=exByName(cur)[1],alt=exByName(cur)[6],L=EXL.filter(function(x){return x[1]===part&&x[0]!==cur;});L.sort(function(a,b){return (b[0]===alt)-(a[0]===alt);});var s;
   var body=h('div',{id:'swap-list'},h('p',{class:'hint'},'Swap '+cur+' for another '+(BODY[part]?BODY[part][1].toLowerCase():part)+' exercise:'),L.map(function(x){return h('button',{class:'srow','data-swap':x[0],onclick:function(){swaps()[key+':'+i]=x[0];save();s.close();setTimeout(done,280);}},h('span',{class:'stime'},x[0]===alt?'⇄':'•'),h('span',{class:'stx'},h('b',null,x[0]),h('small',null,(x[0]===alt?'Machine/DB alternative · ':'')+x[2]+' × '+x[3])),h('span',{class:'sck'},''));}));
   s=sheet({title:'Swap exercise',body:body});}
-function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan()),quick=false,s,abPick=null,stretchTicks=[];var body=h('div',{id:'workout'});
+function gdraft(){var g=D.gymDraft;return g&&g.date===today()?g:null;}
+function gdHas(g){return !!g&&(Object.keys(g.tk||{}).some(function(k){return g.tk[k];})||Object.keys(g.w||{}).some(function(k){return g.w[k];})||Object.keys(g.st||{}).some(function(k){return g.st[k];}));}
+function finalizeDraft(){var g=D.gymDraft;if(!g||g.date>=today())return;if(gdHas(g)&&!D.gym.some(function(x){return x.date===g.date;})){var names={};Object.keys(g.tk||{}).concat(Object.keys(g.w||{})).forEach(function(n){names[n]=1;});
+  D.gym.push({id:uid(),date:g.date,type:'Strength',plan:g.key&&g.key!=='BP'&&g.key!=='O'?g.key:undefined,partial:true,exercises:Object.keys(names).map(function(n){var e=exByName(n);return {name:n,sets:e[2],reps:e[3],weight:num(g.w[n]),done:!!g.tk[n],abs:ABS.indexOf(n)>=0||undefined};}),stretch:Object.keys(g.st||{}).filter(function(k){return g.st[k];}).length,note:'Workout (partly done)',unit:D.settings.unit,quick:true});}
+  delete D.gymDraft;save();}
+function continueCard(){var g=gdraft();if(!gdHas(g)||D.gym.some(function(x){return x.date===today()&&!x.partial;}))return null;var n=Object.keys(g.tk).filter(function(k){return g.tk[k];}).length;
+  return h('div',{class:'card',id:'continue-card',style:'text-align:center'},h('button',{class:'btn',id:'continue-workout',onclick:function(){openWorkout();}},'▶ Continue workout'+(n?' ('+n+' ✓)':'')));}
+function openWorkout(force,bp){finalizeDraft();var t=today(),key=force||(bp?'BP:'+bp:nextPlan()),quick=false,s,abPick=null,stretchTicks=[];var body=h('div',{id:'workout'});
+  var dr=gdraft();if(dr&&!force&&!bp){key=dr.key||key;quick=!!dr.quick;abPick=dr.abPick||null;}
+  function G(){var g=gdraft();if(!g)g=D.gymDraft={date:t,tk:{},w:{},st:{}};g.key=key;g.quick=quick;g.abPick=abPick;return g;}
+  function gsave(){G();save();}
+  function mkTick(n,store){var g=gdraft(),on=!!(g&&g[store][n]);var c=h('button',{type:'button',class:'tick'+(on?' on':''),'aria-label':'Done '+n,onclick:function(){c.classList.toggle('on');c.textContent=c.classList.contains('on')?'✓':'';G()[store][n]=c.classList.contains('on');save();}},on?'✓':'');return c;}
+  function mkWt(n,last){var g=gdraft(),v=g&&g.w[n]!=null?g.w[n]:(last&&last.weight?last.weight:'');var i=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:v,oninput:function(){G().w[n]=i.value;save();}});return i;}
   function draw(){body.innerHTML='';
-    body.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:10px'},[['D1','Day 1'],['D2','Day 2'],['D3','Day 3'],['BP','Body part'],['O','Other']].map(function(k){var on=k[0]==='BP'?key.slice(0,3)==='BP:'||key==='BP':key===k[0];return h('button',{class:on?'on':'','data-plan':k[0],onclick:function(){key=k[0]==='BP'?'BP':k[0];draw();}},k[1]);})));
-    if(key==='BP'){body.appendChild(h('div',{class:'pq',style:'margin:6px 0 10px'},'Pick a body part'));body.appendChild(h('div',{class:'tmpl-grid',id:'bp-grid'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){key='BP:'+b;draw();}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return;}
+    body.appendChild(h('div',{class:'seg',style:'display:flex;margin-bottom:10px'},[['D1','Day 1'],['D2','Day 2'],['D3','Day 3'],['BP','Body part'],['O','Other']].map(function(k){var on=k[0]==='BP'?key.slice(0,3)==='BP:'||key==='BP':key===k[0];return h('button',{class:on?'on':'','data-plan':k[0],onclick:function(){key=k[0]==='BP'?'BP':k[0];if(gdraft())gsave();draw();}},k[1]);})));
+    if(key==='BP'){body.appendChild(h('div',{class:'pq',style:'margin:6px 0 10px'},'Pick a body part'));body.appendChild(h('div',{class:'tmpl-grid',id:'bp-grid'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){key='BP:'+b;if(gdraft())gsave();draw();}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return;}
     if(key==='O'){var typ='Walk';var chips=h('div',{class:'chips',id:'other-type'},['Walk','Cardio','Class','Yoga','Run','Swim'].map(function(x){return h('button',{type:'button',class:'chip'+(x===typ?' on':''),'data-v':x,onclick:function(){typ=x;[].forEach.call(chips.children,function(c){c.classList.toggle('on',c.dataset.v===typ);});}},x);}));
       var mi=h('input',{type:'number',id:'other-min',class:'stin',value:30,inputmode:'numeric'});
       body.appendChild(chips);body.appendChild(h('div',{class:'fld',style:'margin-top:10px'},h('span',{class:'lbl'},'Minutes'),mi));
@@ -2373,34 +2386,35 @@ function openWorkout(force,bp){var t=today(),key=force||(bp?'BP:'+bp:nextPlan())
     var isBP=key.slice(0,3)==='BP:',title=isBP?BODY[key.slice(3)][0]+' '+BODY[key.slice(3)][1]+' workout':DAYS[key].n,mins=isBP?35:DAYS[key].min;
     var list=planList(key);if(quick)list=list.slice(0,3);
     body.appendChild(h('div',{class:'row',style:'justify-content:space-between;margin:4px 2px'},h('div',{class:'pq',style:'text-align:left;margin:0;font-size:18px',id:'wk-title'},title+' · ~'+(quick?20:mins)+' min'),
-      h('button',{class:'chip'+(quick?' on':''),id:'quick20',onclick:function(){quick=!quick;draw();}},'⏱ 20 min')));
+      h('button',{class:'chip'+(quick?' on':''),id:'quick20',onclick:function(){quick=!quick;if(gdraft())gsave();draw();}},'⏱ 20 min')));
     body.appendChild(h('p',{class:'hint'},quick?'Quick version: 3 key exercises × 2 sets, 60–90 s rest. Short warm-up: 3 min easy cardio + 1 light set.':(isBP?'Warm-up 5 min easy cardio + 1–2 light sets of the first exercise.':DAYS[key].warm)));if(!quick&&!isBP&&WARMIMG[key])body.appendChild(h('div',{class:'warmstrip',id:'warm-imgs'},WARMIMG[key].map(function(w){return h('div',{class:'wi'},exThumb(w,null),h('small',null,w.slice(2)));})));
     var rows=list.map(function(n,i){var e=exByName(n),sets=quick?2:e[2],last=lastEx(n),up=last&&last.allHit;
-      var wt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:last&&last.weight?last.weight:''});
-      var chk=h('button',{type:'button',class:'tick','aria-label':'Done '+n,onclick:function(){chk.classList.toggle('on');chk.textContent=chk.classList.contains('on')?'✓':'';}});
+      var wt=mkWt(n,last);
+      var chk=mkTick(n,'tk');
       var sw=h('div',{class:'swaps'},e[6]?h('button',{type:'button',class:'chip sm swap-alt',onclick:function(){swaps()[key+':'+i]=e[6];save();draw();}},'⇄ '+e[6]):null,h('button',{type:'button',class:'chip sm swap-more',onclick:function(){openSwap(key,i,n,draw);}},'More swaps'));
       var el=h('div',{class:'exr','data-ex':n},chk,exThumb(n,e[5]),h('div',{class:'tx'},h('b',null,n),h('div',{class:'small'},sets+' × '+e[3]+' · rest '+e[4]+(up?'  ':''),up?h('span',{class:'up'},'↑ go up a little'):null),h('div',{class:'muted small'},e[5]),sw),wt);
       return {el:el,get:function(){var o={name:n,sets:sets,reps:e[3],weight:num(wt.value),done:chk.classList.contains('on')};o.allHit=o.done;return o;}};});
     rows.forEach(function(r){body.appendChild(r.el);});
-    var ab=abPick||nextAb(planList(key)),ae=exByName(ab),alast=lastEx(ab),awt=h('input',{type:'text',inputmode:'decimal',class:'wt',placeholder:wUnit(),value:alast&&alast.weight?alast.weight:''});
-    var achk=h('button',{type:'button',class:'tick','aria-label':'Done '+ab,onclick:function(){achk.classList.toggle('on');achk.textContent=achk.classList.contains('on')?'✓':'';}});
+    var ab=abPick||nextAb(planList(key)),ae=exByName(ab),alast=lastEx(ab),awt=mkWt(ab,alast);
+    var achk=mkTick(ab,'tk');
     body.appendChild(h('div',{class:'lbl',style:'margin-top:14px'},'🔥 6-pack finisher'));
     body.appendChild(h('div',{class:'exr abr','data-ex':ab,id:'ab-row'},achk,exThumb(ab,ae[5]),h('div',{class:'tx'},h('b',null,ab),h('div',{class:'small'},(quick?2:ae[2])+' × '+ae[3]+' · rest '+ae[4]),h('div',{class:'muted small'},ae[5]),
-      h('div',{class:'swaps'},h('button',{type:'button',class:'chip sm',id:'ab-swap',onclick:function(){openAbSwap(ab,function(n){abPick=n;draw();});}},'⇄ Swap ab exercise'))),awt));
+      h('div',{class:'swaps'},h('button',{type:'button',class:'chip sm',id:'ab-swap',onclick:function(){openAbSwap(ab,function(n){abPick=n;gsave();draw();});}},'⇄ Swap ab exercise'))),awt));
     rows.push({el:null,get:function(){var o={name:ab,sets:quick?2:ae[2],reps:ae[3],weight:num(awt.value),done:achk.classList.contains('on'),abs:true};o.allHit=o.done;return o;}});
     var ST=stretchSet(key),sticks=[];
-    var sb=h('div',{class:'card',id:'stretch',style:'margin-top:14px;background:#f3eefb'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'Stretch 🧘 (5 min)'),h('button',{type:'button',class:'chip sm',id:'stretch-all',onclick:function(){sticks.forEach(function(c){c.classList.add('on');c.textContent='✓';});}},'✓ All done')),
+    var sb=h('div',{class:'card',id:'stretch',style:'margin-top:14px;background:#f3eefb'},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,'Stretch 🧘 (5 min)'),h('button',{type:'button',class:'chip sm',id:'stretch-all',onclick:function(){var g=G();sticks.forEach(function(c){c.classList.add('on');c.textContent='✓';g.st[c.dataset.n]=true;});save();}},'✓ All done')),
       h('div',{class:'muted small'},'Gentle, no bouncing – breathe out into each stretch.'));
-    ST.forEach(function(x){var c=h('button',{type:'button',class:'tick st-tick','aria-label':'Done '+x[0],onclick:function(){c.classList.toggle('on');c.textContent=c.classList.contains('on')?'✓':'';}});sticks.push(c);
+    ST.forEach(function(x){var c=mkTick(x[0],'st');c.classList.add('st-tick');c.dataset.n=x[0];sticks.push(c);
       sb.appendChild(h('div',{class:'exr str','data-stretch':x[0]},c,exThumb(x[0],x[2]),h('div',{class:'tx'},h('b',null,x[0]),h('div',{class:'small'},x[1]),h('div',{class:'muted small'},x[2]))));});
     stretchTicks=sticks;
     if(!quick)body.appendChild(h('p',{class:'hint'},FINISH));
     body.appendChild(sb);
     body.appendChild(h('button',{class:'btn',id:'done-workout',style:'margin-top:12px',onclick:function(){saveGym({id:uid(),date:t,type:'Strength',plan:key,quick20:quick||undefined,duration:quick?20:mins,exercises:rows.map(function(r){return r.get();}),stretch:stretchTicks.filter(function(c){return c.classList.contains('on');}).length,note:title,unit:D.settings.unit,quick:true});D.settings.absIdx=(ABS.indexOf(ab)+1)%ABS.length;save();}},'✓ Done workout'));
     body.appendChild(h('details',{class:'why'},h('summary',null,'Why this plan'),h('p',{class:'small'},WHY),h('p',{class:'muted small',id:'photo-credit'},'Exercise photos: free-exercise-db by yuhonas (github.com/yuhonas/free-exercise-db), public domain (Unlicense). Some photos show a very similar movement.')));}
-  function saveGym(o){s.close();snap();var before=gymWeek(t);D.gym.push(o);if(!save()){undoLast();return;}render();celebrate($('[data-t="gym"]'),'💪');showUndo('Workout saved 💪');var after=gymWeek(t);if(before<gymGoal()&&after>=gymGoal())gymParty();}
+  function saveGym(o){s.close();snap();var before=gymWeek(t);delete D.gymDraft;D.gym.push(o);if(!save()){undoLast();return;}render();celebrate($('[data-t="gym"]'),'💪');showUndo('Workout saved 💪');var after=gymWeek(t);if(before<gymGoal()&&after>=gymGoal())gymParty();}
   draw();s=sheet({title:'💪 Workout',body:body});}
 function openAbSwap(cur,cb){var s,body=h('div',{id:'ab-swap-list'},h('p',{class:'hint'},'Pick another ab exercise for today:'),ABS.filter(function(n){return n!==cur;}).map(function(n){var e=exByName(n);return h('button',{class:'srow','data-swap':n,onclick:function(){s.close();setTimeout(function(){cb(n);},280);}},h('span',{class:'stime'},'•'),h('span',{class:'stx'},h('b',null,n),h('small',null,e[2]+' × '+e[3])),h('span',{class:'sck'},''));}));s=sheet({title:'Swap ab exercise',body:body});}
+finalizeDraft();
 function vBodyPart(){var w=h('div');w.appendChild(hdr('Pick by body part',{back:true,sub:'Tap one for a ready workout'}));
   w.appendChild(h('div',{class:'tmpl-grid',id:'bp-screen'},Object.keys(BODY).map(function(b){return h('button',{class:'tmpl','data-bp':b,onclick:function(){openWorkout(null,b);}},h('span',{class:'ti'},BODY[b][0]),h('b',null,BODY[b][1]));})));return w;}
 function gymParty(){confetti();toast(gymGoal()+'/'+gymGoal()+' this week! 🎉');}
@@ -2514,7 +2528,7 @@ function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
       h('span',{class:'stime'},'💊'),h('span',{class:'stx'},h('b',null,sp.name),h('small',null,sp.dose||'')),h('span',{class:'sck'},on?'✓':'')));});}
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
-window.openWorkout=openWorkout;window.__ex={ABS:ABS,STRETCH:STRETCH,EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
+window.openWorkout=openWorkout;window.finalizeDraft=finalizeDraft;window.__ex={ABS:ABS,STRETCH:STRETCH,EXL:EXL,DAYS:DAYS,BODY:BODY,WARMIMG:WARMIMG,EXIMG:EXIMG,exImg:exImg};
 
 /* ===== Family: people, kid tasks, weekly activities, medical records ===== */
 function fam(){var s=D.settings;if(!Array.isArray(s.people))s.people=[];if(!Array.isArray(s.kidTasks))s.kidTasks=[];if(!Array.isArray(s.activities))s.activities=[];
