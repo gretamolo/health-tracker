@@ -278,7 +278,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-10-21 10:41-e97d48b';
+var BUILD_ID='2026-11-04 13:59-46556e5';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -331,7 +331,7 @@ function wUnit(){return D.settings.unit==='kg'?'kg':'lb';}
 function toUnit(lb){return D.settings.unit==='kg'?lb*LB2KG:lb;}
 function fmtW(lb,noUnit){return fmtN(toUnit(lb),1)+(noUnit?'':' '+wUnit());}
 
-function blank(){return {version:1,createdAt:today(),settings:{unit:'lb',waterGoal:8,calGoal:2000,macros:{p:30,c:40,f:30},supps:[],a2hsHidden:false,lastExport:null,skin:{am:['Cleanser','Vitamin C serum','Moisturizer','Sunscreen'],pm:['Cleanser','Retinol / treatment','Night cream']}},periods:[],cycleDays:[],mood:[],food:[],water:{},weight:[],alcohol:[],skin:[],gym:[],sleep:[],labs:[],supps:[],customFoods:[],quick:{},routineLog:[],stackLog:[],habits:[],rewardLog:[]};}
+function blank(){return {version:1,createdAt:today(),settings:{unit:'lb',waterGoal:8,calGoal:2000,macros:{p:30,c:40,f:30},supps:[],a2hsHidden:false,lastExport:null,skin:{am:['Cleanser','Vitamin C serum','Moisturizer','Sunscreen'],pm:['Cleanser','Retinol / treatment','Night cream']},peptides:[]},periods:[],cycleDays:[],mood:[],food:[],water:{},weight:[],alcohol:[],skin:[],gym:[],sleep:[],labs:[],supps:[],customFoods:[],quick:{},routineLog:[],stackLog:[],habits:[],rewardLog:[],peptideLog:[]};}
 function normalize(o){
   var b=blank(); if(!o||typeof o!=='object'||Array.isArray(o)) return b;
   var r=Object.assign({},b,o); r.settings=Object.assign({},b.settings,o.settings||{});
@@ -346,6 +346,11 @@ function normalize(o){
   if(!r.water||typeof r.water!=='object'||Array.isArray(r.water)) r.water={};
   if(!Array.isArray(r.routineLog))r.routineLog=[]; if(!Array.isArray(r.stackLog))r.stackLog=[]; if(!Array.isArray(r.habits))r.habits=[]; if(!Array.isArray(r.rewardLog))r.rewardLog=[]; if(!Array.isArray(r.settings.stacks))r.settings.stacks=[]; if(!Array.isArray(r.settings.routines))r.settings.routines=[];
   if(!r.quick||typeof r.quick!=='object'||Array.isArray(r.quick)) r.quick={};
+  if(!Array.isArray(r.settings.peptides))r.settings.peptides=[];
+  r.settings.peptides.forEach(function(p){if(!p.id)p.id=uid();if(!p.freq||typeof p.freq!=='object')p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
+    if(!Array.isArray(p.freq.days)||!p.freq.days.length)p.freq.days=[1];if(!p.cycle||typeof p.cycle!=='object')p.cycle={on:false,weeksOn:4,weeksOff:4};
+    if(!p.start)p.start=today();if(!p.time)p.time='09:00';if(!p.icon)p.icon='\ud83d\udc89';if(p.on===undefined)p.on=true;if(p.note==null)p.note='';if(p.dose==null)p.dose='';});
+  if(!Array.isArray(r.peptideLog))r.peptideLog=[]; r.peptideLog.forEach(function(e){if(!e.id)e.id=uid();});
   return r;
 }
 var D;
@@ -1863,7 +1868,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('\ud83d\udc89','#d0606f','Peptides & injections','peptides'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -1956,11 +1961,12 @@ function remDone(k,t){var sk=D.skin.find(function(s){return s.date===t;});
   case 'gym':return D.gym.some(function(x){return x.date===t;})||!!(D.quick[t]&&D.quick[t].rest);case 'teetham':return habitOn(t,'teeth-am');case 'teethpm':return habitOn(t,'teeth-pm');case 'sauna':return habitOn(t,'sauna');case 'cold':return habitOn(t,'cold');case 'evening':return drinkAnswered(t)&&!bottlePending(t);}return true;}
 function remDue(k,t){if(k==='water')return remOn('water')&&waterDue(t);var c=remCfg(k);if(!c.on||nowHM()<c.t||remDone(k,t))return false;
   if(isSkipped(t,k))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze[k];return !(sn&&Date.now()<sn);}
-function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t)).concat(listDue(t)).concat(famDue(t));
+function dueList(t){var L=REMS.filter(function(r){return r.k!=='water'&&remDue(r.k,t);}).map(function(r){return Object.assign({tm:remCfg(r.k).t},r);}).concat(routinesDue(t).map(function(x){x.tm=effTime(x.rt,t,'09:00');return x;})).concat(stacksDue(t)).concat(listDue(t)).concat(famDue(t)).concat(peptidesDue(t));
   return L.map(function(x,i){x._i=i;return x;}).sort(function(a,b){return a.tm<b.tm?-1:a.tm>b.tm?1:((b.st&&!b.sip?1:0)-(a.st&&!a.sip?1:0))||a._i-b._i;});}
 function remMsg(k){return {vit:'Time for your vitamins',skinam:'Morning skin care',skinpm:'Evening skin care',gym:'Gym time?',teetham:'Brush your teeth',teethpm:'Brush your teeth',sauna:'Sauna time?',cold:'Cold plunge?',evening:'Log today – did you drink?'}[k];}
 function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
   if(r.rt)return routinePopup(t,r,L.length);
+  if(r.pep)return pepPopup(t,r,L.length);
   if(r.st)return stackPopup(t,r,L.length);
   if(r.fam)return famPopup(t,r,L.length);
   if(r.list)return listPopup(t,r,L.length);
@@ -1982,9 +1988,9 @@ function remPopup(t){var L=dueList(t);if(!L.length)return null;var r=L[0],k=r.k;
     k==='skinpm'&&needlingSoon(t)?h('div',{class:'hintbox',id:'retinol-hint'},'🌿 Microneedling coming up – skip retinol & acids tonight'):null,
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:repeat('+btns.length+',1fr)'},btns),editList,L.length>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(L.length-1)+' more after this'):null);}
 var dueKey='';
-function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;})).concat(listDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});listDue(t).forEach(function(x){FL[x.k]=listLabel(x);});
+function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;})).concat(listDue(t).map(function(x){return x.k;})).concat(peptidesDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});listDue(t).forEach(function(x){FL[x.k]=listLabel(x);});
   if(window.Notification&&Notification.permission==='granted'){var q=qd(t),ch=false;q.notified=q.notified||{};
-    L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(FL[k]?FL[k]:k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
+    L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(FL[k]?FL[k]:k.slice(0,2)==='x:'?(pepNoteTitle(k)):k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
   var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&uiMode()==='simple'&&!document.querySelector('.ov')&&!document.hidden)render();}}
 setInterval(remTick,60*1000);document.addEventListener('visibilitychange',function(){if(!document.hidden)remTick();});
 function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(function(r){var c=remCfg(r.k);
@@ -1993,7 +1999,7 @@ function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(funct
     h('button',{class:'tog'+(c.on?' on':''),role:'switch','aria-checked':String(c.on),'aria-label':r.l,onclick:function(){remSet(r.k,{on:!remCfg(r.k).on});render();}},h('i')));}));}
 function allICS(){var t=today(),ev=[];REMS.forEach(function(r){if(!remOn(r.k))return;
   if(r.k==='water')waterTimes().forEach(function(tm,i){ev=ev.concat(icsEvent('greta-water-'+i,icsDT(t,tm),'💧 Water break','FREQ=DAILY','Tap +1 in Health Tracker'));});
-  else{var c=remCfg(r.k);ev=ev.concat(splitDaily('greta-rem-'+r.k,t,c.tWD,c.timeWE,r.i+' '+remMsg(r.k),'Tap Done in Health Tracker'));}});routines().forEach(function(r){if(r.on!==false&&r.remind!==false)ev=ev.concat(routineEvent(r));});stacks().forEach(function(x){if(x.on!==false)ev=ev.concat(stackEvents(x));});ev=ev.concat(famEvents());return icsWrap(ev);}
+  else{var c=remCfg(r.k);ev=ev.concat(splitDaily('greta-rem-'+r.k,t,c.tWD,c.timeWE,r.i+' '+remMsg(r.k),'Tap Done in Health Tracker'));}});routines().forEach(function(r){if(r.on!==false&&r.remind!==false)ev=ev.concat(routineEvent(r));});stacks().forEach(function(x){if(x.on!==false)ev=ev.concat(stackEvents(x));});peptides().forEach(function(p){if(p.on!==false)ev=ev.concat(pepEvent(p));});ev=ev.concat(famEvents());return icsWrap(ev);}
 setTimeout(remTick,300);
 
 /* ===== Non-daily routines ===== */
@@ -2223,11 +2229,11 @@ function skipIt(t,k){var q=qd(t);q.skip=q.skip||{};q.skip[k]=1;if(k.slice(0,2)==
 function skipBtn(t,k){return h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){var x=dueList(t).find(function(y){return y.k===k;}),l=x?dueLabel(x):'';tap(ev,(l?l+' – skipped':'Skipped')+' 🌿','🌿',function(){skipIt(t,k);});}},'Skip');}
 function fromLine(tm){if(!tm)return null;var n=nowHM();var p=tm.split(':'),m=+p[0]*60+ +p[1],q=n.split(':'),nm=+q[0]*60+ +q[1];if(nm-m<15)return null;return h('div',{class:'from muted small',style:'text-align:center'},'from '+fmtTime(tm).replace(':00 ',' ').replace(' AM',' AM').replace(' PM',' PM'));}
 function catchUpBtn(t){var L=dueList(t);if(L.length<2)return null;return h('button',{class:'btn sec catchup',id:'catch-up',onclick:function(){openCatchUp(t);}},'🧺 Catch up ('+L.length+')');}
-function doneFn(t,x){var k=x.k;if(x.list)return function(){listDone(t,x);};if(x.fam)return function(){famDone(t,x);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
+function doneFn(t,x){var k=x.k;if(x.list)return function(){listDone(t,x);};if(x.fam)return function(){famDone(t,x);};if(x.pep)return function(){pepLogDose(x.pep.id,t);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
   if(x.rt){if(x.rt.type==='injection')return null;return function(){routineDone(t,x.rt);};}
   return {skinam:function(){skinRoutine(t,'am');},skinpm:function(){skinRoutine(t,'pm');},teetham:function(){logHabit(t,'teeth-am');},teethpm:function(){logHabit(t,'teeth-pm');},
     sauna:function(){logHabit(t,'sauna',D.settings.saunaMin||15);},cold:function(){logHabit(t,'cold',D.settings.coldMin||3);}}[k]||null;}
-function dueLabel(x){if(x.list)return listLabel(x);if(x.fam)return famLabel(x);if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
+function dueLabel(x){if(x.list)return listLabel(x);if(x.fam)return famLabel(x);if(x.pep)return (x.pep.icon||'\ud83d\udc89')+' '+x.pep.name;if(x.st)return x.sip?'🥤 Sip your '+bName(x.st):x.st.name;if(x.rt)return rIcon(x.rt)+' '+x.rt.name;return x.i+' '+remMsg(x.k);}
 function openCatchUp(t){var body=h('div',{id:'catch-list'});var s;
   function draw(){body.innerHTML='';var L=dueList(t);if(!L.length){body.appendChild(h('div',{class:'empty'},'All caught up ✨'));return;}
     L.forEach(function(x){var f=doneFn(t,x);body.appendChild(h('div',{class:'card cu-row','data-cu':x.k},h('div',{class:'row',style:'justify-content:space-between'},h('b',null,dueLabel(x)),h('span',{class:'muted small'},'from '+fmtTime(x.tm))),
@@ -2905,7 +2911,8 @@ function doneToday(t){var R=[];function add(o){R.push(o);}
   (D.listLog||[]).filter(function(x){return x.date===t;}).forEach(function(x){var it=null;Object.keys(lists()).forEach(function(lk){it=it||lists()[lk].items.find(function(y){return y.id===x.id2;});});add({k:'l'+x.id,label:'🌙 '+(it?it.name:'List item')+(x.status==='skip'?' (skipped)':''),fn:function(){D.listLog=D.listLog.filter(function(y){return y!==x;});}});});
   D.alcohol.filter(function(x){return x.date===t;}).forEach(function(x){add({k:'a'+x.id,label:x.count?'🍷 '+x.count+' drink'+(x.count>1?'s':''):'🍷 No drinks today',fn:function(){D.alcohol=D.alcohol.filter(function(y){return y!==x;});}});});
   D.sleep.filter(function(x){return x.date===t;}).forEach(function(x){add({k:'z'+x.id,label:'🛏 Sleep '+x.hours+' h',fn:function(){D.sleep=D.sleep.filter(function(y){return y!==x;});}});});
-  var q=D.quick[t];if(q&&q.skip)Object.keys(q.skip).forEach(function(k){if(k.slice(0,2)==='r:')return;var x=null;try{var L=REMS.find(function(r){return r.k===k;});x=L?L.i+' '+L.l:null;}catch(e){}add({k:'x'+k,label:'⏭ '+(x||'Reminder')+' skipped',fn:function(){delete q.skip[k];}});});
+  (D.peptideLog||[]).filter(function(x){return x.date===t;}).forEach(function(x){var pp=(typeof pepById==='function')?pepById(x.pid):null;add({k:'pep'+x.id,time:x.time||'',label:(pp?(pp.icon||'\ud83d\udc89')+' '+pp.name:'\ud83d\udc89 Peptide')+' dose',fn:function(){D.peptideLog=D.peptideLog.filter(function(y){return y!==x;});}});});
+  var q=D.quick[t];if(q&&q.skip)Object.keys(q.skip).forEach(function(k){if(k.slice(0,2)==='r:')return;var x=null;try{var L=REMS.find(function(r){return r.k===k;});x=L?L.i+' '+L.l:null;if(!x&&k.slice(0,2)==='x:'){var pp=(typeof pepById==='function')?pepById(k.slice(2)):null;if(pp)x=(pp.icon||'\ud83d\udc89')+' '+pp.name;}}catch(e){}add({k:'x'+k,label:'⏭ '+(x||'Reminder')+' skipped',fn:function(){delete q.skip[k];}});});
   return R;}
 function undoDerived(t,r){snap();r.fn();save();showUndo('Undone: '+r.label);render();}
 function openDoneToday(){var t=today(),body=h('div',{id:'done-today'}),s;function draw(){body.innerHTML='';var E=doneToday(t);
@@ -2942,6 +2949,230 @@ var KID_VIT_NOTE='Vitamin D3 – 1 drop (Carlson Kid\u2019s Super Daily D3, 400 
 function migrateKidVit(){fam();if(D.settings.kidVitNoteV>=2)return;var ch=false;D.settings.kidTasks.forEach(function(x){if(x.k==='vit'&&x.label==='Vitamins'&&!x.note){x.note=KID_VIT_NOTE;x.label='Vitamins with breakfast';ch=true;}});if(D.settings.people.some(function(p){return p.kid;})){D.settings.kidVitNoteV=2;ch=true;}if(ch)save();}
 migrateKidVit();
 (function(){var sf=seedFamily;seedFamily=function(){sf();migrateKidVit();};})();
+/* ===== Peptides & injections ===== */
+var PEPICONS=['💉','✨','🧬','🩹'];
+var PEPWD=[1,2,3,4,5,6,0];
+
+function peptides(){if(!Array.isArray(D.settings.peptides))D.settings.peptides=[];if(!Array.isArray(D.peptideLog))D.peptideLog=[];return D.settings.peptides;}
+function peptideLog(){if(!Array.isArray(D.peptideLog))D.peptideLog=[];return D.peptideLog;}
+function pepById(id){return peptides().find(function(p){return p.id===id;});}
+function pepLogOn(pid,d){return peptideLog().filter(function(x){return x.pid===pid&&x.date===d;});}
+function pepLogged(p,d){var id=typeof p==='string'?p:p.id;return pepLogOn(id,d).length>0;}
+function pepLastDate(pid){var ds=peptideLog().filter(function(x){return x.pid===pid;}).map(function(x){return x.date;}).sort();return ds.length?ds[ds.length-1]:null;}
+function pepFreqText(p){var f=p.freq||{};if(f.kind==='weekly')return 'Weekly · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');return 'Daily';}
+
+/* cycle: weeksOn from start, then weeksOff, repeat. Day-count maths from start. */
+function pepCycleWeek(p,d){
+  d=d||today();
+  var c=p.cycle||{},on=!!c.on,wo=Math.max(1,parseInt(c.weeksOn,10)||4),wf=Math.max(0,parseInt(c.weeksOff,10)||0);
+  if(!on)return {on:false,active:true,week:0,phaseLabel:''};
+  var st=p.start||today(),n=diffDays(st,d);
+  if(n<0)return {on:true,active:false,week:0,before:true,phaseLabel:'Starts '+fmtD(st)};
+  var onD=wo*7,offD=wf*7,len=onD+offD;
+  if(offD<=0){var k=Math.floor(n/7)+1;return {on:true,active:true,week:k,phaseLabel:'Week '+(k%wo||wo)+' of '+wo};}
+  var pos=n%len;
+  if(pos<onD){var wk=Math.floor(pos/7)+1;return {on:true,active:true,week:wk,phaseLabel:'Week '+wk+' of '+wo};}
+  var left=Math.ceil((len-pos)/7),back=addDays(st,n+(len-pos));
+  return {on:true,active:false,week:0,back:back,weeksLeft:left,phaseLabel:'Break \u2013 '+left+' week'+(left===1?'':'s')+' left'};
+}
+/* last active day of the on-window that contains d (null when no off weeks) */
+function pepOnEnd(p,d){
+  var c=p.cycle||{},wo=Math.max(1,parseInt(c.weeksOn,10)||4),wf=Math.max(0,parseInt(c.weeksOff,10)||0);
+  if(!c.on||!wf)return null;
+  var n=diffDays(p.start||today(),d),len=wo*7+wf*7,pos=n%len;
+  if(pos>=wo*7)return null;
+  return addDays(p.start,n+(wo*7-pos-1));
+}
+function pepScheduled(p,d){
+  if(p.on===false)return false;
+  if(!p.start||d<p.start)return false;
+  var cy=pepCycleWeek(p,d);
+  if(cy.on&&!cy.active)return false;
+  var f=p.freq||{};
+  if(f.kind==='weekly')return (f.days||[]).indexOf(parseD(d).getDay())>=0;
+  return true;
+}
+function pepDue(p,d){d=d||today();return pepScheduled(p,d)&&!pepLogged(p,d);}
+function pepNext(p,from){from=from||today();if(p.on===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(pepScheduled(p,d)&&!pepLogged(p,d))return d;}return null;}
+function pepPhaseLabel(p,d){
+  d=d||today();
+  if(p.on===false)return 'Paused';
+  if(p.start&&d<p.start)return 'Starts '+fmtD(p.start);
+  var cy=pepCycleWeek(p,d);
+  if(cy.on&&cy.active)return cy.phaseLabel;
+  if(cy.on&&!cy.active)return 'Break · back '+(cy.back?fmtD(cy.back):'');
+  if(pepLogged(p,d))return 'Taken today ✓';
+  if(pepScheduled(p,d))return 'Due today';
+  var n=pepNext(p,d);
+  if(!n)return 'No doses scheduled';
+  return n===addDays(d,1)?'Next tomorrow':'Next '+fmtD(n);
+}
+function pepWhen(d,t){t=t||today();if(!d)return '—';if(d===t)return 'today';if(d===addDays(t,1))return 'tomorrow';return fmtD(d);}
+
+/* logging */
+function pepLogDose(pid,d){peptideLog().push({id:uid(),pid:pid,date:d||today(),time:nowTime()});}
+function pepUnlog(pid,d){var L=peptideLog();for(var i=L.length-1;i>=0;i--){if(L[i].pid===pid&&L[i].date===(d||today())){L.splice(i,1);return true;}}return false;}
+function pepLastLoggedToday(t){var L=peptideLog().filter(function(x){return x.date===t;});return L.length?L[L.length-1]:null;}
+
+/* ===== view ===== */
+function pepCard(p,t){
+  var lg=pepLogged(p,t),cy=pepCycleWeek(p,t),nx=pepNext(p,t),la=pepLastDate(p.id);
+  var c=h('div',{class:'card pep-card'+(p.on===false?' paused':''),'data-pep-id':p.id});
+  c.appendChild(h('div',{class:'row',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
+    h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start'},
+      h('div',{class:'ic',style:'background:#d0606f22'},p.icon||'💉'),
+      h('div',{style:'min-width:0'},h('b',{style:'font-size:17px;display:block'},p.name),
+        h('div',{class:'muted small'},p.dose||'Dose not set – tap Edit'),
+        h('div',{class:'muted small'},pepFreqText(p)))),
+    h('button',{class:'btn sec sm','data-pep-edit':p.id,onclick:function(){openPeptide(p);}},'Edit')));
+  c.appendChild(h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))));
+  if(lg){
+    c.appendChild(h('div',{class:'row',style:'gap:10px;margin-top:12px'},
+      h('div',{class:'btn sec','data-pep-logged':p.id,style:'flex:1'},'✓ Logged today'),
+      h('button',{class:'btn','data-pep-undo':p.id,style:'flex:none;width:auto;padding:0 18px',onclick:function(ev){tap(ev,'↩ Undone · '+p.name,'↩',function(){pepUnlog(p.id,t);});}},'↩ Undo')));
+  } else if(pepScheduled(p,t)){
+    c.appendChild(h('button',{class:'btn','data-pep-log':p.id,style:'margin-top:12px',onclick:function(ev){tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'\u2713 Log dose'));
+  } else {
+    c.appendChild(h('div',{class:'pep-rest','data-pep-rest':p.id,style:'margin-top:12px;text-align:center;font-size:14px;color:var(--muted)'},(p.on===false?'Paused \u2013 reminders off':'No dose due today'),' ',
+      h('button',{class:'link','data-pep-log':p.id,style:'min-width:0;font-size:13px;padding:0 4px;display:inline-block',onclick:function(ev){tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'Log anyway')));
+  }
+  c.appendChild(h('div',{class:'pep-meta','data-pep-meta':p.id},'Last: '+(la?fmtRel(la):'never')+' · Next: '+(p.on===false?'paused':pepWhen(nx,t))));
+  return c;
+}
+function pepTypical(){
+  return h('details',{class:'card why',id:'pep-typical'},h('summary',null,'💡 What\u2019s typical (reference only)'),
+    h('ul',{class:'tips'},
+      h('li',null,'GLOW blend: ~2–2.5 mg daily · 3 mL water per 70 mg vial ≈ 10 units (U-100)'),
+      h('li',null,'NAD+: 25 mg weekly = 25 units at 900 mg / 9 mL'),
+      h('li',null,'Glutathione: 100–200 mg, 2–3× weekly · 1500 mg in 7.5 mL (200 mg/mL), so 100 mg = 50 units')),
+    h('p',{class:'hint'},'Conventions people use – not studied doses. Follow your surgeon\u2019s instructions.'));
+}
+function vPeptides(){
+  var w=h('div'),t=today(),P=peptides();
+  w.appendChild(hdr('Peptides & injections',{back:true,sub:'Doses, cycles & reminders'}));
+  w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap ✓ Log dose when you take one – I\u2019ll remind you at the time you set.'));
+  if(!P.length)w.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'No peptides yet. Tap + Add peptide to start.')));
+  else w.appendChild(h('div',{id:'pep-list'},P.map(function(p){return pepCard(p,t);})));
+  w.appendChild(h('button',{class:'btn',id:'add-peptide',style:'margin-bottom:14px',onclick:function(){openPeptide();}},'+ Add peptide'));
+  w.appendChild(pepTypical());
+  return w;
+}
+
+/* ===== add / edit sheet ===== */
+function openPeptide(e){
+  var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',dose:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
+  if(!p.freq||!p.freq.kind)p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
+  if(!Array.isArray(p.freq.days)||!p.freq.days.length)p.freq.days=[1];
+  if(!p.cycle||typeof p.cycle!=='object')p.cycle={on:false,weeksOn:4,weeksOff:4};
+  var body=h('div',{class:'form'});
+  function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
+  function draw(){body.innerHTML='';
+    var nm=h('input',{type:'text',class:'inp',id:'pep-name',value:p.name||'',placeholder:'e.g. GLOW',autocomplete:'off',oninput:function(){p.name=nm.value;}});
+    body.appendChild(sec('Name',nm));
+    body.appendChild(sec('Icon',h('div',{class:'chips',id:'pep-icons'},PEPICONS.map(function(ic){return h('button',{type:'button',class:'chip'+(p.icon===ic?' on':''),'data-icon':ic,onclick:function(){p.icon=ic;draw();}},ic);}))));
+    var ds=h('input',{type:'text',class:'inp',id:'pep-dose',value:p.dose||'',placeholder:'e.g. 10 units',autocomplete:'off',oninput:function(){p.dose=ds.value;}});
+    body.appendChild(sec('Dose (free text)',ds));
+    body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},[['daily','Daily'],['weekly','Weekly']].map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&p.freq.days.length!==1)p.freq.days=[1];draw();}},o[1]);}))));
+    if(p.freq.kind==='weekly')body.appendChild(sec('On',h('div',{class:'chips',id:'pep-days'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.days.indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){var i=p.freq.days.indexOf(d);if(i>=0){if(p.freq.days.length>1)p.freq.days.splice(i,1);}else p.freq.days.push(d);draw();}},WD[d]);}))));
+    var cy=p.cycle;
+    body.appendChild(sec('Cycle',h('div',null,
+      h('div',{class:'remrow',style:'border-top:0;padding-top:0'},h('span',{class:'rl'},'Weeks on, then weeks off'),h('button',{type:'button',class:'tog'+(cy.on?' on':''),id:'pep-cycle',role:'switch','aria-checked':String(!!cy.on),onclick:function(){cy.on=!cy.on;draw();}},h('i'))),
+      cy.on?h('div',{class:'row',style:'gap:10px;margin-top:8px;align-items:flex-start'},
+        h('div',{style:'flex:1;min-width:0'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'pep-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
+        h('div',{style:'flex:1;min-width:0'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'pep-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
+    var sd=h('input',{type:'date',class:'inp',id:'pep-start',value:p.start||today(),onchange:function(){p.start=sd.value||today();}});
+    body.appendChild(sec('Start date',sd));
+    var tm=h('input',{type:'time',class:'inp',id:'pep-time',value:p.time||'09:00',onchange:function(){p.time=tm.value||'09:00';}});
+    body.appendChild(sec('Reminder time',tm));
+    var nt=h('input',{type:'text',class:'inp',id:'pep-note',value:p.note||'',placeholder:'Optional',autocomplete:'off',oninput:function(){p.note=nt.value;}});
+    body.appendChild(sec('Note',nt));
+    body.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(p.on!==false?' on':''),id:'pep-on',role:'switch','aria-checked':String(p.on!==false),onclick:function(){p.on=p.on===false;draw();}},h('i')))));
+  }
+  draw();
+  sheet({title:e?'Edit peptide':'Add peptide',body:body,saveLabel:'Save',
+    onSave:function(){
+      if(!p.name||!p.name.trim()){alert('Give it a name.');return false;}
+      p.name=p.name.trim();p.dose=(p.dose||'').trim();p.note=(p.note||'').trim();
+      if(p.freq.kind!=='weekly')p.freq.days=[0,1,2,3,4,5,6];
+      if(!p.id){p.id=uid();peptides().push(p);}else{var i=D.settings.peptides.findIndex(function(x){return x.id===p.id;});if(i>=0)D.settings.peptides[i]=p;else D.settings.peptides.push(p);}
+      save();render();toast('Peptide saved 💉');
+    },
+    onDelete:e&&function(){D.settings.peptides=D.settings.peptides.filter(function(x){return x.id!==e.id;});save();render();toast('Removed – past doses kept');},
+    deleteLabel:'Remove peptide',deleteMsg:'Remove this peptide? Past dose logs are kept.'});
+}
+
+/* ===== reminders ===== */
+function peptidesDue(t){var hm=nowHM();return peptides().filter(function(p){
+    if(p.on===false||!pepDue(p,t))return false;
+    if(hm<(p.time||'09:00'))return false;
+    if(isSkipped(t,'x:'+p.id))return false;
+    var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze['x:'+p.id];
+    return !(sn&&Date.now()<sn);
+  }).map(function(p){return {k:'x:'+p.id,pep:p,i:p.icon||'💉',l:p.name,tm:p.time||'09:00'};});}
+function pepNoteTitle(k){var p=pepById(k.slice(2));return p?(p.icon||'💉')+' '+p.name+' due':'💉 Peptide due';}
+function pepPopup(t,x,n){var p=x.pep,k=x.k;
+  function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
+  return h('div',{class:'card rempop',id:'rem-pop','data-rem':k},h('div',{class:'remi'},p.icon||'💉'),h('div',{class:'pq'},p.name),fromLine(x.tm),
+    h('div',{class:'muted small',style:'text-align:center'},[p.dose,pepPhaseLabel(p,t)].filter(Boolean).join(' · ')),
+    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},
+      h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){tap(ev,p.name+' ✓ logged',p.icon||'💉',function(){pepLogDose(p.id,t);});}},'✓ Done'),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k)),
+    n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
+function pepEvent(p){
+  var t=today(),nx=pepNext(p,t)||t,f=p.freq||{kind:'daily'},tm=p.time||'09:00';
+  var sum=(p.icon||'💉')+' '+p.name+(p.dose?' ('+p.dose+')':'');
+  if(f.kind==='weekly')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=WEEKLY;BYDAY='+(f.days||[]).slice().sort().map(function(d){return WD2[d];}).join(','),'Tap Done in Health Tracker');
+  var cy=p.cycle||{};
+  if(!cy.on||!(parseInt(cy.weeksOff,10)>0))return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=DAILY','Tap Done in Health Tracker');
+  /* daily + on/off cycle: one event per "on" window for the next ~9 months */
+  var wo=Math.max(1,parseInt(cy.weeksOn,10)||4),wf=Math.max(1,parseInt(cy.weeksOff,10)||4),len=(wo+wf)*7,ev=[];
+  for(var k=0;k<6;k++){
+    var ws=addDays(p.start||t,k*len),we=addDays(ws,wo*7-1);
+    if(we<t)continue;
+    var st=ws<t?nx:ws;
+    ev=ev.concat(icsEvent('greta-pep-'+p.id+'-'+k,icsDT(st,tm),sum,'FREQ=DAILY;UNTIL='+icsDT(we,'23:59'),'Tap Done in Health Tracker'));
+  }
+  return ev.length?ev:icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=DAILY','Tap Done in Health Tracker');
+}
+
+/* ===== Today tile (only when due or due tomorrow) ===== */
+function pepTiles(t){
+  var P=peptides().filter(function(p){return p.on!==false;});
+  if(!P.length)return [];
+  var due=P.filter(function(p){return pepDue(p,t);});
+  var soon=due.length?[]:P.filter(function(p){var n=pepNext(p,t);return n&&diffDays(t,n)<=1;});
+  if(!due.length&&!soon.length)return [];
+  var out=[],first=due[0]||soon[0];
+  if(due.length===1){
+    var p=due[0];
+    out.push(tile('peptides',p.icon||'\ud83d\udc89',p.name,pepPhaseLabel(p,t),false,function(ev){
+      tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}));
+  } else if(due.length>1){
+    var q=due[0];
+    out.push(tile('peptides',q.icon||'\ud83d\udc89',q.name,pepPhaseLabel(q,t)+' \u00b7 +'+(due.length-1)+' more due',false,function(ev){
+      tap(ev,q.name+' \u2713 logged',q.icon||'\ud83d\udc89',function(){pepLogDose(q.id,t);});}));
+  } else {
+    out.push(tile('peptides',first.icon||'\ud83d\udc89',first.name,'Next '+pepWhen(pepNext(first,t),t),false,function(){go('peptides');}));
+  }
+  var last=pepLastLoggedToday(t);
+  if(last){var lp=pepById(last.pid);out[0].appendChild(tileMinus('peptides',t,(lp?lp.name:'peptide')+' dose',function(){var e=pepLastLoggedToday(t);if(e)pepUnlog(e.pid,e.date);}));}
+  return out;
+}
+var _extraTiles=extraTiles;
+extraTiles=function(t){return _extraTiles(t).concat(pepTiles(t));};
+
+/* ===== seed Greta's four ===== */
+function seedPeptides(){
+  if(D.settings.peptidesSeeded)return;
+  var t=today(),P=peptides(),has=function(n){return P.some(function(p){return String(p.name||'').toLowerCase()===n.toLowerCase();});};
+  if(!has('GLOW'))P.push({id:uid(),name:'GLOW',icon:'💉',dose:'10 units (≈2.3 mg blend)',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:true,weeksOn:4,weeksOff:4},start:t,time:'20:00',on:true,note:'GHK-Cu / BPC-157 / TB-500 blend'});
+  if(!has('NAD+'))P.push({id:uid(),name:'NAD+',icon:'💉',dose:'25 units (25 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
+  if(!has('Glutathione'))P.push({id:uid(),name:'Glutathione',icon:'💉',dose:'50 units (100 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
+  if(!has('Retatrutide'))P.push({id:uid(),name:'Retatrutide',icon:'💉',dose:'',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
+  D.settings.peptidesSeeded=true;save();
+}
+seedPeptides();
+window.__pep={list:peptides,log:peptideLog,due:peptidesDue,dueOn:pepDue,next:pepNext,cycle:pepCycleWeek,phase:pepPhaseLabel,phaseEnd:pepOnEnd,allDue:function(t){return dueList(t||today());},ics:function(){return allICS();}};
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
@@ -3311,7 +3542,7 @@ function patterns(){
 function vSettings(){
   var w=h('div'), u=usage(), le=D.settings.lastExport;
   w.appendChild(hdr('Settings',{back:uiMode()==='simple'}));
-  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'))));w.appendChild(reminderCard());
+  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('\ud83d\udc89','#d0606f','Peptides & injections','peptides'))));w.appendChild(reminderCard());
   var imp=h('input',{type:'file',accept:'.json,application/json',id:'import-file',style:'display:none',onchange:function(){var f=imp.files[0];if(f)importData(f);imp.value='';}});
   w.appendChild(imp);
   w.appendChild(h('div',{class:'card'},h('h2',null,'Preferences'),
@@ -3359,7 +3590,7 @@ function importData(file){
 
 /* ================= Router / init ================= */
 var TABS=['today','cycle','track','insights','settings','eat','week','more'];
-var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical,lists:vLists,eightsleep:vEightSleep};
+var VIEWS={today:vToday,cycle:vCycle,track:vTrack,insights:vInsights,settings:vSettings,mood:vMood,food:vFood,weight:vWeight,alcohol:vAlcohol,skin:vSkin,gym:vGym,sleep:vSleep,labs:vLabs,supps:vSupps,eat:vEat,week:vWeek,more:vMore,routines:vRoutines,stacks:vStacks,heat:vHeat,rewards:vRewards,feel:vFeel,bodypart:vBodyPart,kids:vKids,medical:vMedical,lists:vLists,eightsleep:vEightSleep,peptides:vPeptides};
 var lastRoute=null;
 function go(r){if(location.hash==='#/'+r)render();else location.hash='#/'+r;}
 function render(){
