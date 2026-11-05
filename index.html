@@ -278,7 +278,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-11-04 13:59-46556e5';
+var BUILD_ID='2026-11-05 11:50-503cd17';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1868,7 +1868,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('\ud83d\udc89','#d0606f','Peptides & injections','peptides'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('\ud83d\udc89','#d0606f','Peptides & treatments','peptides'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -1991,7 +1991,7 @@ var dueKey='';
 function remTick(){var t=today(),L=REMS.filter(function(r){return remDue(r.k,t);}).map(function(r){return r.k;}).concat(routinesDue(t).map(function(x){return x.k;})).concat(stacksDue(t).map(function(x){return x.k;})).concat(famDue(t).map(function(x){return x.k;})).concat(listDue(t).map(function(x){return x.k;})).concat(peptidesDue(t).map(function(x){return x.k;}));var FL={};famDue(t).forEach(function(x){FL[x.k]=famLabel(x);});listDue(t).forEach(function(x){FL[x.k]=listLabel(x);});
   if(window.Notification&&Notification.permission==='granted'){var q=qd(t),ch=false;q.notified=q.notified||{};
     L.forEach(function(k){if(!q.notified[k]){q.notified[k]=1;ch=true;try{new Notification(FL[k]?FL[k]:k.slice(0,2)==='x:'?(pepNoteTitle(k)):k.slice(0,2)==='s:'||k.slice(0,2)==='p:'?(stackNoteTitle(k)):k.slice(0,2)==='r:'?'🔁 '+((routineById(k.slice(2))||{}).name||'Routine'):(REMS.find(function(r){return r.k===k;}).i)+' '+(k==='water'?'Sip of water?':remMsg(k)),{body:'Tap to open Health Tracker',tag:'gh-'+k});}catch(e){}}});if(ch)save();}
-  var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&uiMode()==='simple'&&!document.querySelector('.ov')&&!document.hidden)render();}}
+  var key=L.join(',');if(key!==dueKey){var was=dueKey;dueKey=key;var r=location.hash.replace(/^#\/?/,'')||'today';if(was!==''||key!=='')if(r==='today'&&!document.querySelector('.ov')&&!document.hidden)render();}}
 setInterval(remTick,60*1000);document.addEventListener('visibilitychange',function(){if(!document.hidden)remTick();});
 function remList(){return h('div',{class:'remlist',id:'rem-list'},REMS.map(function(r){var c=remCfg(r.k);
   return h('div',{class:'remrow','data-remrow':r.k},h('span',{class:'rl'},r.i+' '+r.l),
@@ -2032,11 +2032,11 @@ function routineDone(t,r,extra){D.routineLog.push(Object.assign({id:uid(),rid:r.
 function routineSkip(t,r){D.routineLog.push({id:uid(),rid:r.id,date:t,status:'skip',type:r.type,name:r.name});}
 function routinePopup(t,x,n){var r=x.rt;
   var inj=r.type==='injection'?injFields(r):null,tips=routineTips(r);
-  function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[x.k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
+  function later(){remindAgain(t,x.k);}
   return h('div',{class:'card rempop',id:'rem-pop','data-rem':x.k},h('div',{class:'remi'},rIcon(r)),h('div',{class:'pq'},r.name),fromLine(x.tm),h('div',{class:'muted small',style:'text-align:center'},freqText(r)),inj?inj.el:null,
     tips?h('ul',{class:'tips',id:'rem-tips'},tips.map(function(x){return h('li',null,x);})):null,
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){var ex=inj?inj.get():null;tap(ev,r.name+' ✓',rIcon(r),function(){routineDone(t,r,ex);});}},'✓ Done'),
-      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){tap(ev,'Skipped – next time is fine','🌿',function(){routineSkip(t,r);});}},'Skip this time')),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){tap(ev,'Skipped – next time is fine','🌿',function(){routineSkip(t,r);});}},'Skip this time'),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openRoutine(r);}},'\u270f\ufe0f Edit schedule / time')),
     n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
 function freqText(r){var f=r.freq||{};switch(f.kind){case 'weekly':return 'Every week · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');case 'biweekly':return 'Every '+(f.weeks||2)+' weeks · '+WD[f.day];case 'monthly':return 'Monthly · day '+f.date;case 'interval':return 'Every '+f.n+' days';}return '';}
 function nextText(r){var n=rNext(r);if(!n)return '';var t=today();return n===t?'Today':n===addDays(t,1)?'Tomorrow':diffDays(t,n)<7?WD[parseD(n).getDay()]:fmtD(n);}
@@ -2949,7 +2949,9 @@ var KID_VIT_NOTE='Vitamin D3 – 1 drop (Carlson Kid\u2019s Super Daily D3, 400 
 function migrateKidVit(){fam();if(D.settings.kidVitNoteV>=2)return;var ch=false;D.settings.kidTasks.forEach(function(x){if(x.k==='vit'&&x.label==='Vitamins'&&!x.note){x.note=KID_VIT_NOTE;x.label='Vitamins with breakfast';ch=true;}});if(D.settings.people.some(function(p){return p.kid;})){D.settings.kidVitNoteV=2;ch=true;}if(ch)save();}
 migrateKidVit();
 (function(){var sf=seedFamily;seedFamily=function(){sf();migrateKidVit();};})();
-/* ===== Peptides & injections ===== */
+/* ===== Peptides & treatments ===== */
+var REPEAT_MS=3*36e5; /* same interval as the water nudge */
+function remindAgain(t,k){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+REPEAT_MS;if(q.notified)delete q.notified[k];save();render();toast('Okay \u2013 I\u2019ll remind you again in 3 h \u23f0');}
 var PEPICONS=['💉','✨','🧬','🩹'];
 var PEPWD=[1,2,3,4,5,6,0];
 
@@ -3049,11 +3051,21 @@ function pepTypical(){
 }
 function vPeptides(){
   var w=h('div'),t=today(),P=peptides();
-  w.appendChild(hdr('Peptides & injections',{back:true,sub:'Doses, cycles & reminders'}));
+  w.appendChild(hdr('Peptides & treatments',{back:true,sub:'Injections, microneedling & reminders'}));
   w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap ✓ Log dose when you take one – I\u2019ll remind you at the time you set.'));
   if(!P.length)w.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'No peptides yet. Tap + Add peptide to start.')));
   else w.appendChild(h('div',{id:'pep-list'},P.map(function(p){return pepCard(p,t);})));
   w.appendChild(h('button',{class:'btn',id:'add-peptide',style:'margin-bottom:14px',onclick:function(){openPeptide();}},'+ Add peptide'));
+  w.appendChild(h('div',{class:'sec-t'},'\ud83e\udea1 Microneedling & treatments'));
+  var R=routines();var rc=h('div',{class:'card',id:'treat-list'});
+  if(!R.length)rc.appendChild(h('div',{class:'empty'},'Add face or scalp microneedling, masks, etc.'));
+  else rc.appendChild(h('div',{class:'list'},R.map(function(r){var lg=rLog(r.id,t),due=r.on!==false&&rScheduled(r,t)&&!lg;
+    return h('div',{class:'it'+(r.on===false?' paused':''),'data-treat':r.id},h('div',{class:'ic',style:'background:#3fb2a622'},rIcon(r)),
+      h('div',{class:'tx'},h('div',{class:'t'},r.name),h('div',{class:'s rnext'},r.on===false?'Paused \u2013 tap Edit to turn on':(lg?(lg.status==='done'?'\u2713 Done today':'Skipped today')+' \u00b7 ':'')+freqText(r)+' \u00b7 '+fmtTime(r.time||'09:00')+' \u00b7 next '+nextText(r))),
+      due?h('button',{class:'btn sm','data-treat-log':r.id,onclick:function(ev){ev.stopPropagation();tap(ev,r.name+' \u2713',rIcon(r),function(){routineDone(t,r);});}},'\u2713 Done'):null,
+      h('button',{class:'btn sec sm','data-treat-edit':r.id,onclick:function(ev){ev.stopPropagation();openRoutine(r);}},'Edit'));})));
+  w.appendChild(rc);
+  w.appendChild(h('button',{class:'btn sec',id:'add-treatment',style:'margin-bottom:14px',onclick:function(){openRoutine();}},'+ Add treatment'));
   w.appendChild(pepTypical());
   return w;
 }
@@ -3111,12 +3123,12 @@ function peptidesDue(t){var hm=nowHM();return peptides().filter(function(p){
   }).map(function(p){return {k:'x:'+p.id,pep:p,i:p.icon||'💉',l:p.name,tm:p.time||'09:00'};});}
 function pepNoteTitle(k){var p=pepById(k.slice(2));return p?(p.icon||'💉')+' '+p.name+' due':'💉 Peptide due';}
 function pepPopup(t,x,n){var p=x.pep,k=x.k;
-  function later(){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+36e5;save();render();toast('Okay, in 1 hour ⏰');}
+  function later(){remindAgain(t,k);}
   return h('div',{class:'card rempop',id:'rem-pop','data-rem':k},h('div',{class:'remi'},p.icon||'💉'),h('div',{class:'pq'},p.name),fromLine(x.tm),
     h('div',{class:'muted small',style:'text-align:center'},[p.dose,pepPhaseLabel(p,t)].filter(Boolean).join(' · ')),
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},
       h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){tap(ev,p.name+' ✓ logged',p.icon||'💉',function(){pepLogDose(p.id,t);});}},'✓ Done'),
-      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k)),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openPeptide(p);}},'\u270f\ufe0f Edit schedule / dose')),
     n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
 function pepEvent(p){
   var t=today(),nx=pepNext(p,t)||t,f=p.freq||{kind:'daily'},tm=p.time||'09:00';
@@ -3189,6 +3201,7 @@ function totalEntries(){return Object.keys(COLL).reduce(function(s,k){return s+D
 function vToday(){
   var t=today(), w=h('div'), hr=new Date().getHours();
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
+  var rpf=remPopup(t);if(rpf)w.appendChild(rpf);
   if(!isStandalone()&&!D.settings.a2hsHidden) w.appendChild(h('div',{class:'banner'},h('div',{style:'font-size:22px'},'📲'),h('div',{style:'flex:1'},h('b',null,'Add to your Home Screen'),h('div',{class:'muted'},'In Safari tap Share ',h('b',null,'⎙'),' → “Add to Home Screen”. ',h('a',{href:'#/settings',style:'color:var(--accent)'},'How-to'))),h('button',{class:'x','aria-label':'Dismiss',onclick:function(){D.settings.a2hsHidden=true;save();render();}},'×')));
   w.appendChild(h('div',{class:'sec-t'},'Quick add'));
   var qa=[['period','🌸','Period',CATS.cycle.c,function(){openCycleDay(t);}],['mood','😊','Mood',CATS.mood.c,function(){openMood();}],['food','🥗','Meal',CATS.food.c,function(){openFood();}],['water','💧','Water +1','#4fb3e0',function(){addWater(t,1,true);}],['weight','⚖️','Weight',CATS.weight.c,function(){openWeight();}],
@@ -3542,7 +3555,7 @@ function patterns(){
 function vSettings(){
   var w=h('div'), u=usage(), le=D.settings.lastExport;
   w.appendChild(hdr('Settings',{back:uiMode()==='simple'}));
-  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('\ud83d\udc89','#d0606f','Peptides & injections','peptides'))));w.appendChild(reminderCard());
+  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('\ud83d\udc89','#d0606f','Peptides & treatments','peptides'))));w.appendChild(reminderCard());
   var imp=h('input',{type:'file',accept:'.json,application/json',id:'import-file',style:'display:none',onchange:function(){var f=imp.files[0];if(f)importData(f);imp.value='';}});
   w.appendChild(imp);
   w.appendChild(h('div',{class:'card'},h('h2',null,'Preferences'),
