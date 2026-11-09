@@ -273,6 +273,10 @@ p{margin:6px 0}
 .sch-hist{list-style:none;padding:0;margin:8px 0 0}
 .sch-hist li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
 .pep-card{cursor:pointer}
+.pep-phase{display:block;margin:6px 0 4px}
+.pep-phase .chip{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:28px;padding:4px 10px;font-size:13px;line-height:1.2;vertical-align:middle}
+.pep-tx{min-width:0;flex:1}
+.pep-meta{margin-top:2px}
 
 </style>
 </head>
@@ -287,7 +291,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-11-09 12:22-c2efa74';
+var BUILD_ID='2026-11-09 12:25-d44246d';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -3091,18 +3095,18 @@ function pepLastLoggedToday(t){var L=peptideLog().filter(function(x){return x.da
 function pepCard(p,t){
   var lg=pepLogged(p,t),cy=pepCycleWeek(p,t),nx=pepNext(p,t),la=pepLast(p.id);
   var c=h('div',{class:'card pep-card'+(p.on===false?' paused':''),'data-pep-id':p.id,onclick:function(ev){if(ev.target.closest('button'))return;openPeptide(p);}});
-  c.appendChild(h('div',{class:'row',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
-    h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start'},
-      h('div',{class:'ic',style:'background:#d0606f22'},p.icon||'💉'),
-      h('div',{style:'min-width:0'},h('b',{style:'font-size:17px;display:block'},p.name),
-        h('div',{class:'muted small'},p.dose||'Dose not set – tap to edit'),
-        h('div',{class:'muted small'},pepFreqText(p)))),
+  var tx=h('div',{class:'pep-tx'},
+    h('b',{style:'font-size:17px;display:block'},p.name),
+    h('div',{class:'muted small'},p.dose||'Dose not set – tap to edit'),
+    h('div',{class:'muted small'},pepFreqText(p)),
+    h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))),
+    h('div',{class:'pep-meta sch-meta','data-pep-meta':p.id},
+      h('div',null,lastTakenText(la&&la.date,la&&la.time)),
+      h('div',null,nextDueText(nx,p.time||'09:00',p.on===false))));
+  c.appendChild(h('div',{class:'row pep-head',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
+    h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start;flex:1'},
+      h('div',{class:'ic',style:'background:#d0606f22'},p.icon||'💉'),tx),
     h('button',{class:'btn sec sm','data-pep-edit':p.id,onclick:function(ev){ev.stopPropagation();openPeptide(p);}},'Edit')));
-  c.appendChild(h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))));
-  var meta=h('div',{class:'pep-meta sch-meta','data-pep-meta':p.id},
-    h('div',null,lastTakenText(la&&la.date,la&&la.time)),
-    h('div',null,nextDueText(nx,p.time||'09:00',p.on===false)));
-  c.appendChild(meta);
   if(lg){
     c.appendChild(h('div',{class:'row',style:'gap:10px;margin-top:12px'},
       h('div',{class:'btn sec','data-pep-logged':p.id,style:'flex:1'},'✓ Logged today'),
