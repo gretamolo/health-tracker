@@ -265,6 +265,15 @@ p{margin:6px 0}
 .es-steps{padding-left:22px;margin:0}.es-steps li{margin:0 0 12px;line-height:1.4}.es-steps li.sub{list-style:none;margin-left:6px}.es-steps b{display:block}
 .it{position:relative}.it-del{background:none;border:0;font-size:18px;padding:8px;margin-left:4px;opacity:.55;min-width:40px;min-height:40px}.dt-row .rl small{font-weight:400}
 .tile{position:relative}.tminus{position:absolute;top:6px;right:6px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.9);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#555;line-height:1}
+
+.inj-home{cursor:pointer}
+.inj-home h2{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 4px}
+.sch-meta{font-size:13px;color:var(--muted);line-height:1.45;white-space:normal}
+.sch-meta div{white-space:normal}
+.sch-hist{list-style:none;padding:0;margin:8px 0 0}
+.sch-hist li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.pep-card{cursor:pointer}
+
 </style>
 </head>
 <body>
@@ -278,7 +287,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-11-05 11:50-503cd17';
+var BUILD_ID='2026-11-09 12:22-c2efa74';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1661,9 +1670,10 @@ function suppDay(d){return D.supps.find(function(x){return x.date===d;});}
 function suppStatus(d){var L=suppList(),e=suppDay(d),tk=(e&&e.taken)||[];var n=L.filter(function(s){return tk.indexOf(s.id)>=0;}).length;return {n:n,of:L.length,pct:L.length?n/L.length:0,done:L.length>0&&n===L.length};}
 function suppStreak(){if(!suppList().length)return 0;var d=today(),n=0;if(!suppStatus(d).done)d=addDays(d,-1);while(suppStatus(d).done&&n<3650){n++;d=addDays(d,-1);}return n;}
 function suppAdherence(days){var L=suppList();if(!L.length)return null;var t=today(),sum=0,cnt=0,st=startDate();for(var k=0;k<days;k++){var d=addDays(t,-k);if(d<st&&k>0)break;if(k===0&&!suppDay(d))continue;sum+=suppStatus(d).pct;cnt++;}return cnt?sum/cnt:null;}
-function toggleSupp(d,id,on){
-  var e=suppDay(d);e=e?Object.assign({},e,{taken:(e.taken||[]).slice()}):{date:d,taken:[],note:''};
-  var i=e.taken.indexOf(id);if(on&&i<0)e.taken.push(id);if(!on&&i>=0)e.taken.splice(i,1);
+function toggleSupp(d,id,on,tm){
+  var e=suppDay(d);e=e?Object.assign({},e,{taken:(e.taken||[]).slice(),times:Object.assign({},e.times||{})}):{date:d,taken:[],times:{},note:''};
+  e.times=e.times||{};
+  var i=e.taken.indexOf(id);if(on&&i<0){e.taken.push(id);e.times[id]=tm||nowTime();}if(!on&&i>=0){e.taken.splice(i,1);delete e.times[id];}
   if(!e.taken.length&&!e.note){if(e.id){D.supps=D.supps.filter(function(x){return x.id!==e.id;});save();}return;}
   upsert('supps',e,true);
 }
@@ -1688,11 +1698,41 @@ function openSuppDay(d){
 }
 function openSupp(x){
   x=x||{time:'am'}; var used=suppList(true).map(function(s){return s.name;});
+  var s=JSON.parse(JSON.stringify(x));
+  if(!s.freq||!s.freq.kind)s.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
+  if(!s.clock)s.clock=s.time==='pm'?'21:00':'09:00';
+  if(!s.cycle||typeof s.cycle!=='object')s.cycle={on:false,weeksOn:4,weeksOff:4};
+  if(s.remind==null)s.remind=false;
   var dl=h('datalist',{id:'dl-supps'},SUPPSUG.filter(function(n){return used.indexOf(n)<0;}).map(function(n){return h('option',{value:n});}));
-  var f=form([{k:'name',t:'text',label:'Name',ph:'e.g. Vitamin D3',list:'dl-supps'},{k:'dose',t:'text',label:'Dose',ph:'e.g. 2000 IU, 1 capsule'},{k:'time',t:'chips',label:'Time of day',opts:SUPPT,def:'am'}],x);
-  sheet({title:x.id?'Edit supplement':'Add supplement',body:h('div',null,dl,f.el),onSave:function(){var v=f.get();if(!v.name){alert('Enter a name.');return false;}
-      var L=D.settings.supps,o=Object.assign({},x,v,{active:true});if(!o.id)o.id=uid();var i=L.findIndex(function(s){return s.id===o.id;});if(i>=0)L[i]=o;else L.push(o);save();render();toast('Supplement saved');},
-    onDelete:x.id&&function(){var s=suppById(x.id);if(s)s.active=false;save();render();toast('Removed from your list');},deleteLabel:'Remove from my list',deleteMsg:'Remove this supplement from your daily list? Past history is kept.'});
+  var f=form([{k:'name',t:'text',label:'Name',ph:'e.g. Vitamin D3',list:'dl-supps'},{k:'dose',t:'text',label:'Dose',ph:'e.g. 2000 IU, 1 capsule'},{k:'time',t:'chips',label:'Time of day',opts:SUPPT,def:'am'}],s);
+  var extra=h('div',{id:'supp-sched'});
+  function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
+  function drawExtra(){extra.innerHTML='';
+    var tm=h('input',{type:'time',class:'inp',id:'sch-time',value:s.clock||'09:00',onchange:function(){s.clock=tm.value||'09:00';}});
+    extra.appendChild(sec('Clock time',tm));
+    extra.appendChild(sec('How often',h('div',{class:'chips',id:'sch-freq'},[['daily','Daily'],['weekly','Weekly'],['interval','Every X days'],['weeks','Every X weeks']].map(function(o){return h('button',{type:'button',class:'chip'+(s.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){s.freq.kind=o[0];if(o[0]==='weekly'&&(!s.freq.days||!s.freq.days.length))s.freq.days=[1];if(o[0]==='interval'&&!s.freq.n)s.freq.n=3;if(o[0]==='weeks'){s.freq.weeks=s.freq.weeks||2;if(s.freq.day==null)s.freq.day=1;}drawExtra();}},o[1]);}))));
+    if(s.freq.kind==='weekly')extra.appendChild(sec('On',h('div',{class:'chips',id:'sch-days'},[1,2,3,4,5,6,0].map(function(d){return h('button',{type:'button',class:'chip'+((s.freq.days||[]).indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){s.freq.days=s.freq.days||[];var i=s.freq.days.indexOf(d);if(i>=0){if(s.freq.days.length>1)s.freq.days.splice(i,1);}else s.freq.days.push(d);drawExtra();}},WD[d]);}))));
+    if(s.freq.kind==='interval'){var ni=h('input',{type:'number',class:'inp',id:'sch-every-n',inputmode:'numeric',min:1,max:60,value:s.freq.n||3,oninput:function(){s.freq.n=Math.max(1,Math.min(60,parseInt(ni.value,10)||3));}});extra.appendChild(sec('Every … days',ni));}
+    if(s.freq.kind==='weeks'){var wi=h('input',{type:'number',class:'inp',id:'sch-every-weeks',inputmode:'numeric',min:1,max:12,value:s.freq.weeks||2,oninput:function(){s.freq.weeks=Math.max(1,Math.min(12,parseInt(wi.value,10)||2));}});extra.appendChild(sec('Every … weeks',wi));
+      extra.appendChild(sec('On',h('div',{class:'chips'},[1,2,3,4,5,6,0].map(function(d){return h('button',{type:'button',class:'chip'+(s.freq.day===d?' on':''),'data-day':d,onclick:function(){s.freq.day=d;drawExtra();}},WD[d]);}))));}
+    var sd=h('input',{type:'date',class:'inp',id:'sch-start',value:s.start||today(),onchange:function(){s.start=sd.value||today();}});
+    extra.appendChild(sec('Start date',sd));
+    var cy=s.cycle;
+    extra.appendChild(sec('Cycle',h('div',null,
+      h('div',{class:'remrow',style:'border-top:0;padding-top:0'},h('span',{class:'rl'},'Weeks on, then weeks off'),h('button',{type:'button',class:'tog'+(cy.on?' on':''),id:'sch-cycle',role:'switch','aria-checked':String(!!cy.on),onclick:function(){cy.on=!cy.on;drawExtra();}},h('i'))),
+      cy.on?h('div',{class:'row',style:'gap:10px;margin-top:8px'},
+        h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'sch-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
+        h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'sch-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
+    extra.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(s.remind?' on':''),id:'sch-on',role:'switch','aria-checked':String(!!s.remind),onclick:function(){s.remind=!s.remind;drawExtra();}},h('i')))));
+    if(typeof pastLogBlock==='function')extra.appendChild(pastLogBlock(s.id,function(d,tm){if(!s.id){alert('Save this first, then you can log a past dose.');return;}if(typeof suppLogDose==='function')suppLogDose(s.id,d,tm);else toggleSupp(d,s.id,true,tm);save();drawExtra();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+      s.id?(D.supps||[]).filter(function(e){return e.taken&&e.taken.indexOf(s.id)>=0;}).map(function(e){return {id:e.id+'@'+s.id,date:e.date,time:(e.times&&e.times[s.id])||null,day:e.date};}).sort(function(a,b){return a.date<b.date?1:-1;}):[],
+      function(hid,row){if(typeof suppUnlogId==='function')suppUnlogId(s.id,row.date);else toggleSupp(row.date,s.id,false);save();drawExtra();render();toast('Removed');}));
+  }
+  drawExtra();
+  sheet({title:x.id?'Edit supplement':'Add supplement',body:h('div',null,dl,f.el,extra),onSave:function(){var v=f.get();if(!v.name){alert('Enter a name.');return false;}
+      s.clock=($('#sch-time')&&$('#sch-time').value)||s.clock||'09:00';
+      var L=D.settings.supps,o=Object.assign({},x,v,{active:true,clock:s.clock,freq:s.freq,start:s.start||today(),cycle:s.cycle,remind:!!s.remind});if(!o.id)o.id=uid();var i=L.findIndex(function(z){return z.id===o.id;});if(i>=0)L[i]=o;else L.push(o);save();render();toast('Supplement saved');},
+    onDelete:x.id&&function(){var z=suppById(x.id);if(z)z.active=false;save();render();toast('Removed from your list');},deleteLabel:'Remove from my list',deleteMsg:'Remove this supplement from your daily list? Past history is kept.'});
 }
 function openSuppEntry(e){
   e=Object.assign({},e); var all=suppList(true), opts=all.filter(function(s){return s.active!==false||(e.taken||[]).indexOf(s.id)>=0;});
@@ -1824,6 +1864,7 @@ function vHome(){
   var cwc=continueCard();if(cwc)w.appendChild(cwc);
   eveListCards(t).forEach(function(c){w.appendChild(c);});
   var kc=kidsCard(t); if(kc)w.appendChild(kc);
+  if(typeof injHomeCard==='function')w.appendChild(injHomeCard());
   var ss=suppStatus(t), sk=D.skin.find(function(s){return s.date===t;}), gy=D.gym.filter(function(x){return x.date===t;}).length, dk=drinksOn(t), wa=D.water[t]||0;
   w.appendChild(h('div',{class:'tiles'},
     waterTile(t,wa),
@@ -1868,7 +1909,7 @@ function vEat(){
 function moreItem(icon,color,label,r){return h('div',{class:'it','data-more':r,onclick:function(){if(r==='cycle-today')openCycleDay(today());else go(r);}},h('div',{class:'ic',style:'background:'+color+'22'},icon),h('div',{class:'tx'},h('div',{class:'t'},label)),h('div',{class:'chev'},'›'));}
 function vMore(){var w=h('div');w.appendChild(hdr('More'));
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🌸',CATS.cycle.c,'Cycle','cycle'),moreItem('⚖️',CATS.weight.c,'Weight','weight'),moreItem('🩸',CATS.labs.c,'Blood work','labs'),moreItem('🌙',CATS.sleep.c,'Sleep & CSV import','sleep'),moreItem('😊',CATS.mood.c,'Mood & notes','mood'))));
-  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('\ud83d\udc89','#d0606f','Peptides & treatments','peptides'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
+  w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🏋️',CATS.gym.c,'Workouts','gym'),moreItem('🧴',CATS.skin.c,'Skin routine','skin'),moreItem('💊',CATS.supps.c,'My vitamins','supps'),moreItem('🍷',CATS.alcohol.c,'Drinks','alcohol'),moreItem('🔁','#3fb2a6','Routines','routines'),moreItem('\ud83d\udc89','#d0606f','My injections & treatments','peptides'),moreItem('🌙','#7b6fd6','My evening list','lists'),moreItem('🛏','#6b8fd6','Connect Eight Sleep','eightsleep'),moreItem('👧','#e86aa6','Kids & schedule','kids'),moreItem('🩺','#4a8fe0','Medical records','medical'),moreItem('😊','#9b8cf0','How I feel','feel'),moreItem('🏋️',CATS.gym.c,'Workout by body part','bodypart'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('🧖','#ee967a','Sauna & cold','heat'),moreItem('⭐','#e0b93b','Rewards','rewards'),moreItem('📈','#6c9de0','Insights','insights'))));
   w.appendChild(reminderCard());
   w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('⚙️','#8a8494','Settings & backup','settings'))));
   return w;}
@@ -2016,7 +2057,8 @@ function iBase(r){var la=lastAction(r.id),b=la?addDays(la.date,r.freq.n):r.start
 /* is d a scheduled day for r */
 function rScheduled(r,d){var f=r.freq||{},wd=parseD(d).getDay();
   if(d<(r.start||'0000'))return false;
-  switch(f.kind){case 'weekly':return (f.days||[]).indexOf(wd)>=0;
+  if(r.cycle&&r.cycle.on&&typeof pepCycleWeek==='function'){var cy=pepCycleWeek(r,d);if(cy.on&&!cy.active)return false;}
+  switch(f.kind){case 'daily':return true;case 'weekly':return (f.days||[]).indexOf(wd)>=0;
   case 'biweekly':return wd===f.day&&Math.floor(diffDays(weekStart(r.start),weekStart(d))/7)%(f.weeks||2)===0;
   case 'monthly':return +d.slice(8)===monthDay(d,f.date);
   case 'interval':return d===rNext(r,today())||!!rLog(r.id,d);}
@@ -2026,7 +2068,7 @@ function rNext(r,from){from=from||today();if(r.on===false)return null;if(r.freq.
   for(var i=0;i<400;i++){var d=addDays(from,i);if(rScheduled(r,d)&&!rLog(r.id,d))return d;}return null;}
 function routinesDue(t){var hm=nowHM();return routines().filter(function(r){if(r.remind===false||!rDueOn(r,t)||hm<effTime(r,t,'09:00'))return false;if(isSkipped(t,'r:'+r.id))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze['r:'+r.id];return !(sn&&Date.now()<sn);})
   .map(function(r){return {k:'r:'+r.id,rt:r,i:rIcon(r),l:r.name};});}
-function routineDone(t,r,extra){D.routineLog.push(Object.assign({id:uid(),rid:r.id,date:t,status:'done',type:r.type,name:r.name},extra||{}));
+function routineDone(t,r,extra){D.routineLog.push(Object.assign({id:uid(),rid:r.id,date:t,status:'done',type:r.type,name:r.name,time:nowTime()},extra||{}));
   if(r.type==='supplement'||r.type==='injection'){if(!suppById(r.id))D.settings.supps.push({id:r.id,name:r.name,dose:'',time:'am',active:false,routine:true});var e=suppDay(t);if(e){if(e.taken.indexOf(r.id)<0)e.taken.push(r.id);}else D.supps.push({id:uid(),date:t,taken:[r.id],note:''});}
   else if(r.type==='skin'){var s=D.skin.find(function(x){return x.date===t;});if(!s){s={id:uid(),date:t,am:[],pm:[],rating:null,note:''};D.skin.push(s);}if(s.pm.indexOf(r.name)<0)s.pm.push(r.name);}}
 function routineSkip(t,r){D.routineLog.push({id:uid(),rid:r.id,date:t,status:'skip',type:r.type,name:r.name});}
@@ -2065,15 +2107,28 @@ function openRoutine(e){var r=JSON.parse(JSON.stringify(e||{type:'hair',name:'',
     if(!e)body.appendChild(sec('Quick pick',h('div',{class:'chips',id:'rt-templates'},RTEMPL.map(function(x){return h('button',{type:'button',class:'chip','data-tpl':x[1],onclick:function(){r.type=x[0];r.name=x[1];r.freq=x[2]==='weekly'?{kind:'weekly',days:[0]}:x[2]==='interval'?{kind:'interval',n:x[1]==='Wash hair'?3:x[1]==='Retinol night'?2:7}:{kind:'biweekly',day:0};draw();}},x[1]);}))));
     body.appendChild(sec('Type',chips(RTYPES,function(v){return r.type===v;},function(v){r.type=v;},'type')));
     var nm=h('input',{type:'text',id:'rt-name',value:r.name,placeholder:'e.g. Hair mask',oninput:function(){r.name=nm.value;}});body.appendChild(sec('Name',nm));
-    body.appendChild(sec('How often',chips([{v:'weekly',l:'Weekly'},{v:'interval',l:'Every X days'},{v:'biweekly',l:'Every 2 weeks'},{v:'monthly',l:'Monthly'}],function(v){return r.freq.kind===v;},function(v){var d=parseD(today()).getDay();r.freq=v==='weekly'?{kind:v,days:[d]}:v==='interval'?{kind:v,n:3}:v==='biweekly'?{kind:v,day:d}:{kind:v,date:+today().slice(8)};},'kind')));
+    body.appendChild(sec('How often',chips([{v:'daily',l:'Daily'},{v:'weekly',l:'Weekly'},{v:'interval',l:'Every X days'},{v:'biweekly',l:'Every X weeks'},{v:'monthly',l:'Monthly'}],function(v){return r.freq.kind===v;},function(v){var d=parseD(today()).getDay();r.freq=v==='weekly'?{kind:v,days:[d]}:v==='interval'?{kind:v,n:3}:v==='biweekly'?{kind:v,day:d,weeks:r.freq.weeks||2}:v==='daily'?{kind:v,days:[0,1,2,3,4,5,6]}:{kind:v,date:+today().slice(8)};},'kind')));
     var f=r.freq,DAYS=[1,2,3,4,5,6,0].map(function(d){return {v:d,l:WD[d]};});
     if(f.kind==='weekly')body.appendChild(sec('On',chips(DAYS,function(v){return f.days.indexOf(v)>=0;},function(v){var i=f.days.indexOf(v);if(i>=0){if(f.days.length>1)f.days.splice(i,1);}else f.days.push(v);},'day')));
-    if(f.kind==='biweekly')body.appendChild(sec('On',chips(DAYS,function(v){return f.day===v;},function(v){f.day=v;},'day')));
+    if(f.kind==='biweekly'){var wi=h('input',{type:'number',id:'rt-weeks',min:1,max:12,value:f.weeks||2,inputmode:'numeric',oninput:function(){f.weeks=Math.max(1,Math.min(12,parseInt(wi.value,10)||2));}});body.appendChild(sec('Every … weeks',wi));body.appendChild(sec('On',chips(DAYS,function(v){return f.day===v;},function(v){f.day=v;},'day')));}
     if(f.kind==='interval'){var ni=h('input',{type:'number',id:'rt-n',min:2,max:60,value:f.n,inputmode:'numeric',oninput:function(){f.n=Math.max(2,Math.min(60,parseInt(ni.value)||2));}});body.appendChild(sec('Every … days',ni));}
     if(f.kind==='monthly'){var mi=h('input',{type:'number',id:'rt-date',min:1,max:31,value:f.date,inputmode:'numeric',oninput:function(){f.date=Math.max(1,Math.min(31,parseInt(mi.value)||1));}});body.appendChild(sec('Day of month',mi));}
     var sd=h('input',{type:'date',id:'rt-start',value:r.start||today(),onchange:function(){r.start=sd.value||today();}});body.appendChild(sec(f.kind==='biweekly'?'First date':'Start date',sd));
     var tm=h('input',{type:'time',id:'rt-time',value:r.time,onchange:function(){r.time=tm.value||'09:00';}});body.appendChild(sec('Reminder time (weekdays)',tm));
-    body.appendChild(sec('Weekends time (optional)',weInput(r.timeWE,function(v){r.timeWE=v;},'rt-time-we')));}
+    body.appendChild(sec('Weekends time (optional)',weInput(r.timeWE,function(v){r.timeWE=v;},'rt-time-we')));
+    var ds=h('input',{type:'text',id:'rt-dose',value:r.dose||'',placeholder:'e.g. 10 units',oninput:function(){r.dose=ds.value;}});body.appendChild(sec('Dose (optional)',ds));
+    if(!r.cycle||typeof r.cycle!=='object')r.cycle={on:false,weeksOn:4,weeksOff:4};
+    var cy=r.cycle;
+    body.appendChild(sec('Cycle',h('div',null,
+      h('div',{class:'remrow',style:'border-top:0;padding-top:0'},h('span',{class:'rl'},'Weeks on, then weeks off'),h('button',{type:'button',class:'tog'+(cy.on?' on':''),id:'rt-cycle',role:'switch','aria-checked':String(!!cy.on),onclick:function(){cy.on=!cy.on;draw();}},h('i'))),
+      cy.on?h('div',{class:'row',style:'gap:10px;margin-top:8px'},
+        h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'rt-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
+        h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'rt-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
+    body.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(r.on!==false&&r.remind!==false?' on':''),id:'rt-on',role:'switch','aria-checked':String(r.on!==false&&r.remind!==false),onclick:function(){var on=!(r.on!==false&&r.remind!==false);r.on=on;r.remind=on;draw();}},h('i')))));
+    if(typeof pastLogBlock==='function')body.appendChild(pastLogBlock(r.id,function(d,tm){if(!r.id){alert('Save this first, then you can log a past treatment.');return;}var ex={time:tm},old=rLog(r.id,d);if(old){old.status='done';old.time=tm;}else routineDone(d,r,ex);save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+      r.id?(D.routineLog||[]).filter(function(x){return x.rid===r.id;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):1;}):[],
+      function(id){D.routineLog=D.routineLog.filter(function(x){return x.id!==id;});save();draw();render();toast('Removed');}));
+}
   draw();
   sheet({title:e?'Edit routine':'Add routine',body:body,onSave:function(){if(!r.name.trim()){alert('Give it a name.');return false;}r.name=r.name.trim();
       if(!r.id){r.id=uid();r.start=r.start||today();D.settings.routines.push(r);}else{var i=D.settings.routines.findIndex(function(x){return x.id===r.id;});D.settings.routines[i]=r;}
@@ -2617,7 +2672,7 @@ function stackRows(t){var T=todaysStacks(t).slice().sort(function(a,b){return ef
         h('span',{class:'stime'},fmtTime(effTime(x,t,'09:00')).replace(' AM','').replace(' PM','p')),h('span',{class:'stx'},h('b',null,x.name),h('small',null,it+w)),h('span',{class:'sck'},d?'✓':''));}));}
 function vitChecklist(t){var body=h('div',{id:'vit-check'});var s;
   function draw(){body.innerHTML='';var day=suppDay(t),tk=day?day.taken:[];
-    suppList().forEach(function(sp){var on=tk.indexOf(sp.id)>=0;body.appendChild(h('button',{class:'srow'+(on?' on':''),'data-supp':sp.name,onclick:function(){snap();var d=suppDay(t);if(!d){d={id:uid(),date:t,taken:[],note:''};D.supps.push(d);}var i=d.taken.indexOf(sp.id);if(i>=0)d.taken.splice(i,1);else d.taken.push(sp.id);save();draw();render();}},
+    suppList().forEach(function(sp){var on=tk.indexOf(sp.id)>=0;body.appendChild(h('button',{class:'srow'+(on?' on':''),'data-supp':sp.name,onclick:function(){snap();var d=suppDay(t);if(!d){d={id:uid(),date:t,taken:[],times:{},note:''};D.supps.push(d);}d.times=d.times||{};var i=d.taken.indexOf(sp.id);if(i>=0){d.taken.splice(i,1);delete d.times[sp.id];}else{d.taken.push(sp.id);d.times[sp.id]=nowTime();}save();draw();render();}},
       h('span',{class:'stime'},'💊'),h('span',{class:'stx'},h('b',null,sp.name),h('small',null,sp.dose||'')),h('span',{class:'sck'},on?'✓':'')));});}
   draw();s=sheet({title:'Vitamins today',body:body});}
 window.openRoutine=openRoutine;
@@ -2960,8 +3015,21 @@ function peptideLog(){if(!Array.isArray(D.peptideLog))D.peptideLog=[];return D.p
 function pepById(id){return peptides().find(function(p){return p.id===id;});}
 function pepLogOn(pid,d){return peptideLog().filter(function(x){return x.pid===pid&&x.date===d;});}
 function pepLogged(p,d){var id=typeof p==='string'?p:p.id;return pepLogOn(id,d).length>0;}
-function pepLastDate(pid){var ds=peptideLog().filter(function(x){return x.pid===pid;}).map(function(x){return x.date;}).sort();return ds.length?ds[ds.length-1]:null;}
-function pepFreqText(p){var f=p.freq||{};if(f.kind==='weekly')return 'Weekly · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');return 'Daily';}
+function pepLast(pid){var L=peptideLog().filter(function(x){return x.pid===pid;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?-1:1):((a.time||'')<(b.time||'')?-1:1);});return L.length?L[L.length-1]:null;}
+function pepLastDate(pid){var e=pepLast(pid);return e?e.date:null;}
+function pepFreqText(p){var f=p.freq||{};if(f.kind==='weekly')return 'Weekly · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');if(f.kind==='interval')return 'Every '+(f.n||1)+' days';if(f.kind==='weeks'||f.kind==='biweekly')return 'Every '+(f.weeks||f.n||2)+' weeks';return 'Daily';}
+function lastTakenText(date,time){if(!date)return 'Never logged';return 'Last taken: '+fmtRel(date)+(time?', '+fmtTime(time):'');}
+function nextDueText(date,time,off){if(!date&&off)return 'Next due: reminders off';if(!date)return 'Next due: \u2014';var t=today(),when=date===t?'today':date===addDays(t,1)?'tomorrow':fmtD(date);return 'Next due: '+when+(time?' '+fmtTime(time):'')+(off?' (reminders off)':'');}
+function treatVisible(r){if(r.on===false&&(r.type==='injection'||/nad\+|retatrutide|ghk-cu/i.test(r.name||''))&&peptides().some(function(p){return (p.name||'').toLowerCase()===String(r.name||'').replace(/\s*injection\s*$/i,'').toLowerCase();}))return false;return true;}
+function lastDoneRoutine(rid){var L=(D.routineLog||[]).filter(function(x){return x.rid===rid&&x.status==='done';}).sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):((a.time||'')<(b.time||'')?1:-1);});return L[0]||null;}
+function suppClock(s){return s.clock||(s.time==='pm'?'21:00':'09:00');}
+function suppFreq(s){return (s.freq&&s.freq.kind)?s.freq:{kind:'daily',days:[0,1,2,3,4,5,6]};}
+function suppLoggedOn(id,d){var e=suppDay(d);return !!(e&&e.taken&&e.taken.indexOf(id)>=0);}
+function suppScheduled(s,d){if(s.active===false)return false;if(s.start&&d<s.start)return false;var cy=pepCycleWeek({start:s.start||'2000-01-01',cycle:s.cycle||{}},d);if(cy.on&&!cy.active)return false;var f=suppFreq(s);if(f.kind==='weekly')return (f.days||[]).indexOf(parseD(d).getDay())>=0;if(f.kind==='interval'){var n=Math.max(1,parseInt(f.n,10)||1);return diffDays(s.start||d,d)%n===0;}if(f.kind==='weeks'||f.kind==='biweekly'){var w=Math.max(1,parseInt(f.weeks!=null?f.weeks:f.n,10)||2),day=f.day!=null?f.day:((f.days||[])[0]);if(day==null)day=parseD(s.start||d).getDay();return parseD(d).getDay()===day&&Math.floor(diffDays(weekStart(s.start||d),weekStart(d))/7)%w===0;}return true;}
+function suppNext(s,from){from=from||today();if(s.active===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(suppScheduled(s,d)&&!suppLoggedOn(s.id,d))return d;}return null;}
+function suppLast(s){var L=(D.supps||[]).filter(function(e){return e.taken&&e.taken.indexOf(s.id)>=0;}).sort(function(a,b){return a.date<b.date?-1:1;});if(!L.length)return null;var e=L[L.length-1];return {date:e.date,time:(e.times&&e.times[s.id])||null};}
+function suppLogDose(id,d,tm){d=d||today();var e=suppDay(d);if(!e){e={id:uid(),date:d,taken:[],times:{},note:''};D.supps.push(e);}e.taken=e.taken||[];e.times=e.times||{};if(e.taken.indexOf(id)<0)e.taken.push(id);e.times[id]=tm||nowTime();}
+function suppUnlogId(id,d){var e=suppDay(d);if(!e)return;e.taken=(e.taken||[]).filter(function(x){return x!==id;});if(e.times)delete e.times[id];if(!e.taken.length&&!e.note)D.supps=D.supps.filter(function(x){return x.id!==e.id;});}
 
 /* cycle: weeksOn from start, then weeksOff, repeat. Day-count maths from start. */
 function pepCycleWeek(p,d){
@@ -2992,6 +3060,8 @@ function pepScheduled(p,d){
   if(cy.on&&!cy.active)return false;
   var f=p.freq||{};
   if(f.kind==='weekly')return (f.days||[]).indexOf(parseD(d).getDay())>=0;
+  if(f.kind==='interval'){var n=Math.max(1,parseInt(f.n,10)||1);return diffDays(p.start,d)%n===0;}
+  if(f.kind==='weeks'||f.kind==='biweekly'){var w=Math.max(1,parseInt(f.weeks!=null?f.weeks:f.n,10)||2),day=f.day!=null?f.day:((f.days||[])[0]);if(day==null)day=parseD(p.start).getDay();return parseD(d).getDay()===day&&Math.floor(diffDays(weekStart(p.start),weekStart(d))/7)%w===0;}
   return true;
 }
 function pepDue(p,d){d=d||today();return pepScheduled(p,d)&&!pepLogged(p,d);}
@@ -3012,33 +3082,37 @@ function pepPhaseLabel(p,d){
 function pepWhen(d,t){t=t||today();if(!d)return '—';if(d===t)return 'today';if(d===addDays(t,1))return 'tomorrow';return fmtD(d);}
 
 /* logging */
-function pepLogDose(pid,d){peptideLog().push({id:uid(),pid:pid,date:d||today(),time:nowTime()});}
+function pepLogDose(pid,d,tm){peptideLog().push({id:uid(),pid:pid,date:d||today(),time:tm||nowTime()});}
 function pepUnlog(pid,d){var L=peptideLog();for(var i=L.length-1;i>=0;i--){if(L[i].pid===pid&&L[i].date===(d||today())){L.splice(i,1);return true;}}return false;}
+function pepUnlogId(id){var L=peptideLog();for(var i=L.length-1;i>=0;i--){if(L[i].id===id){L.splice(i,1);return true;}}return false;}
 function pepLastLoggedToday(t){var L=peptideLog().filter(function(x){return x.date===t;});return L.length?L[L.length-1]:null;}
 
 /* ===== view ===== */
 function pepCard(p,t){
-  var lg=pepLogged(p,t),cy=pepCycleWeek(p,t),nx=pepNext(p,t),la=pepLastDate(p.id);
-  var c=h('div',{class:'card pep-card'+(p.on===false?' paused':''),'data-pep-id':p.id});
+  var lg=pepLogged(p,t),cy=pepCycleWeek(p,t),nx=pepNext(p,t),la=pepLast(p.id);
+  var c=h('div',{class:'card pep-card'+(p.on===false?' paused':''),'data-pep-id':p.id,onclick:function(ev){if(ev.target.closest('button'))return;openPeptide(p);}});
   c.appendChild(h('div',{class:'row',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
     h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start'},
       h('div',{class:'ic',style:'background:#d0606f22'},p.icon||'💉'),
       h('div',{style:'min-width:0'},h('b',{style:'font-size:17px;display:block'},p.name),
-        h('div',{class:'muted small'},p.dose||'Dose not set – tap Edit'),
+        h('div',{class:'muted small'},p.dose||'Dose not set – tap to edit'),
         h('div',{class:'muted small'},pepFreqText(p)))),
-    h('button',{class:'btn sec sm','data-pep-edit':p.id,onclick:function(){openPeptide(p);}},'Edit')));
+    h('button',{class:'btn sec sm','data-pep-edit':p.id,onclick:function(ev){ev.stopPropagation();openPeptide(p);}},'Edit')));
   c.appendChild(h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))));
+  var meta=h('div',{class:'pep-meta sch-meta','data-pep-meta':p.id},
+    h('div',null,lastTakenText(la&&la.date,la&&la.time)),
+    h('div',null,nextDueText(nx,p.time||'09:00',p.on===false)));
+  c.appendChild(meta);
   if(lg){
     c.appendChild(h('div',{class:'row',style:'gap:10px;margin-top:12px'},
       h('div',{class:'btn sec','data-pep-logged':p.id,style:'flex:1'},'✓ Logged today'),
-      h('button',{class:'btn','data-pep-undo':p.id,style:'flex:none;width:auto;padding:0 18px',onclick:function(ev){tap(ev,'↩ Undone · '+p.name,'↩',function(){pepUnlog(p.id,t);});}},'↩ Undo')));
+      h('button',{class:'btn','data-pep-undo':p.id,style:'flex:none;width:auto;padding:0 18px',onclick:function(ev){ev.stopPropagation();tap(ev,'↩ Undone · '+p.name,'↩',function(){pepUnlog(p.id,t);});}},'↩ Undo')));
   } else if(pepScheduled(p,t)){
-    c.appendChild(h('button',{class:'btn','data-pep-log':p.id,style:'margin-top:12px',onclick:function(ev){tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'\u2713 Log dose'));
+    c.appendChild(h('button',{class:'btn','data-pep-log':p.id,'data-took':'x:'+p.id,style:'margin-top:12px',onclick:function(ev){ev.stopPropagation();tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'\u2713 Took it'));
   } else {
     c.appendChild(h('div',{class:'pep-rest','data-pep-rest':p.id,style:'margin-top:12px;text-align:center;font-size:14px;color:var(--muted)'},(p.on===false?'Paused \u2013 reminders off':'No dose due today'),' ',
-      h('button',{class:'link','data-pep-log':p.id,style:'min-width:0;font-size:13px;padding:0 4px;display:inline-block',onclick:function(ev){tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'Log anyway')));
+      h('button',{class:'link','data-pep-log':p.id,style:'min-width:0;font-size:13px;padding:0 4px;display:inline-block',onclick:function(ev){ev.stopPropagation();tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'Log anyway')));
   }
-  c.appendChild(h('div',{class:'pep-meta','data-pep-meta':p.id},'Last: '+(la?fmtRel(la):'never')+' · Next: '+(p.on===false?'paused':pepWhen(nx,t))));
   return c;
 }
 function pepTypical(){
@@ -3049,28 +3123,78 @@ function pepTypical(){
       h('li',null,'Glutathione: 100–200 mg, 2–3× weekly · 1500 mg in 7.5 mL (200 mg/mL), so 100 mg = 50 units')),
     h('p',{class:'hint'},'Conventions people use – not studied doses. Follow your surgeon\u2019s instructions.'));
 }
+function treatRow(r,t){
+  var lg=rLog(r.id,t),due=r.on!==false&&rScheduled(r,t)&&!lg,la=lastDoneRoutine(r.id),nx=rNext(r,t);
+  var row=h('div',{class:'it'+(r.on===false?' paused':''),'data-treat':r.id,'data-sched':'r:'+r.id,onclick:function(ev){if(ev.target.closest('button'))return;openRoutine(r);}});
+  row.appendChild(h('div',{class:'ic',style:'background:#3fb2a622'},rIcon(r)));
+  row.appendChild(h('div',{class:'tx'},h('div',{class:'t'},r.name),
+    h('div',{class:'s rnext sch-meta'},h('div',null,lastTakenText(la&&la.date,la&&la.time)),h('div',null,nextDueText(nx,r.time||'09:00',r.on===false||r.remind===false)),
+      h('div',null,(lg?(lg.status==='done'?'✓ Done today':'Skipped today')+' · ':'')+freqText(r)))));
+  if(due)row.appendChild(h('button',{class:'btn sm','data-treat-log':r.id,'data-took':'r:'+r.id,onclick:function(ev){ev.stopPropagation();tap(ev,r.name+' \u2713',rIcon(r),function(){routineDone(t,r,{time:nowTime()});});}},'\u2713 Took it'));
+  row.appendChild(h('button',{class:'btn sec sm','data-treat-edit':r.id,onclick:function(ev){ev.stopPropagation();openRoutine(r);}},'Edit'));
+  return row;
+}
+function vitRow(s,t){
+  var taken=suppLoggedOn(s.id,t),la=suppLast(s),nx=suppNext(s,t);
+  var row=h('div',{class:'it','data-sched-vit':s.id,'data-sched':'v:'+s.id,onclick:function(ev){if(ev.target.closest('button'))return;openSupp(Object.assign({},s));}});
+  row.appendChild(h('div',{class:'ic',style:'background:'+CATS.supps.c+'22'},s.time==='pm'?'🌙':'☀️'));
+  row.appendChild(h('div',{class:'tx'},h('div',{class:'t'},s.name+(s.dose?' · '+s.dose:'')),
+    h('div',{class:'s rnext sch-meta'},h('div',null,lastTakenText(la&&la.date,la&&la.time)),h('div',null,nextDueText(nx,suppClock(s),s.remind===false)))));
+  if(!taken)row.appendChild(h('button',{class:'btn sm','data-took':'v:'+s.id,onclick:function(ev){ev.stopPropagation();tap(ev,s.name+' \u2713','💊',function(){suppLogDose(s.id,t);});}},'\u2713 Took it'));
+  else row.appendChild(h('div',{class:'muted small',style:'flex:none'},'✓ Today'));
+  return row;
+}
 function vPeptides(){
   var w=h('div'),t=today(),P=peptides();
-  w.appendChild(hdr('Peptides & treatments',{back:true,sub:'Injections, microneedling & reminders'}));
-  w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap ✓ Log dose when you take one – I\u2019ll remind you at the time you set.'));
-  if(!P.length)w.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'No peptides yet. Tap + Add peptide to start.')));
-  else w.appendChild(h('div',{id:'pep-list'},P.map(function(p){return pepCard(p,t);})));
+  w.appendChild(hdr('My injections & treatments',{back:true,sub:'Injections, microneedling, vitamins & reminders'}));
+  w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap a row to edit the time, repeat, or dose. Use \u2713 Took it, or open the row to log a past dose.'));
+  w.appendChild(h('div',{class:'sec-t'},'\ud83d\udc89 Injections'));
+  var pepWrap=h('div',{id:'pep-list'});
+  if(!P.length)pepWrap.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'No injections yet. Tap + Add peptide to start.')));
+  else P.forEach(function(p){pepWrap.appendChild(pepCard(p,t));});
+  w.appendChild(pepWrap);
   w.appendChild(h('button',{class:'btn',id:'add-peptide',style:'margin-bottom:14px',onclick:function(){openPeptide();}},'+ Add peptide'));
   w.appendChild(h('div',{class:'sec-t'},'\ud83e\udea1 Microneedling & treatments'));
-  var R=routines();var rc=h('div',{class:'card',id:'treat-list'});
+  var R=routines().filter(treatVisible),rc=h('div',{class:'card',id:'treat-list'});
   if(!R.length)rc.appendChild(h('div',{class:'empty'},'Add face or scalp microneedling, masks, etc.'));
-  else rc.appendChild(h('div',{class:'list'},R.map(function(r){var lg=rLog(r.id,t),due=r.on!==false&&rScheduled(r,t)&&!lg;
-    return h('div',{class:'it'+(r.on===false?' paused':''),'data-treat':r.id},h('div',{class:'ic',style:'background:#3fb2a622'},rIcon(r)),
-      h('div',{class:'tx'},h('div',{class:'t'},r.name),h('div',{class:'s rnext'},r.on===false?'Paused \u2013 tap Edit to turn on':(lg?(lg.status==='done'?'\u2713 Done today':'Skipped today')+' \u00b7 ':'')+freqText(r)+' \u00b7 '+fmtTime(r.time||'09:00')+' \u00b7 next '+nextText(r))),
-      due?h('button',{class:'btn sm','data-treat-log':r.id,onclick:function(ev){ev.stopPropagation();tap(ev,r.name+' \u2713',rIcon(r),function(){routineDone(t,r);});}},'\u2713 Done'):null,
-      h('button',{class:'btn sec sm','data-treat-edit':r.id,onclick:function(ev){ev.stopPropagation();openRoutine(r);}},'Edit'));})));
+  else rc.appendChild(h('div',{class:'list'},R.map(function(r){return treatRow(r,t);})));
   w.appendChild(rc);
   w.appendChild(h('button',{class:'btn sec',id:'add-treatment',style:'margin-bottom:14px',onclick:function(){openRoutine();}},'+ Add treatment'));
+  w.appendChild(h('div',{class:'sec-t'},'\ud83d\udc8a Vitamins & supplements'));
+  var V=suppList(),vc=h('div',{class:'card',id:'vit-sched-list'});
+  if(!V.length)vc.appendChild(h('div',{class:'empty'},'Add the vitamins you take, with a time and how often.'));
+  else vc.appendChild(h('div',{class:'list'},V.map(function(s){return vitRow(s,t);})));
+  w.appendChild(vc);
+  w.appendChild(h('button',{class:'btn sec',id:'add-vit-sched',style:'margin-bottom:14px',onclick:function(){openSupp();}},'+ Add vitamin or supplement'));
   w.appendChild(pepTypical());
   return w;
 }
+function injHomeCard(){
+  var names=[];
+  peptides().forEach(function(p){names.push(p.name);});
+  routines().filter(treatVisible).forEach(function(r){names.push(r.name);});
+  suppList().forEach(function(s){names.push(s.name);});
+  var sub=names.length?names.join(', '):'Set times, repeats, and log when you last took something';
+  return h('div',{class:'card inj-home',id:'inj-home',role:'button',onclick:function(){go('peptides');}},
+    h('h2',null,'\ud83d\udc89 My injections & treatments',h('span',{class:'chev muted'},'\u203a')),
+    h('div',{class:'muted small',id:'inj-home-sub'},sub),
+    h('div',{class:'muted small',style:'margin-top:4px'},'Last taken, next due, and edit any schedule'));
+}
 
 /* ===== add / edit sheet ===== */
+function pastLogBlock(hasId,onLog,rows,onDel){
+  var box=h('div',{class:'fld',id:'past-log'});
+  box.appendChild(h('span',{class:'lbl'},'I took it on\u2026'));
+  var pd=h('input',{type:'date',class:'inp',id:'past-date',value:today(),max:today()}),pt=h('input',{type:'time',class:'inp',id:'past-time',value:nowTime()||'09:00'});
+  box.appendChild(h('div',{class:'row',style:'gap:8px;align-items:flex-end'},h('div',{style:'flex:1'},pd),h('div',{style:'flex:1'},pt)));
+  box.appendChild(h('button',{type:'button',class:'btn sec',id:'log-past',style:'margin-top:8px',onclick:function(){var d=pd.value,tm=pt.value||nowTime();if(!d){alert('Pick a date.');return;}onLog(d,tm);}},'Log this dose'));
+  var ul=h('ul',{class:'sch-hist',id:'sched-hist'});
+  if(!rows||!rows.length)ul.appendChild(h('li',{class:'muted small',style:'border-top:0'},hasId?'No doses logged yet.':'Save first to log a past dose.'));
+  else rows.forEach(function(r){ul.appendChild(h('li',{'data-log':r.id},h('span',null,fmtRel(r.date)+(r.time?', '+fmtTime(r.time):'')+(r.status&&r.status!=='done'?' · '+r.status:'')),h('button',{type:'button',class:'link','data-del-log':r.id,onclick:function(){onDel(r.id,r);}},'Delete')));});
+  box.appendChild(h('span',{class:'lbl',style:'margin-top:12px;display:block'},'History'));
+  box.appendChild(ul);
+  return box;
+}
 function openPeptide(e){
   var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',dose:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
   if(!p.freq||!p.freq.kind)p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
@@ -3084,8 +3208,11 @@ function openPeptide(e){
     body.appendChild(sec('Icon',h('div',{class:'chips',id:'pep-icons'},PEPICONS.map(function(ic){return h('button',{type:'button',class:'chip'+(p.icon===ic?' on':''),'data-icon':ic,onclick:function(){p.icon=ic;draw();}},ic);}))));
     var ds=h('input',{type:'text',class:'inp',id:'pep-dose',value:p.dose||'',placeholder:'e.g. 10 units',autocomplete:'off',oninput:function(){p.dose=ds.value;}});
     body.appendChild(sec('Dose (free text)',ds));
-    body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},[['daily','Daily'],['weekly','Weekly']].map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&p.freq.days.length!==1)p.freq.days=[1];draw();}},o[1]);}))));
+    body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},[['daily','Daily'],['weekly','Weekly'],['interval','Every X days'],['weeks','Every X weeks']].map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&(!p.freq.days||p.freq.days.length!==1))p.freq.days=[1];if(o[0]==='interval'&&!p.freq.n)p.freq.n=3;if(o[0]==='weeks'){p.freq.weeks=p.freq.weeks||p.freq.n||2;if(p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;}draw();}},o[1]);}))));
     if(p.freq.kind==='weekly')body.appendChild(sec('On',h('div',{class:'chips',id:'pep-days'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.days.indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){var i=p.freq.days.indexOf(d);if(i>=0){if(p.freq.days.length>1)p.freq.days.splice(i,1);}else p.freq.days.push(d);draw();}},WD[d]);}))));
+    if(p.freq.kind==='interval'){var ni=h('input',{type:'number',class:'inp',id:'pep-every-n',inputmode:'numeric',min:1,max:60,value:p.freq.n||3,oninput:function(){p.freq.n=Math.max(1,Math.min(60,parseInt(ni.value,10)||3));}});body.appendChild(sec('Every … days',ni));}
+    if(p.freq.kind==='weeks'){var wi=h('input',{type:'number',class:'inp',id:'pep-every-weeks',inputmode:'numeric',min:1,max:12,value:p.freq.weeks||2,oninput:function(){p.freq.weeks=Math.max(1,Math.min(12,parseInt(wi.value,10)||2));}});body.appendChild(sec('Every … weeks',wi));
+      body.appendChild(sec('On',h('div',{class:'chips',id:'pep-week-day'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.day===d?' on':''),'data-day':d,onclick:function(){p.freq.day=d;draw();}},WD[d]);}))));}
     var cy=p.cycle;
     body.appendChild(sec('Cycle',h('div',null,
       h('div',{class:'remrow',style:'border-top:0;padding-top:0'},h('span',{class:'rl'},'Weeks on, then weeks off'),h('button',{type:'button',class:'tog'+(cy.on?' on':''),id:'pep-cycle',role:'switch','aria-checked':String(!!cy.on),onclick:function(){cy.on=!cy.on;draw();}},h('i'))),
@@ -3099,13 +3226,16 @@ function openPeptide(e){
     var nt=h('input',{type:'text',class:'inp',id:'pep-note',value:p.note||'',placeholder:'Optional',autocomplete:'off',oninput:function(){p.note=nt.value;}});
     body.appendChild(sec('Note',nt));
     body.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(p.on!==false?' on':''),id:'pep-on',role:'switch','aria-checked':String(p.on!==false),onclick:function(){p.on=p.on===false;draw();}},h('i')))));
+    body.appendChild(pastLogBlock(p.id,function(d,tm){if(!p.id){alert('Save this first, then you can log a past dose.');return;}pepLogDose(p.id,d,tm);save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+      p.id?peptideLog().filter(function(x){return x.pid===p.id;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):((a.time||'')<(b.time||'')?1:-1);}):[],
+      function(id){pepUnlogId(id);save();draw();render();toast('Removed');}));
   }
   draw();
   sheet({title:e?'Edit peptide':'Add peptide',body:body,saveLabel:'Save',
     onSave:function(){
       if(!p.name||!p.name.trim()){alert('Give it a name.');return false;}
       p.name=p.name.trim();p.dose=(p.dose||'').trim();p.note=(p.note||'').trim();
-      if(p.freq.kind!=='weekly')p.freq.days=[0,1,2,3,4,5,6];
+      if(p.freq.kind==='daily')p.freq.days=[0,1,2,3,4,5,6];if((p.freq.kind==='weeks'||p.freq.kind==='biweekly')&&p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;
       if(!p.id){p.id=uid();peptides().push(p);}else{var i=D.settings.peptides.findIndex(function(x){return x.id===p.id;});if(i>=0)D.settings.peptides[i]=p;else D.settings.peptides.push(p);}
       save();render();toast('Peptide saved 💉');
     },
@@ -3202,6 +3332,7 @@ function vToday(){
   var t=today(), w=h('div'), hr=new Date().getHours();
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
   var rpf=remPopup(t);if(rpf)w.appendChild(rpf);
+  if(typeof injHomeCard==='function')w.appendChild(injHomeCard());
   if(!isStandalone()&&!D.settings.a2hsHidden) w.appendChild(h('div',{class:'banner'},h('div',{style:'font-size:22px'},'📲'),h('div',{style:'flex:1'},h('b',null,'Add to your Home Screen'),h('div',{class:'muted'},'In Safari tap Share ',h('b',null,'⎙'),' → “Add to Home Screen”. ',h('a',{href:'#/settings',style:'color:var(--accent)'},'How-to'))),h('button',{class:'x','aria-label':'Dismiss',onclick:function(){D.settings.a2hsHidden=true;save();render();}},'×')));
   w.appendChild(h('div',{class:'sec-t'},'Quick add'));
   var qa=[['period','🌸','Period',CATS.cycle.c,function(){openCycleDay(t);}],['mood','😊','Mood',CATS.mood.c,function(){openMood();}],['food','🥗','Meal',CATS.food.c,function(){openFood();}],['water','💧','Water +1','#4fb3e0',function(){addWater(t,1,true);}],['weight','⚖️','Weight',CATS.weight.c,function(){openWeight();}],
@@ -3555,7 +3686,7 @@ function patterns(){
 function vSettings(){
   var w=h('div'), u=usage(), le=D.settings.lastExport;
   w.appendChild(hdr('Settings',{back:uiMode()==='simple'}));
-  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('\ud83d\udc89','#d0606f','Peptides & treatments','peptides'))));w.appendChild(reminderCard());
+  w.appendChild(setupSettingsCard());w.appendChild(modeCard());w.appendChild(extrasSettings());w.appendChild(h('div',{class:'card'},h('div',{class:'list'},moreItem('🔁','#3fb2a6','Routines (weekly etc.)','routines'),moreItem('💊',CATS.supps.c,'Supplement stacks','stacks'),moreItem('\ud83d\udc89','#d0606f','My injections & treatments','peptides'))));w.appendChild(reminderCard());
   var imp=h('input',{type:'file',accept:'.json,application/json',id:'import-file',style:'display:none',onchange:function(){var f=imp.files[0];if(f)importData(f);imp.value='';}});
   w.appendChild(imp);
   w.appendChild(h('div',{class:'card'},h('h2',null,'Preferences'),
@@ -3597,7 +3728,7 @@ function importData(file){
     var n=data&&typeof data==='object'?Object.keys(COLL).reduce(function(s,k){return s+(Array.isArray(data[k])?data[k].length:0);},0):0;
     if(!data||typeof data!=='object'||(!n&&!data.settings&&!Array.isArray(data.customFoods))){alert('That file doesn\u2019t look like a health tracker backup.');return;}
     if(!confirm('Restore this backup'+(o.exportedAt?' from '+new Date(o.exportedAt).toLocaleString():'')+'? ('+n+' entries)\n\nThis REPLACES all data currently in the app.'))return;
-    var prev=D;D=normalize(data);if(!save()){D=prev;return;}state.lim={};render();toast('Backup restored · '+n+' entries');};
+    var prev=D;D=normalize(data);if(!save()){D=prev;return;}if(typeof seedPeptides==='function')seedPeptides();if(typeof seedRoutines==='function')seedRoutines();state.lim={};render();toast('Backup restored · '+n+' entries');};
   r.readAsText(file);
 }
 
