@@ -291,7 +291,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-11-09 12:25-d44246d';
+var BUILD_ID='2026-11-09 18:55-6e44468';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -362,7 +362,7 @@ function normalize(o){
   if(!Array.isArray(r.settings.peptides))r.settings.peptides=[];
   r.settings.peptides.forEach(function(p){if(!p.id)p.id=uid();if(!p.freq||typeof p.freq!=='object')p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
     if(!Array.isArray(p.freq.days)||!p.freq.days.length)p.freq.days=[1];if(!p.cycle||typeof p.cycle!=='object')p.cycle={on:false,weeksOn:4,weeksOff:4};
-    if(!p.start)p.start=today();if(!p.time)p.time='09:00';if(!p.icon)p.icon='\ud83d\udc89';if(p.on===undefined)p.on=true;if(p.note==null)p.note='';if(p.dose==null)p.dose='';});
+    if(!p.start)p.start=today();if(!p.time)p.time='09:00';if(!p.icon)p.icon='\ud83d\udc89';if(p.on===undefined)p.on=true;if(p.note==null)p.note='';if(p.mix==null)p.mix='';if(p.dose==null)p.dose='';});
   if(!Array.isArray(r.peptideLog))r.peptideLog=[]; r.peptideLog.forEach(function(e){if(!e.id)e.id=uid();});
   return r;
 }
@@ -3098,6 +3098,7 @@ function pepCard(p,t){
   var tx=h('div',{class:'pep-tx'},
     h('b',{style:'font-size:17px;display:block'},p.name),
     h('div',{class:'muted small'},p.dose||'Dose not set – tap to edit'),
+    p.mix?h('div',{class:'muted small pep-mix','data-pep-mix':p.id},p.mix):null,
     h('div',{class:'muted small'},pepFreqText(p)),
     h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))),
     h('div',{class:'pep-meta sch-meta','data-pep-meta':p.id},
@@ -3124,7 +3125,8 @@ function pepTypical(){
     h('ul',{class:'tips'},
       h('li',null,'GLOW blend: ~2–2.5 mg daily · 3 mL water per 70 mg vial ≈ 10 units (U-100)'),
       h('li',null,'NAD+: 25 mg weekly = 25 units at 900 mg / 9 mL'),
-      h('li',null,'Glutathione: 100–200 mg, 2–3× weekly · 1500 mg in 7.5 mL (200 mg/mL), so 100 mg = 50 units')),
+      h('li',null,'Glutathione: 100–200 mg, 2–3× weekly · 1500 mg in 7.5 mL (200 mg/mL), so 100 mg = 50 units'),
+      h('li',null,'Retatrutide: 12 mg + 1.2 mL water = 10 mg/mL (1 unit = 0.1 mg), so 0.5 mg = 5 units')),
     h('p',{class:'hint'},'Conventions people use – not studied doses. Follow your surgeon\u2019s instructions.'));
 }
 function treatRow(r,t){
@@ -3200,7 +3202,7 @@ function pastLogBlock(hasId,onLog,rows,onDel){
   return box;
 }
 function openPeptide(e){
-  var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',dose:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
+  var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',dose:'',mix:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
   if(!p.freq||!p.freq.kind)p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
   if(!Array.isArray(p.freq.days)||!p.freq.days.length)p.freq.days=[1];
   if(!p.cycle||typeof p.cycle!=='object')p.cycle={on:false,weeksOn:4,weeksOff:4};
@@ -3212,6 +3214,8 @@ function openPeptide(e){
     body.appendChild(sec('Icon',h('div',{class:'chips',id:'pep-icons'},PEPICONS.map(function(ic){return h('button',{type:'button',class:'chip'+(p.icon===ic?' on':''),'data-icon':ic,onclick:function(){p.icon=ic;draw();}},ic);}))));
     var ds=h('input',{type:'text',class:'inp',id:'pep-dose',value:p.dose||'',placeholder:'e.g. 10 units',autocomplete:'off',oninput:function(){p.dose=ds.value;}});
     body.appendChild(sec('Dose (free text)',ds));
+    var mx=h('input',{type:'text',class:'inp',id:'pep-mix',value:p.mix||'',placeholder:'e.g. 12 mg + 1.2 mL water = 10 mg/mL',autocomplete:'off',oninput:function(){p.mix=mx.value;}});
+    body.appendChild(sec('Mix',mx));
     body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},[['daily','Daily'],['weekly','Weekly'],['interval','Every X days'],['weeks','Every X weeks']].map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&(!p.freq.days||p.freq.days.length!==1))p.freq.days=[1];if(o[0]==='interval'&&!p.freq.n)p.freq.n=3;if(o[0]==='weeks'){p.freq.weeks=p.freq.weeks||p.freq.n||2;if(p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;}draw();}},o[1]);}))));
     if(p.freq.kind==='weekly')body.appendChild(sec('On',h('div',{class:'chips',id:'pep-days'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.days.indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){var i=p.freq.days.indexOf(d);if(i>=0){if(p.freq.days.length>1)p.freq.days.splice(i,1);}else p.freq.days.push(d);draw();}},WD[d]);}))));
     if(p.freq.kind==='interval'){var ni=h('input',{type:'number',class:'inp',id:'pep-every-n',inputmode:'numeric',min:1,max:60,value:p.freq.n||3,oninput:function(){p.freq.n=Math.max(1,Math.min(60,parseInt(ni.value,10)||3));}});body.appendChild(sec('Every … days',ni));}
@@ -3238,7 +3242,7 @@ function openPeptide(e){
   sheet({title:e?'Edit peptide':'Add peptide',body:body,saveLabel:'Save',
     onSave:function(){
       if(!p.name||!p.name.trim()){alert('Give it a name.');return false;}
-      p.name=p.name.trim();p.dose=(p.dose||'').trim();p.note=(p.note||'').trim();
+      p.name=p.name.trim();p.dose=(p.dose||'').trim();p.mix=(p.mix||'').trim();p.note=(p.note||'').trim();
       if(p.freq.kind==='daily')p.freq.days=[0,1,2,3,4,5,6];if((p.freq.kind==='weeks'||p.freq.kind==='biweekly')&&p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;
       if(!p.id){p.id=uid();peptides().push(p);}else{var i=D.settings.peptides.findIndex(function(x){return x.id===p.id;});if(i>=0)D.settings.peptides[i]=p;else D.settings.peptides.push(p);}
       save();render();toast('Peptide saved 💉');
@@ -3308,16 +3312,29 @@ var _extraTiles=extraTiles;
 extraTiles=function(t){return _extraTiles(t).concat(pepTiles(t));};
 
 /* ===== seed Greta's four ===== */
+var PEPMIX={'GLOW':'70 mg + 3 mL = 23.3 mg/mL','NAD+':'900 mg + 9 mL = 100 mg/mL','Glutathione':'1500 mg + 7.5 mL = 200 mg/mL','Retatrutide':'12 mg + 1.2 mL water = 10 mg/mL'};
+var RETA_DOSE='5 units (0.5 mg)';
+function pepDefaultMix(name){var k=String(name||'').trim().toLowerCase(),hit=null;Object.keys(PEPMIX).forEach(function(n){if(n.toLowerCase()===k)hit=PEPMIX[n];});return hit;}
 function seedPeptides(){
   if(D.settings.peptidesSeeded)return;
   var t=today(),P=peptides(),has=function(n){return P.some(function(p){return String(p.name||'').toLowerCase()===n.toLowerCase();});};
-  if(!has('GLOW'))P.push({id:uid(),name:'GLOW',icon:'💉',dose:'10 units (≈2.3 mg blend)',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:true,weeksOn:4,weeksOff:4},start:t,time:'20:00',on:true,note:'GHK-Cu / BPC-157 / TB-500 blend'});
-  if(!has('NAD+'))P.push({id:uid(),name:'NAD+',icon:'💉',dose:'25 units (25 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
-  if(!has('Glutathione'))P.push({id:uid(),name:'Glutathione',icon:'💉',dose:'50 units (100 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
-  if(!has('Retatrutide'))P.push({id:uid(),name:'Retatrutide',icon:'💉',dose:'',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:''});
+  if(!has('GLOW'))P.push({id:uid(),name:'GLOW',icon:'💉',dose:'10 units (≈2.3 mg blend)',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:true,weeksOn:4,weeksOff:4},start:t,time:'20:00',on:true,note:'GHK-Cu / BPC-157 / TB-500 blend',mix:PEPMIX['GLOW']});
+  if(!has('NAD+'))P.push({id:uid(),name:'NAD+',icon:'💉',dose:'25 units (25 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['NAD+']});
+  if(!has('Glutathione'))P.push({id:uid(),name:'Glutathione',icon:'💉',dose:'50 units (100 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Glutathione']});
+  if(!has('Retatrutide'))P.push({id:uid(),name:'Retatrutide',icon:'💉',dose:RETA_DOSE,freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Retatrutide']});
   D.settings.peptidesSeeded=true;save();
 }
+function migratePeptideMix(){
+  if(D.settings.peptideMixV)return;
+  peptides().forEach(function(p){
+    var mix=pepDefaultMix(p.name);
+    if(mix&&!(p.mix&&String(p.mix).trim()))p.mix=mix;
+    if(/^retatrutide$/i.test(String(p.name||'').trim())&&!(p.dose&&String(p.dose).trim()))p.dose=RETA_DOSE;
+  });
+  D.settings.peptideMixV=true;save();
+}
 seedPeptides();
+migratePeptideMix();
 window.__pep={list:peptides,log:peptideLog,due:peptidesDue,dueOn:pepDue,next:pepNext,cycle:pepCycleWeek,phase:pepPhaseLabel,phaseEnd:pepOnEnd,allDue:function(t){return dueList(t||today());},ics:function(){return allICS();}};
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
@@ -3732,7 +3749,7 @@ function importData(file){
     var n=data&&typeof data==='object'?Object.keys(COLL).reduce(function(s,k){return s+(Array.isArray(data[k])?data[k].length:0);},0):0;
     if(!data||typeof data!=='object'||(!n&&!data.settings&&!Array.isArray(data.customFoods))){alert('That file doesn\u2019t look like a health tracker backup.');return;}
     if(!confirm('Restore this backup'+(o.exportedAt?' from '+new Date(o.exportedAt).toLocaleString():'')+'? ('+n+' entries)\n\nThis REPLACES all data currently in the app.'))return;
-    var prev=D;D=normalize(data);if(!save()){D=prev;return;}if(typeof seedPeptides==='function')seedPeptides();if(typeof seedRoutines==='function')seedRoutines();state.lim={};render();toast('Backup restored · '+n+' entries');};
+    var prev=D;D=normalize(data);if(!save()){D=prev;return;}if(typeof seedPeptides==='function')seedPeptides();if(typeof migratePeptideMix==='function')migratePeptideMix();if(typeof seedRoutines==='function')seedRoutines();state.lim={};render();toast('Backup restored · '+n+' entries');};
   r.readAsText(file);
 }
 
