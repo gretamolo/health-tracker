@@ -272,6 +272,14 @@ p{margin:6px 0}
 .sch-meta div{white-space:normal}
 .sch-hist{list-style:none;padding:0;margin:8px 0 0}
 .sch-hist li{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.tk-over{color:#c0392b;font-weight:700}.tk-duetxt{color:var(--accent);font-weight:650}
+.tk-row{cursor:pointer}.tk-row.tk-isdue{border:2px solid var(--accent)}
+.tk-used{min-height:56px;font-size:18px}
+.tk-due h2{margin:0 0 6px}.tk-due-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}.tk-due-row:first-of-type{border-top:0}
+.tk-due-ic{font-size:26px;flex:none}.tk-due-tx{flex:1;min-width:0}.tk-due-tx b{display:block;font-size:16px;overflow-wrap:anywhere}
+.btn.tk-used-sm{width:auto;flex:none;min-height:48px;padding:0 16px;font-size:16px}
+.tk-logbox{background:var(--card2,#f6f1f8);border-radius:14px;padding:12px}.tk-status{margin-bottom:10px;font-size:14px}
+@media (prefers-color-scheme:dark){.tk-logbox{background:#ffffff10}.tk-over{color:#ff8a80}}
 .pep-card{cursor:pointer}
 .pep-phase{display:block;margin:6px 0 4px}
 .pep-phase .chip{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:28px;padding:4px 10px;font-size:13px;line-height:1.2;vertical-align:middle}
@@ -291,7 +299,7 @@ p{margin:6px 0}
 </nav>
 <div class="toast" id="toast"></div>
 <script>
-var BUILD_ID='2026-11-09 18:55-6e44468';
+var BUILD_ID='2026-11-17 14:55-c5ddcf1';
 (function(){
 'use strict';
 /* ================= Core / data ================= */
@@ -1709,7 +1717,7 @@ function openSupp(x){
   if(s.remind==null)s.remind=false;
   var dl=h('datalist',{id:'dl-supps'},SUPPSUG.filter(function(n){return used.indexOf(n)<0;}).map(function(n){return h('option',{value:n});}));
   var f=form([{k:'name',t:'text',label:'Name',ph:'e.g. Vitamin D3',list:'dl-supps'},{k:'dose',t:'text',label:'Dose',ph:'e.g. 2000 IU, 1 capsule'},{k:'time',t:'chips',label:'Time of day',opts:SUPPT,def:'am'}],s);
-  var extra=h('div',{id:'supp-sched'});
+  var extra=h('div',{id:'supp-sched'}),top=h('div',{id:'supp-top'});
   function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
   function drawExtra(){extra.innerHTML='';
     var tm=h('input',{type:'time',class:'inp',id:'sch-time',value:s.clock||'09:00',onchange:function(){s.clock=tm.value||'09:00';}});
@@ -1728,12 +1736,12 @@ function openSupp(x){
         h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'sch-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
         h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'sch-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
     extra.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(s.remind?' on':''),id:'sch-on',role:'switch','aria-checked':String(!!s.remind),onclick:function(){s.remind=!s.remind;drawExtra();}},h('i')))));
-    if(typeof pastLogBlock==='function')extra.appendChild(pastLogBlock(s.id,function(d,tm){if(!s.id){alert('Save this first, then you can log a past dose.');return;}if(typeof suppLogDose==='function')suppLogDose(s.id,d,tm);else toggleSupp(d,s.id,true,tm);save();drawExtra();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+    if(typeof pastLogBlock==='function')(s.id?function(el){top.innerHTML='';top.appendChild(el);}:function(el){extra.appendChild(el);})(pastLogBlock(s.id,function(d,tm){if(!s.id){alert('Save this first, then you can log a past dose.');return;}if(typeof suppLogDose==='function')suppLogDose(s.id,d,tm);else toggleSupp(d,s.id,true,tm);save();drawExtra();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
       s.id?(D.supps||[]).filter(function(e){return e.taken&&e.taken.indexOf(s.id)>=0;}).map(function(e){return {id:e.id+'@'+s.id,date:e.date,time:(e.times&&e.times[s.id])||null,day:e.date};}).sort(function(a,b){return a.date<b.date?1:-1;}):[],
-      function(hid,row){if(typeof suppUnlogId==='function')suppUnlogId(s.id,row.date);else toggleSupp(row.date,s.id,false);save();drawExtra();render();toast('Removed');}));
+      function(hid,row){if(typeof suppUnlogId==='function')suppUnlogId(s.id,row.date);else toggleSupp(row.date,s.id,false);save();drawExtra();render();toast('Removed');},s.id&&typeof tkStatusFor==='function'?tkStatusFor('v',s.id):null));
   }
   drawExtra();
-  sheet({title:x.id?'Edit supplement':'Add supplement',body:h('div',null,dl,f.el,extra),onSave:function(){var v=f.get();if(!v.name){alert('Enter a name.');return false;}
+  sheet({title:x.id?'Edit supplement':'Add supplement',body:h('div',null,top,dl,f.el,extra),onSave:function(){var v=f.get();if(!v.name){alert('Enter a name.');return false;}
       s.clock=($('#sch-time')&&$('#sch-time').value)||s.clock||'09:00';
       var L=D.settings.supps,o=Object.assign({},x,v,{active:true,clock:s.clock,freq:s.freq,start:s.start||today(),cycle:s.cycle,remind:!!s.remind});if(!o.id)o.id=uid();var i=L.findIndex(function(z){return z.id===o.id;});if(i>=0)L[i]=o;else L.push(o);save();render();toast('Supplement saved');},
     onDelete:x.id&&function(){var z=suppById(x.id);if(z)z.active=false;save();render();toast('Removed from your list');},deleteLabel:'Remove from my list',deleteMsg:'Remove this supplement from your daily list? Past history is kept.'});
@@ -1856,6 +1864,7 @@ function vHome(){
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t),right:tileOn('stars')?starChip():null}));
   var su=setupCard(); if(su)w.appendChild(su);
   var rp=remPopup(t); if(rp)w.appendChild(rp);
+  var tdc=typeof tkDueCard==='function'?tkDueCard(t,{home:true,skipK:rp&&rp.getAttribute('data-rem')}):null; if(tdc)w.appendChild(tdc);
   var cu=catchUpBtn(t); if(cu)w.appendChild(cu);
   var pc=periodCard(t); if(pc)w.appendChild(pc);
   var dc=remDue('evening',t)?null:drinkCard(t); if(dc)w.appendChild(dc);
@@ -2065,28 +2074,31 @@ function rScheduled(r,d){var f=r.freq||{},wd=parseD(d).getDay();
   switch(f.kind){case 'daily':return true;case 'weekly':return (f.days||[]).indexOf(wd)>=0;
   case 'biweekly':return wd===f.day&&Math.floor(diffDays(weekStart(r.start),weekStart(d))/7)%(f.weeks||2)===0;
   case 'monthly':return +d.slice(8)===monthDay(d,f.date);
-  case 'interval':return d===rNext(r,today())||!!rLog(r.id,d);}
+  case 'interval':return d===rNextCal(r,today())||!!rLog(r.id,d);}
   return false;}
-function rDueOn(r,d){if(r.on===false)return false;if(r.freq.kind==='interval')return !rLog(r.id,d)&&d>=iBase(r);return rScheduled(r,d)&&!rLog(r.id,d);}
-function rNext(r,from){from=from||today();if(r.on===false)return null;if(r.freq.kind==='interval'){var b=iBase(r);if(rLog(r.id,from))return addDays(from,r.freq.n);return b>from?b:from;}
+/* due = next due (counted from the last time it was actually done) is today or earlier; stays due until done */
+function rDueOn(r,d){if(r.on===false)return false;var n=rNext(r,d);return !!n&&n<=d;}
+function rNext(r,from){from=from||today();if(r.on===false)return null;var la=lastDoneRoutine(r.id);return tkNext(r,la&&la.date,from);}
+/* old calendar logic (week grid + one-time migration) */
+function rNextCal(r,from){from=from||today();if(r.on===false)return null;if(r.freq.kind==='interval'){var b=iBase(r);if(rLog(r.id,from))return addDays(from,r.freq.n);return b>from?b:from;}
   for(var i=0;i<400;i++){var d=addDays(from,i);if(rScheduled(r,d)&&!rLog(r.id,d))return d;}return null;}
 function routinesDue(t){var hm=nowHM();return routines().filter(function(r){if(r.remind===false||!rDueOn(r,t)||hm<effTime(r,t,'09:00'))return false;if(isSkipped(t,'r:'+r.id))return false;var sn=D.quick[t]&&D.quick[t].snooze&&D.quick[t].snooze['r:'+r.id];return !(sn&&Date.now()<sn);})
   .map(function(r){return {k:'r:'+r.id,rt:r,i:rIcon(r),l:r.name};});}
-function routineDone(t,r,extra){D.routineLog.push(Object.assign({id:uid(),rid:r.id,date:t,status:'done',type:r.type,name:r.name,time:nowTime()},extra||{}));
+function routineDone(t,r,extra){if(r.nextOn)delete r.nextOn;var R0=routineById(r.id);if(R0&&R0.nextOn)delete R0.nextOn;D.routineLog.push(Object.assign({id:uid(),rid:r.id,date:t,status:'done',type:r.type,name:r.name,time:nowTime()},extra||{}));
   if(r.type==='supplement'||r.type==='injection'){if(!suppById(r.id))D.settings.supps.push({id:r.id,name:r.name,dose:'',time:'am',active:false,routine:true});var e=suppDay(t);if(e){if(e.taken.indexOf(r.id)<0)e.taken.push(r.id);}else D.supps.push({id:uid(),date:t,taken:[r.id],note:''});}
   else if(r.type==='skin'){var s=D.skin.find(function(x){return x.date===t;});if(!s){s={id:uid(),date:t,am:[],pm:[],rating:null,note:''};D.skin.push(s);}if(s.pm.indexOf(r.name)<0)s.pm.push(r.name);}}
 function routineSkip(t,r){D.routineLog.push({id:uid(),rid:r.id,date:t,status:'skip',type:r.type,name:r.name});}
 function routinePopup(t,x,n){var r=x.rt;
   var inj=r.type==='injection'?injFields(r):null,tips=routineTips(r);
   function later(){remindAgain(t,x.k);}
-  return h('div',{class:'card rempop',id:'rem-pop','data-rem':x.k},h('div',{class:'remi'},rIcon(r)),h('div',{class:'pq'},r.name),fromLine(x.tm),h('div',{class:'muted small',style:'text-align:center'},freqText(r)),inj?inj.el:null,
+  return h('div',{class:'card rempop',id:'rem-pop','data-rem':x.k},h('div',{class:'remi'},rIcon(r)),h('div',{class:'pq'},r.name),fromLine(x.tm),h('div',{class:'muted small',style:'text-align:center'},freqText(r)),(function(){var n=rNext(r,t),ov=tkOver(n,t);return ov>0&&r.freq.kind!=='daily'?h('div',{class:'small tk-over',style:'text-align:center','data-overdue':ov},'\u26a0\ufe0f Overdue '+tkPlural(ov,'day')):null;})(),inj?inj.el:null,
     tips?h('ul',{class:'tips',id:'rem-tips'},tips.map(function(x){return h('li',null,x);})):null,
-    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){var ex=inj?inj.get():null;tap(ev,r.name+' ✓',rIcon(r),function(){routineDone(t,r,ex);});}},'✓ Done'),
-      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){tap(ev,'Skipped – next time is fine','🌿',function(){routineSkip(t,r);});}},'Skip this time'),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openRoutine(r);}},'\u270f\ufe0f Edit schedule / time')),
+    h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){var ex=inj?inj.get():null;tap(ev,r.name+' ✓',rIcon(r),function(){routineDone(t,r,ex);});}},'✓ Used'),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,x.k),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openRoutine(r);}},'\ud83d\udcc5 Took it another day / edit')),
     n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
 function freqText(r){var f=r.freq||{};switch(f.kind){case 'weekly':return 'Every week · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');case 'biweekly':return 'Every '+(f.weeks||2)+' weeks · '+WD[f.day];case 'monthly':return 'Monthly · day '+f.date;case 'interval':return 'Every '+f.n+' days';}return '';}
-function nextText(r){var n=rNext(r);if(!n)return '';var t=today();return n===t?'Today':n===addDays(t,1)?'Tomorrow':diffDays(t,n)<7?WD[parseD(n).getDay()]:fmtD(n);}
-function routineEvent(r){var f=r.freq,nx=rNext(r)||today(),rule;
+function nextText(r){var n=rNext(r);if(!n)return '';var t=today();if(n<t)return 'Overdue';return n===t?'Today':n===addDays(t,1)?'Tomorrow':diffDays(t,n)<7?WD[parseD(n).getDay()]:fmtD(n);}
+function routineEvent(r){var f=r.freq,nx=rNext(r)||today(),rule;if(nx<today())nx=today();
   switch(f.kind){case 'weekly':rule='FREQ=WEEKLY;BYDAY='+(f.days||[]).slice().sort().map(function(d){return WD2[d];}).join(',');break;
   case 'biweekly':rule='FREQ=WEEKLY;INTERVAL='+(f.weeks||2)+';BYDAY='+WD2[f.day];break;case 'monthly':rule='FREQ=MONTHLY;BYMONTHDAY='+f.date;break;case 'interval':rule='FREQ=DAILY;INTERVAL='+f.n;break;}
   if(f.kind==='weekly'&&r.timeWE&&r.timeWE!==r.time){var wd=(f.days||[]).filter(function(d){return d>0&&d<6;}).sort(),we=(f.days||[]).filter(function(d){return d===0||d===6;}).sort(function(a,b){return b-a;}),ev=[];
@@ -2129,9 +2141,9 @@ function openRoutine(e){var r=JSON.parse(JSON.stringify(e||{type:'hair',name:'',
         h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'rt-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
         h('div',{style:'flex:1'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'rt-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
     body.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(r.on!==false&&r.remind!==false?' on':''),id:'rt-on',role:'switch','aria-checked':String(r.on!==false&&r.remind!==false),onclick:function(){var on=!(r.on!==false&&r.remind!==false);r.on=on;r.remind=on;draw();}},h('i')))));
-    if(typeof pastLogBlock==='function')body.appendChild(pastLogBlock(r.id,function(d,tm){if(!r.id){alert('Save this first, then you can log a past treatment.');return;}var ex={time:tm},old=rLog(r.id,d);if(old){old.status='done';old.time=tm;}else routineDone(d,r,ex);save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+    if(typeof pastLogBlock==='function')(r.id?function(el){body.insertBefore(el,body.firstChild);}:function(el){body.appendChild(el);})(pastLogBlock(r.id,function(d,tm){if(!r.id){alert('Save this first, then you can log a past treatment.');return;}var ex={time:tm},old=rLog(r.id,d);if(old&&old.status!=='done'){old.status='done';old.time=tm;delete r.nextOn;var R1=routineById(r.id);if(R1)delete R1.nextOn;}else routineDone(d,r,ex);save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
       r.id?(D.routineLog||[]).filter(function(x){return x.rid===r.id;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):1;}):[],
-      function(id){D.routineLog=D.routineLog.filter(function(x){return x.id!==id;});save();draw();render();toast('Removed');}));
+      function(id){D.routineLog=D.routineLog.filter(function(x){return x.id!==id;});save();draw();render();toast('Removed');},r.id?tkStatusFor('r',r.id):null));
 }
   draw();
   sheet({title:e?'Edit routine':'Add routine',body:body,onSave:function(){if(!r.name.trim()){alert('Give it a name.');return false;}r.name=r.name.trim();
@@ -2151,7 +2163,7 @@ function routineTips(r){var n=(r.name||'').toLowerCase();
   if(r.type==='injection'&&/retatrutide|ghk/.test(n))return ['⚕️ Only with a doctor’s prescription and supervision','Rotate sites','Clean with alcohol, new sterile needle each time','Used needle → sharps container'];
   if(r.type==='injection')return ['Rotate sites','Clean with alcohol, new sterile needle each time','Used needle → sharps container'];
   return null;}
-function needlingSoon(t){return routines().some(function(r){if(r.on===false||r.type!=='skin'||!/microneedl/i.test(r.name))return false;var n=rNext(r,t);return n&&diffDays(t,n)>=0&&diffDays(t,n)<=2;});}
+function needlingSoon(t){return routines().some(function(r){if(r.on===false||r.type!=='skin'||!/microneedl/i.test(r.name))return false;var n=rNext(r,t);return n&&diffDays(t,n)<=2;});}
 function nextSunday(t){var d=parseD(t).getDay();return addDays(t,d===0?0:7-d);}
 function seedRoutines(){if(D.settings.routinesSeeded)return;var t=today(),R=routines(),has=function(n){return R.some(function(r){return r.name.toLowerCase()===n.toLowerCase();});};
   if(!has('Face microneedling'))R.push({id:uid(),type:'skin',name:'Face microneedling',freq:{kind:'biweekly',day:0},time:'20:00',on:true,start:nextSunday(t)});
@@ -2285,7 +2297,7 @@ function openExImg(n,cue){var m=EXIMG[n],nm=n.replace(/^W:/,''),f=0,timer,big=h(
 /* ===== Catch-up helpers ===== */
 function isSkipped(t,k){var q=D.quick&&D.quick[t];return !!(q&&q.skip&&q.skip[k]);}
 function skipIt(t,k){var q=qd(t);q.skip=q.skip||{};q.skip[k]=1;if(k.slice(0,2)==='r:'){var r=routineById(k.slice(2));if(r)routineSkip(t,r);}}
-function skipBtn(t,k){return h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){var x=dueList(t).find(function(y){return y.k===k;}),l=x?dueLabel(x):'';tap(ev,(l?l+' – skipped':'Skipped')+' 🌿','🌿',function(){skipIt(t,k);});}},'Skip');}
+function skipBtn(t,k){return h('button',{class:'btn sec',id:'rem-skip',onclick:function(ev){var x=dueList(t).find(function(y){return y.k===k;}),l=x?dueLabel(x):'';tap(ev,(l?l+' – skipped':'Skipped')+' 🌿','🌿',function(){skipIt(t,k);});}},'Skip today');}
 function fromLine(tm){if(!tm)return null;var n=nowHM();var p=tm.split(':'),m=+p[0]*60+ +p[1],q=n.split(':'),nm=+q[0]*60+ +q[1];if(nm-m<15)return null;return h('div',{class:'from muted small',style:'text-align:center'},'from '+fmtTime(tm).replace(':00 ',' ').replace(' AM',' AM').replace(' PM',' PM'));}
 function catchUpBtn(t){var L=dueList(t);if(L.length<2)return null;return h('button',{class:'btn sec catchup',id:'catch-up',onclick:function(){openCatchUp(t);}},'🧺 Catch up ('+L.length+')');}
 function doneFn(t,x){var k=x.k;if(x.list)return function(){listDone(t,x);};if(x.fam)return function(){famDone(t,x);};if(x.pep)return function(){pepLogDose(x.pep.id,t);};if(x.st&&!x.sip)return function(){markStack(t,x.st);};if(x.sip)return function(){var e=sLog(x.st.id,t);e.sips=e.sips||{};e.sips[x.sip]=1;};
@@ -3011,7 +3023,7 @@ migrateKidVit();
 /* ===== Peptides & treatments ===== */
 var REPEAT_MS=3*36e5; /* same interval as the water nudge */
 function remindAgain(t,k){var q=qd(t);q.snooze=q.snooze||{};q.snooze[k]=Date.now()+REPEAT_MS;if(q.notified)delete q.notified[k];save();render();toast('Okay \u2013 I\u2019ll remind you again in 3 h \u23f0');}
-var PEPICONS=['💉','✨','🧬','🩹'];
+var PEPICONS=['💉','✨','🧬','🩹','💊','💇','🧴','📌'];
 var PEPWD=[1,2,3,4,5,6,0];
 
 function peptides(){if(!Array.isArray(D.settings.peptides))D.settings.peptides=[];if(!Array.isArray(D.peptideLog))D.peptideLog=[];return D.settings.peptides;}
@@ -3021,7 +3033,7 @@ function pepLogOn(pid,d){return peptideLog().filter(function(x){return x.pid===p
 function pepLogged(p,d){var id=typeof p==='string'?p:p.id;return pepLogOn(id,d).length>0;}
 function pepLast(pid){var L=peptideLog().filter(function(x){return x.pid===pid;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?-1:1):((a.time||'')<(b.time||'')?-1:1);});return L.length?L[L.length-1]:null;}
 function pepLastDate(pid){var e=pepLast(pid);return e?e.date:null;}
-function pepFreqText(p){var f=p.freq||{};if(f.kind==='weekly')return 'Weekly · '+(f.days||[]).map(function(d){return WD[d];}).join(', ');if(f.kind==='interval')return 'Every '+(f.n||1)+' days';if(f.kind==='weeks'||f.kind==='biweekly')return 'Every '+(f.weeks||f.n||2)+' weeks';return 'Daily';}
+function pepFreqText(p){var f=p.freq||{},k=typeof tkKind==='function'?tkKind(f):f.kind;if(k==='asneeded')return 'As needed';if(k==='weekdays')return 'Every '+(f.days||[]).slice().sort(function(a,b){return ((a+6)%7)-((b+6)%7);}).map(function(d){return WD[d];}).join(', ');if(k==='weekly')return 'Weekly (first: '+WD[(f.days||[1])[0]]+')';if(f.kind==='interval')return 'Every '+(f.n||1)+' days';if(f.kind==='weeks'||f.kind==='biweekly')return 'Every '+(f.weeks||f.n||2)+' weeks';return 'Daily';}
 function lastTakenText(date,time){if(!date)return 'Never logged';return 'Last taken: '+fmtRel(date)+(time?', '+fmtTime(time):'');}
 function nextDueText(date,time,off){if(!date&&off)return 'Next due: reminders off';if(!date)return 'Next due: \u2014';var t=today(),when=date===t?'today':date===addDays(t,1)?'tomorrow':fmtD(date);return 'Next due: '+when+(time?' '+fmtTime(time):'')+(off?' (reminders off)':'');}
 function treatVisible(r){if(r.on===false&&(r.type==='injection'||/nad\+|retatrutide|ghk-cu/i.test(r.name||''))&&peptides().some(function(p){return (p.name||'').toLowerCase()===String(r.name||'').replace(/\s*injection\s*$/i,'').toLowerCase();}))return false;return true;}
@@ -3030,9 +3042,10 @@ function suppClock(s){return s.clock||(s.time==='pm'?'21:00':'09:00');}
 function suppFreq(s){return (s.freq&&s.freq.kind)?s.freq:{kind:'daily',days:[0,1,2,3,4,5,6]};}
 function suppLoggedOn(id,d){var e=suppDay(d);return !!(e&&e.taken&&e.taken.indexOf(id)>=0);}
 function suppScheduled(s,d){if(s.active===false)return false;if(s.start&&d<s.start)return false;var cy=pepCycleWeek({start:s.start||'2000-01-01',cycle:s.cycle||{}},d);if(cy.on&&!cy.active)return false;var f=suppFreq(s);if(f.kind==='weekly')return (f.days||[]).indexOf(parseD(d).getDay())>=0;if(f.kind==='interval'){var n=Math.max(1,parseInt(f.n,10)||1);return diffDays(s.start||d,d)%n===0;}if(f.kind==='weeks'||f.kind==='biweekly'){var w=Math.max(1,parseInt(f.weeks!=null?f.weeks:f.n,10)||2),day=f.day!=null?f.day:((f.days||[])[0]);if(day==null)day=parseD(s.start||d).getDay();return parseD(d).getDay()===day&&Math.floor(diffDays(weekStart(s.start||d),weekStart(d))/7)%w===0;}return true;}
-function suppNext(s,from){from=from||today();if(s.active===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(suppScheduled(s,d)&&!suppLoggedOn(s.id,d))return d;}return null;}
+function suppNext(s,from){from=from||today();if(s.active===false)return null;var la=suppLast(s);return tkNext(tkSuppO(s),la&&la.date,from);}
+function suppNextCal(s,from){from=from||today();if(s.active===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(suppScheduled(s,d)&&!suppLoggedOn(s.id,d))return d;}return null;}
 function suppLast(s){var L=(D.supps||[]).filter(function(e){return e.taken&&e.taken.indexOf(s.id)>=0;}).sort(function(a,b){return a.date<b.date?-1:1;});if(!L.length)return null;var e=L[L.length-1];return {date:e.date,time:(e.times&&e.times[s.id])||null};}
-function suppLogDose(id,d,tm){d=d||today();var e=suppDay(d);if(!e){e={id:uid(),date:d,taken:[],times:{},note:''};D.supps.push(e);}e.taken=e.taken||[];e.times=e.times||{};if(e.taken.indexOf(id)<0)e.taken.push(id);e.times[id]=tm||nowTime();}
+function suppLogDose(id,d,tm){d=d||today();var so=suppById(id);if(so&&so.nextOn)delete so.nextOn;var e=suppDay(d);if(!e){e={id:uid(),date:d,taken:[],times:{},note:''};D.supps.push(e);}e.taken=e.taken||[];e.times=e.times||{};if(e.taken.indexOf(id)<0)e.taken.push(id);e.times[id]=tm||nowTime();}
 function suppUnlogId(id,d){var e=suppDay(d);if(!e)return;e.taken=(e.taken||[]).filter(function(x){return x!==id;});if(e.times)delete e.times[id];if(!e.taken.length&&!e.note)D.supps=D.supps.filter(function(x){return x.id!==e.id;});}
 
 /* cycle: weeksOn from start, then weeksOff, repeat. Day-count maths from start. */
@@ -3068,8 +3081,11 @@ function pepScheduled(p,d){
   if(f.kind==='weeks'||f.kind==='biweekly'){var w=Math.max(1,parseInt(f.weeks!=null?f.weeks:f.n,10)||2),day=f.day!=null?f.day:((f.days||[])[0]);if(day==null)day=parseD(p.start).getDay();return parseD(d).getDay()===day&&Math.floor(diffDays(weekStart(p.start),weekStart(d))/7)%w===0;}
   return true;
 }
-function pepDue(p,d){d=d||today();return pepScheduled(p,d)&&!pepLogged(p,d);}
-function pepNext(p,from){from=from||today();if(p.on===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(pepScheduled(p,d)&&!pepLogged(p,d))return d;}return null;}
+/* due = next due date (counted from the last real dose) is today or earlier */
+function pepDue(p,d){d=d||today();if(p.on===false)return false;var n=pepNext(p,d);return !!n&&n<=d;}
+function pepNext(p,from){from=from||today();if(p.on===false)return null;var la=pepLast(p.id);return tkNext(p,la&&la.date,from);}
+/* old calendar logic, only used to migrate never-logged items */
+function pepNextCal(p,from){from=from||today();if(p.on===false)return null;for(var i=0;i<400;i++){var d=addDays(from,i);if(pepScheduled(p,d)&&!pepLogged(p,d))return d;}return null;}
 function pepPhaseLabel(p,d){
   d=d||today();
   if(p.on===false)return 'Paused';
@@ -3078,48 +3094,22 @@ function pepPhaseLabel(p,d){
   if(cy.on&&cy.active)return cy.phaseLabel;
   if(cy.on&&!cy.active)return 'Break · back '+(cy.back?fmtD(cy.back):'');
   if(pepLogged(p,d))return 'Taken today ✓';
-  if(pepScheduled(p,d))return 'Due today';
+  if(tkKind(p.freq)==='asneeded')return 'As needed';
   var n=pepNext(p,d);
   if(!n)return 'No doses scheduled';
+  var ov=tkOver(n,d);if(ov>0&&tkKind(p.freq)!=='daily')return 'Overdue '+tkPlural(ov,'day');
+  if(n<=d)return 'Due today';
   return n===addDays(d,1)?'Next tomorrow':'Next '+fmtD(n);
 }
 function pepWhen(d,t){t=t||today();if(!d)return '—';if(d===t)return 'today';if(d===addDays(t,1))return 'tomorrow';return fmtD(d);}
 
 /* logging */
-function pepLogDose(pid,d,tm){peptideLog().push({id:uid(),pid:pid,date:d||today(),time:tm||nowTime()});}
+function pepLogDose(pid,d,tm){var po=pepById(pid);if(po&&po.nextOn)delete po.nextOn;peptideLog().push({id:uid(),pid:pid,date:d||today(),time:tm||nowTime()});}
 function pepUnlog(pid,d){var L=peptideLog();for(var i=L.length-1;i>=0;i--){if(L[i].pid===pid&&L[i].date===(d||today())){L.splice(i,1);return true;}}return false;}
 function pepUnlogId(id){var L=peptideLog();for(var i=L.length-1;i>=0;i--){if(L[i].id===id){L.splice(i,1);return true;}}return false;}
 function pepLastLoggedToday(t){var L=peptideLog().filter(function(x){return x.date===t;});return L.length?L[L.length-1]:null;}
 
 /* ===== view ===== */
-function pepCard(p,t){
-  var lg=pepLogged(p,t),cy=pepCycleWeek(p,t),nx=pepNext(p,t),la=pepLast(p.id);
-  var c=h('div',{class:'card pep-card'+(p.on===false?' paused':''),'data-pep-id':p.id,onclick:function(ev){if(ev.target.closest('button'))return;openPeptide(p);}});
-  var tx=h('div',{class:'pep-tx'},
-    h('b',{style:'font-size:17px;display:block'},p.name),
-    h('div',{class:'muted small'},p.dose||'Dose not set – tap to edit'),
-    p.mix?h('div',{class:'muted small pep-mix','data-pep-mix':p.id},p.mix):null,
-    h('div',{class:'muted small'},pepFreqText(p)),
-    h('div',{class:'pep-phase'},h('span',{class:'chip'+((cy.on&&cy.active&&p.on!==false)?' on':''),'data-pep-phase':p.id},pepPhaseLabel(p,t))),
-    h('div',{class:'pep-meta sch-meta','data-pep-meta':p.id},
-      h('div',null,lastTakenText(la&&la.date,la&&la.time)),
-      h('div',null,nextDueText(nx,p.time||'09:00',p.on===false))));
-  c.appendChild(h('div',{class:'row pep-head',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
-    h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start;flex:1'},
-      h('div',{class:'ic',style:'background:#d0606f22'},p.icon||'💉'),tx),
-    h('button',{class:'btn sec sm','data-pep-edit':p.id,onclick:function(ev){ev.stopPropagation();openPeptide(p);}},'Edit')));
-  if(lg){
-    c.appendChild(h('div',{class:'row',style:'gap:10px;margin-top:12px'},
-      h('div',{class:'btn sec','data-pep-logged':p.id,style:'flex:1'},'✓ Logged today'),
-      h('button',{class:'btn','data-pep-undo':p.id,style:'flex:none;width:auto;padding:0 18px',onclick:function(ev){ev.stopPropagation();tap(ev,'↩ Undone · '+p.name,'↩',function(){pepUnlog(p.id,t);});}},'↩ Undo')));
-  } else if(pepScheduled(p,t)){
-    c.appendChild(h('button',{class:'btn','data-pep-log':p.id,'data-took':'x:'+p.id,style:'margin-top:12px',onclick:function(ev){ev.stopPropagation();tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'\u2713 Took it'));
-  } else {
-    c.appendChild(h('div',{class:'pep-rest','data-pep-rest':p.id,style:'margin-top:12px;text-align:center;font-size:14px;color:var(--muted)'},(p.on===false?'Paused \u2013 reminders off':'No dose due today'),' ',
-      h('button',{class:'link','data-pep-log':p.id,style:'min-width:0;font-size:13px;padding:0 4px;display:inline-block',onclick:function(ev){ev.stopPropagation();tap(ev,p.name+' \u2713 logged',p.icon||'\ud83d\udc89',function(){pepLogDose(p.id,t);});}},'Log anyway')));
-  }
-  return c;
-}
 function pepTypical(){
   return h('details',{class:'card why',id:'pep-typical'},h('summary',null,'💡 What\u2019s typical (reference only)'),
     h('ul',{class:'tips'},
@@ -3129,126 +3119,89 @@ function pepTypical(){
       h('li',null,'Retatrutide: 12 mg + 1.2 mL water = 10 mg/mL (1 unit = 0.1 mg), so 0.5 mg = 5 units')),
     h('p',{class:'hint'},'Conventions people use – not studied doses. Follow your surgeon\u2019s instructions.'));
 }
-function treatRow(r,t){
-  var lg=rLog(r.id,t),due=r.on!==false&&rScheduled(r,t)&&!lg,la=lastDoneRoutine(r.id),nx=rNext(r,t);
-  var row=h('div',{class:'it'+(r.on===false?' paused':''),'data-treat':r.id,'data-sched':'r:'+r.id,onclick:function(ev){if(ev.target.closest('button'))return;openRoutine(r);}});
-  row.appendChild(h('div',{class:'ic',style:'background:#3fb2a622'},rIcon(r)));
-  row.appendChild(h('div',{class:'tx'},h('div',{class:'t'},r.name),
-    h('div',{class:'s rnext sch-meta'},h('div',null,lastTakenText(la&&la.date,la&&la.time)),h('div',null,nextDueText(nx,r.time||'09:00',r.on===false||r.remind===false)),
-      h('div',null,(lg?(lg.status==='done'?'✓ Done today':'Skipped today')+' · ':'')+freqText(r)))));
-  if(due)row.appendChild(h('button',{class:'btn sm','data-treat-log':r.id,'data-took':'r:'+r.id,onclick:function(ev){ev.stopPropagation();tap(ev,r.name+' \u2713',rIcon(r),function(){routineDone(t,r,{time:nowTime()});});}},'\u2713 Took it'));
-  row.appendChild(h('button',{class:'btn sec sm','data-treat-edit':r.id,onclick:function(ev){ev.stopPropagation();openRoutine(r);}},'Edit'));
-  return row;
-}
-function vitRow(s,t){
-  var taken=suppLoggedOn(s.id,t),la=suppLast(s),nx=suppNext(s,t);
-  var row=h('div',{class:'it','data-sched-vit':s.id,'data-sched':'v:'+s.id,onclick:function(ev){if(ev.target.closest('button'))return;openSupp(Object.assign({},s));}});
-  row.appendChild(h('div',{class:'ic',style:'background:'+CATS.supps.c+'22'},s.time==='pm'?'🌙':'☀️'));
-  row.appendChild(h('div',{class:'tx'},h('div',{class:'t'},s.name+(s.dose?' · '+s.dose:'')),
-    h('div',{class:'s rnext sch-meta'},h('div',null,lastTakenText(la&&la.date,la&&la.time)),h('div',null,nextDueText(nx,suppClock(s),s.remind===false)))));
-  if(!taken)row.appendChild(h('button',{class:'btn sm','data-took':'v:'+s.id,onclick:function(ev){ev.stopPropagation();tap(ev,s.name+' \u2713','💊',function(){suppLogDose(s.id,t);});}},'\u2713 Took it'));
-  else row.appendChild(h('div',{class:'muted small',style:'flex:none'},'✓ Today'));
-  return row;
-}
-function vPeptides(){
-  var w=h('div'),t=today(),P=peptides();
-  w.appendChild(hdr('My injections & treatments',{back:true,sub:'Injections, microneedling, vitamins & reminders'}));
-  w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap a row to edit the time, repeat, or dose. Use \u2713 Took it, or open the row to log a past dose.'));
-  w.appendChild(h('div',{class:'sec-t'},'\ud83d\udc89 Injections'));
-  var pepWrap=h('div',{id:'pep-list'});
-  if(!P.length)pepWrap.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'No injections yet. Tap + Add peptide to start.')));
-  else P.forEach(function(p){pepWrap.appendChild(pepCard(p,t));});
-  w.appendChild(pepWrap);
-  w.appendChild(h('button',{class:'btn',id:'add-peptide',style:'margin-bottom:14px',onclick:function(){openPeptide();}},'+ Add peptide'));
-  w.appendChild(h('div',{class:'sec-t'},'\ud83e\udea1 Microneedling & treatments'));
-  var R=routines().filter(treatVisible),rc=h('div',{class:'card',id:'treat-list'});
-  if(!R.length)rc.appendChild(h('div',{class:'empty'},'Add face or scalp microneedling, masks, etc.'));
-  else rc.appendChild(h('div',{class:'list'},R.map(function(r){return treatRow(r,t);})));
-  w.appendChild(rc);
-  w.appendChild(h('button',{class:'btn sec',id:'add-treatment',style:'margin-bottom:14px',onclick:function(){openRoutine();}},'+ Add treatment'));
-  w.appendChild(h('div',{class:'sec-t'},'\ud83d\udc8a Vitamins & supplements'));
-  var V=suppList(),vc=h('div',{class:'card',id:'vit-sched-list'});
-  if(!V.length)vc.appendChild(h('div',{class:'empty'},'Add the vitamins you take, with a time and how often.'));
-  else vc.appendChild(h('div',{class:'list'},V.map(function(s){return vitRow(s,t);})));
-  w.appendChild(vc);
-  w.appendChild(h('button',{class:'btn sec',id:'add-vit-sched',style:'margin-bottom:14px',onclick:function(){openSupp();}},'+ Add vitamin or supplement'));
-  w.appendChild(pepTypical());
-  return w;
-}
-function injHomeCard(){
-  var names=[];
-  peptides().forEach(function(p){names.push(p.name);});
-  routines().filter(treatVisible).forEach(function(r){names.push(r.name);});
-  suppList().forEach(function(s){names.push(s.name);});
-  var sub=names.length?names.join(', '):'Set times, repeats, and log when you last took something';
-  return h('div',{class:'card inj-home',id:'inj-home',role:'button',onclick:function(){go('peptides');}},
-    h('h2',null,'\ud83d\udc89 My injections & treatments',h('span',{class:'chev muted'},'\u203a')),
-    h('div',{class:'muted small',id:'inj-home-sub'},sub),
-    h('div',{class:'muted small',style:'margin-top:4px'},'Last taken, next due, and edit any schedule'));
-}
-
+/* rows + list view live in tracker.js */
 /* ===== add / edit sheet ===== */
-function pastLogBlock(hasId,onLog,rows,onDel){
-  var box=h('div',{class:'fld',id:'past-log'});
-  box.appendChild(h('span',{class:'lbl'},'I took it on\u2026'));
+/* status + big Used button + "I took it on…" + history. statusEl optional. Shown at the TOP of every editor. */
+function pastLogBlock(hasId,onLog,rows,onDel,statusEl){
+  var box=h('div',{class:'fld tk-logbox',id:'past-log'});
+  if(hasId&&statusEl)box.appendChild(h('div',{class:'tk-status',id:'tk-status'},statusEl));
+  if(hasId)box.appendChild(h('button',{type:'button',class:'btn tk-used',id:'used-now',onclick:function(){onLog(today(),nowTime());}},'\u2713 Used now'));
+  box.appendChild(h('span',{class:'lbl',style:hasId?'margin-top:12px;display:block':''},'I took it on\u2026'));
   var pd=h('input',{type:'date',class:'inp',id:'past-date',value:today(),max:today()}),pt=h('input',{type:'time',class:'inp',id:'past-time',value:nowTime()||'09:00'});
   box.appendChild(h('div',{class:'row',style:'gap:8px;align-items:flex-end'},h('div',{style:'flex:1'},pd),h('div',{style:'flex:1'},pt)));
-  box.appendChild(h('button',{type:'button',class:'btn sec',id:'log-past',style:'margin-top:8px',onclick:function(){var d=pd.value,tm=pt.value||nowTime();if(!d){alert('Pick a date.');return;}onLog(d,tm);}},'Log this dose'));
+  box.appendChild(h('button',{type:'button',class:'btn sec',id:'log-past',style:'margin-top:8px',onclick:function(){var d=pd.value,tm=pt.value||nowTime();if(!d){alert('Pick a date.');return;}if(d>today()){alert('Pick today or a past day.');return;}onLog(d,tm);}},'Save this day'));
   var ul=h('ul',{class:'sch-hist',id:'sched-hist'});
   if(!rows||!rows.length)ul.appendChild(h('li',{class:'muted small',style:'border-top:0'},hasId?'No doses logged yet.':'Save first to log a past dose.'));
-  else rows.forEach(function(r){ul.appendChild(h('li',{'data-log':r.id},h('span',null,fmtRel(r.date)+(r.time?', '+fmtTime(r.time):'')+(r.status&&r.status!=='done'?' · '+r.status:'')),h('button',{type:'button',class:'link','data-del-log':r.id,onclick:function(){onDel(r.id,r);}},'Delete')));});
-  box.appendChild(h('span',{class:'lbl',style:'margin-top:12px;display:block'},'History'));
+  else rows.forEach(function(r){ul.appendChild(h('li',{'data-log':r.id},h('span',null,fmtRel(r.date)+(r.time?', '+fmtTime(r.time):'')+(r.status&&r.status!=='done'?' · '+r.status:'')),h('button',{type:'button',class:'link','data-del-log':r.id,onclick:function(){if(confirm('Delete this entry?'))onDel(r.id,r);}},'Delete')));});
+  box.appendChild(h('span',{class:'lbl',style:'margin-top:12px;display:block'},'History (tap Delete if one is wrong)'));
   box.appendChild(ul);
   return box;
 }
+function tkStatusFor(src,id){var t=today(),o=src==='x'?pepById(id):src==='r'?routineById(id):suppById(id);if(!o)return null;
+  var x=src==='x'?tkFromPep(o,t):src==='r'?tkFromRt(o,t):tkFromSupp(o,t);return tkStatusEl(x,t);}
+var PEPFREQ=[['daily','Daily'],['weekly','Weekly / pick days'],['interval','Every X days'],['weeks','Every X weeks'],['asneeded','As needed']];
 function openPeptide(e){
-  var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',dose:'',mix:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
+  var p=JSON.parse(JSON.stringify(e||{name:'',icon:'💉',cat:'injection',dose:'',mix:'',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:false,weeksOn:4,weeksOff:4},start:today(),time:'09:00',on:true,note:''}));
   if(!p.freq||!p.freq.kind)p.freq={kind:'daily',days:[0,1,2,3,4,5,6]};
   if(!Array.isArray(p.freq.days)||!p.freq.days.length)p.freq.days=[1];
   if(!p.cycle||typeof p.cycle!=='object')p.cycle={on:false,weeksOn:4,weeksOff:4};
+  if(!p.cat)p.cat=pepGuessCat(p);
+  var orig=JSON.stringify([p.freq,p.start,p.cycle]),nextTouched=false;
   var body=h('div',{class:'form'});
   function sec(l,el){return h('div',{class:'fld'},h('span',{class:'lbl'},l),el);}
+  function logBlock(){return pastLogBlock(p.id,function(d,tm){if(!p.id){alert('Save this first, then you can log a past dose.');return;}pepLogDose(p.id,d,tm);delete p.nextOn;nextTouched=false;save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
+      p.id?peptideLog().filter(function(x){return x.pid===p.id;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):((a.time||'')<(b.time||'')?1:-1);}):[],
+      function(id){pepUnlogId(id);save();draw();render();toast('Removed');},p.id?tkStatusFor('x',p.id):null);}
   function draw(){body.innerHTML='';
-    var nm=h('input',{type:'text',class:'inp',id:'pep-name',value:p.name||'',placeholder:'e.g. GLOW',autocomplete:'off',oninput:function(){p.name=nm.value;}});
+    if(p.id)body.appendChild(logBlock());
+    if(p.id)body.appendChild(h('div',{class:'sec-t',style:'margin-top:4px'},'\u270f\ufe0f Name, dose & schedule'));
+    var nm=h('input',{type:'text',class:'inp',id:'pep-name',value:p.name||'',placeholder:'e.g. NAD+, Vitamin D, Facial',autocomplete:'off',oninput:function(){p.name=nm.value;}});
     body.appendChild(sec('Name',nm));
+    body.appendChild(sec('Type',h('div',{class:'chips',id:'pep-cat'},TKCATS.map(function(c){return h('button',{type:'button',class:'chip'+(p.cat===c[0]?' on':''),'data-cat':c[0],onclick:function(){var wasDef=!p.icon||TKCATS.some(function(z){return z[1]===p.icon;});p.cat=c[0];if(wasDef)p.icon=c[1];draw();}},c[1]+' '+c[2]);}))));
     body.appendChild(sec('Icon',h('div',{class:'chips',id:'pep-icons'},PEPICONS.map(function(ic){return h('button',{type:'button',class:'chip'+(p.icon===ic?' on':''),'data-icon':ic,onclick:function(){p.icon=ic;draw();}},ic);}))));
-    var ds=h('input',{type:'text',class:'inp',id:'pep-dose',value:p.dose||'',placeholder:'e.g. 10 units',autocomplete:'off',oninput:function(){p.dose=ds.value;}});
+    var ds=h('input',{type:'text',class:'inp',id:'pep-dose',value:p.dose||'',placeholder:'e.g. 10 units, 1 capsule',autocomplete:'off',oninput:function(){p.dose=ds.value;}});
     body.appendChild(sec('Dose (free text)',ds));
     var mx=h('input',{type:'text',class:'inp',id:'pep-mix',value:p.mix||'',placeholder:'e.g. 12 mg + 1.2 mL water = 10 mg/mL',autocomplete:'off',oninput:function(){p.mix=mx.value;}});
-    body.appendChild(sec('Mix',mx));
-    body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},[['daily','Daily'],['weekly','Weekly'],['interval','Every X days'],['weeks','Every X weeks']].map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&(!p.freq.days||p.freq.days.length!==1))p.freq.days=[1];if(o[0]==='interval'&&!p.freq.n)p.freq.n=3;if(o[0]==='weeks'){p.freq.weeks=p.freq.weeks||p.freq.n||2;if(p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;}draw();}},o[1]);}))));
-    if(p.freq.kind==='weekly')body.appendChild(sec('On',h('div',{class:'chips',id:'pep-days'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.days.indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){var i=p.freq.days.indexOf(d);if(i>=0){if(p.freq.days.length>1)p.freq.days.splice(i,1);}else p.freq.days.push(d);draw();}},WD[d]);}))));
-    if(p.freq.kind==='interval'){var ni=h('input',{type:'number',class:'inp',id:'pep-every-n',inputmode:'numeric',min:1,max:60,value:p.freq.n||3,oninput:function(){p.freq.n=Math.max(1,Math.min(60,parseInt(ni.value,10)||3));}});body.appendChild(sec('Every … days',ni));}
-    if(p.freq.kind==='weeks'){var wi=h('input',{type:'number',class:'inp',id:'pep-every-weeks',inputmode:'numeric',min:1,max:12,value:p.freq.weeks||2,oninput:function(){p.freq.weeks=Math.max(1,Math.min(12,parseInt(wi.value,10)||2));}});body.appendChild(sec('Every … weeks',wi));
-      body.appendChild(sec('On',h('div',{class:'chips',id:'pep-week-day'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.day===d?' on':''),'data-day':d,onclick:function(){p.freq.day=d;draw();}},WD[d]);}))));}
+    body.appendChild(sec('Mix (optional)',mx));
+    body.appendChild(sec('How often',h('div',{class:'chips',id:'pep-freq'},PEPFREQ.map(function(o){return h('button',{type:'button',class:'chip'+(p.freq.kind===o[0]||(o[0]==='weeks'&&p.freq.kind==='biweekly')?' on':''),'data-freq':o[0],onclick:function(){p.freq.kind=o[0];if(o[0]==='weekly'&&!(p.freq.days&&p.freq.days.length&&p.freq.days.length<7))p.freq.days=[parseD(p.start||today()).getDay()];if(o[0]==='interval'&&!p.freq.n)p.freq.n=3;if(o[0]==='weeks'){p.freq.weeks=p.freq.weeks||p.freq.n||2;if(p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;}draw();}},o[1]);}))));
+    if(p.freq.kind==='weekly'){body.appendChild(sec('On',h('div',{class:'chips',id:'pep-days'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.days.indexOf(d)>=0?' on':''),'data-day':d,onclick:function(){var i=p.freq.days.indexOf(d);if(i>=0){if(p.freq.days.length>1)p.freq.days.splice(i,1);}else p.freq.days.push(d);draw();}},WD[d]);}))));
+      body.appendChild(h('p',{class:'hint',id:'pep-weekly-hint',style:'margin:-6px 2px 10px'},p.freq.days.length>1?'Due on these days every week. Missed one? It stays due until you tap Used.':'Once a week. The day is only for the first dose \u2013 after that it\u2019s due 7 days after you last used it (took it Wed \u2192 next is Wed).'));}
+    if(p.freq.kind==='interval'){var ni=h('input',{type:'number',class:'inp',id:'pep-every-n',inputmode:'numeric',min:1,max:60,value:p.freq.n||3,oninput:function(){p.freq.n=Math.max(1,Math.min(60,parseInt(ni.value,10)||3));}});body.appendChild(sec('Every … days (counted from the last time you used it)',ni));}
+    if(p.freq.kind==='weeks'||p.freq.kind==='biweekly'){var wi=h('input',{type:'number',class:'inp',id:'pep-every-weeks',inputmode:'numeric',min:1,max:12,value:p.freq.weeks||2,oninput:function(){p.freq.weeks=Math.max(1,Math.min(12,parseInt(wi.value,10)||2));}});body.appendChild(sec('Every … weeks (counted from the last time you used it)',wi));
+      body.appendChild(sec('First dose on',h('div',{class:'chips',id:'pep-week-day'},PEPWD.map(function(d){return h('button',{type:'button',class:'chip'+(p.freq.day===d?' on':''),'data-day':d,onclick:function(){p.freq.day=d;draw();}},WD[d]);}))));}
+    if(p.freq.kind==='asneeded')body.appendChild(h('p',{class:'hint',style:'margin:-6px 2px 10px'},'No reminders \u2013 just tap Used when you use it, so you can see when you last did.'));
     var cy=p.cycle;
-    body.appendChild(sec('Cycle',h('div',null,
+    if(p.freq.kind!=='asneeded')body.appendChild(sec('Cycle',h('div',null,
       h('div',{class:'remrow',style:'border-top:0;padding-top:0'},h('span',{class:'rl'},'Weeks on, then weeks off'),h('button',{type:'button',class:'tog'+(cy.on?' on':''),id:'pep-cycle',role:'switch','aria-checked':String(!!cy.on),onclick:function(){cy.on=!cy.on;draw();}},h('i'))),
       cy.on?h('div',{class:'row',style:'gap:10px;margin-top:8px;align-items:flex-start'},
         h('div',{style:'flex:1;min-width:0'},h('span',{class:'lbl'},'Weeks on'),h('input',{type:'number',class:'inp',id:'pep-on-weeks',inputmode:'numeric',min:1,max:26,value:cy.weeksOn||4,oninput:function(){cy.weeksOn=Math.max(1,Math.min(26,parseInt(this.value,10)||4));}})),
         h('div',{style:'flex:1;min-width:0'},h('span',{class:'lbl'},'Weeks off'),h('input',{type:'number',class:'inp',id:'pep-off-weeks',inputmode:'numeric',min:0,max:26,value:cy.weeksOff==null?4:cy.weeksOff,oninput:function(){cy.weeksOff=Math.max(0,Math.min(26,parseInt(this.value,10)||0));}}))):null)));
     var sd=h('input',{type:'date',class:'inp',id:'pep-start',value:p.start||today(),onchange:function(){p.start=sd.value||today();}});
-    body.appendChild(sec('Start date',sd));
+    body.appendChild(sec(cy.on?'Start date (cycle counts from here)':'Start date',sd));
+    if(p.id&&p.freq.kind!=='asneeded'){var la=pepLast(p.id),cur=tkNext(p,la&&la.date,today())||'';
+      var nx=h('input',{type:'date',class:'inp',id:'pep-next',value:cur,onchange:function(){nextTouched=true;}});
+      body.appendChild(sec('Next due (change it to move this one dose)',nx));}
     var tm=h('input',{type:'time',class:'inp',id:'pep-time',value:p.time||'09:00',onchange:function(){p.time=tm.value||'09:00';}});
     body.appendChild(sec('Reminder time',tm));
     var nt=h('input',{type:'text',class:'inp',id:'pep-note',value:p.note||'',placeholder:'Optional',autocomplete:'off',oninput:function(){p.note=nt.value;}});
     body.appendChild(sec('Note',nt));
     body.appendChild(h('div',{class:'fld'},h('div',{class:'remrow',style:'border-top:0'},h('span',{class:'rl'},'Reminders on'),h('button',{type:'button',class:'tog'+(p.on!==false?' on':''),id:'pep-on',role:'switch','aria-checked':String(p.on!==false),onclick:function(){p.on=p.on===false;draw();}},h('i')))));
-    body.appendChild(pastLogBlock(p.id,function(d,tm){if(!p.id){alert('Save this first, then you can log a past dose.');return;}pepLogDose(p.id,d,tm);save();draw();render();toast('Logged '+fmtRel(d)+(tm?', '+fmtTime(tm):''));},
-      p.id?peptideLog().filter(function(x){return x.pid===p.id;}).slice().sort(function(a,b){return a.date!==b.date?(a.date<b.date?1:-1):((a.time||'')<(b.time||'')?1:-1);}):[],
-      function(id){pepUnlogId(id);save();draw();render();toast('Removed');}));
+    if(!p.id)body.appendChild(h('p',{class:'hint'},'After saving, tap it in the list to mark Used or log a past day.'));
   }
   draw();
-  sheet({title:e?'Edit peptide':'Add peptide',body:body,saveLabel:'Save',
+  sheet({title:e?'Edit item':'Add item',body:body,saveLabel:'Save',
     onSave:function(){
       if(!p.name||!p.name.trim()){alert('Give it a name.');return false;}
       p.name=p.name.trim();p.dose=(p.dose||'').trim();p.mix=(p.mix||'').trim();p.note=(p.note||'').trim();
       if(p.freq.kind==='daily')p.freq.days=[0,1,2,3,4,5,6];if((p.freq.kind==='weeks'||p.freq.kind==='biweekly')&&p.freq.day==null)p.freq.day=(p.freq.days&&p.freq.days[0])||1;
+      var nxEl=$('#pep-next');
+      if(nextTouched&&nxEl){if(nxEl.value)p.nextOn=nxEl.value;else delete p.nextOn;}
+      else if(JSON.stringify([p.freq,p.start,p.cycle])!==orig)delete p.nextOn;
       if(!p.id){p.id=uid();peptides().push(p);}else{var i=D.settings.peptides.findIndex(function(x){return x.id===p.id;});if(i>=0)D.settings.peptides[i]=p;else D.settings.peptides.push(p);}
-      save();render();toast('Peptide saved 💉');
+      save();render();toast('Saved \u2713');
     },
     onDelete:e&&function(){D.settings.peptides=D.settings.peptides.filter(function(x){return x.id!==e.id;});save();render();toast('Removed – past doses kept');},
-    deleteLabel:'Remove peptide',deleteMsg:'Remove this peptide? Past dose logs are kept.'});
+    deleteLabel:'Remove item',deleteMsg:'Remove this item? Past dose logs are kept.'});
 }
 
 /* ===== reminders ===== */
@@ -3265,13 +3218,13 @@ function pepPopup(t,x,n){var p=x.pep,k=x.k;
   return h('div',{class:'card rempop',id:'rem-pop','data-rem':k},h('div',{class:'remi'},p.icon||'💉'),h('div',{class:'pq'},p.name),fromLine(x.tm),
     h('div',{class:'muted small',style:'text-align:center'},[p.dose,pepPhaseLabel(p,t)].filter(Boolean).join(' · ')),
     h('div',{class:'btns',style:'margin:12px 0 0;grid-template-columns:1fr 1fr'},
-      h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){tap(ev,p.name+' ✓ logged',p.icon||'💉',function(){pepLogDose(p.id,t);});}},'✓ Done'),
-      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openPeptide(p);}},'\u270f\ufe0f Edit schedule / dose')),
+      h('button',{class:'btn',id:'rem-done','data-t':'remdone',style:'grid-column:span 2',onclick:function(ev){tap(ev,p.name+' ✓ logged',p.icon||'💉',function(){pepLogDose(p.id,t);});}},'✓ Used'),
+      h('button',{class:'btn sec',id:'rem-later',onclick:later},'Later'),skipBtn(t,k),h('button',{class:'btn sec',id:'rem-edit',style:'grid-column:span 2',onclick:function(){openPeptide(p);}},'\ud83d\udcc5 Took it another day / edit')),
     n>1?h('div',{class:'muted small',style:'text-align:center;margin-top:8px'},'+'+(n-1)+' more after this'):null);}
 function pepEvent(p){
-  var t=today(),nx=pepNext(p,t)||t,f=p.freq||{kind:'daily'},tm=p.time||'09:00';
+  var t=today(),nx=pepNext(p,t)||t,f=p.freq||{kind:'daily'},tm=p.time||'09:00';if(tkKind(f)==='asneeded')return [];if(nx<t)nx=t;
   var sum=(p.icon||'💉')+' '+p.name+(p.dose?' ('+p.dose+')':'');
-  if(f.kind==='weekly')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=WEEKLY;BYDAY='+(f.days||[]).slice().sort().map(function(d){return WD2[d];}).join(','),'Tap Done in Health Tracker');
+  var tkk=tkKind(f);if(tkk==='weekly')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=WEEKLY','Tap Used in Health Tracker');if(tkk==='interval')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=DAILY;INTERVAL='+Math.max(1,parseInt(f.n,10)||1),'Tap Used in Health Tracker');if(tkk==='weeks')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=WEEKLY;INTERVAL='+Math.max(1,parseInt(f.weeks||f.n,10)||2),'Tap Used in Health Tracker');if(f.kind==='weekly')return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=WEEKLY;BYDAY='+(f.days||[]).slice().sort().map(function(d){return WD2[d];}).join(','),'Tap Done in Health Tracker');
   var cy=p.cycle||{};
   if(!cy.on||!(parseInt(cy.weeksOff,10)>0))return icsEvent('greta-pep-'+p.id,icsDT(nx,tm),sum,'FREQ=DAILY','Tap Done in Health Tracker');
   /* daily + on/off cycle: one event per "on" window for the next ~9 months */
@@ -3318,10 +3271,10 @@ function pepDefaultMix(name){var k=String(name||'').trim().toLowerCase(),hit=nul
 function seedPeptides(){
   if(D.settings.peptidesSeeded)return;
   var t=today(),P=peptides(),has=function(n){return P.some(function(p){return String(p.name||'').toLowerCase()===n.toLowerCase();});};
-  if(!has('GLOW'))P.push({id:uid(),name:'GLOW',icon:'💉',dose:'10 units (≈2.3 mg blend)',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:true,weeksOn:4,weeksOff:4},start:t,time:'20:00',on:true,note:'GHK-Cu / BPC-157 / TB-500 blend',mix:PEPMIX['GLOW']});
-  if(!has('NAD+'))P.push({id:uid(),name:'NAD+',icon:'💉',dose:'25 units (25 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['NAD+']});
-  if(!has('Glutathione'))P.push({id:uid(),name:'Glutathione',icon:'💉',dose:'50 units (100 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Glutathione']});
-  if(!has('Retatrutide'))P.push({id:uid(),name:'Retatrutide',icon:'💉',dose:RETA_DOSE,freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Retatrutide']});
+  if(!has('GLOW'))P.push({id:uid(),name:'GLOW',icon:'💉',cat:'injection',dose:'10 units (≈2.3 mg blend)',freq:{kind:'daily',days:[0,1,2,3,4,5,6]},cycle:{on:true,weeksOn:4,weeksOff:4},start:t,time:'20:00',on:true,note:'GHK-Cu / BPC-157 / TB-500 blend',mix:PEPMIX['GLOW']});
+  if(!has('NAD+'))P.push({id:uid(),name:'NAD+',icon:'💉',cat:'injection',dose:'25 units (25 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['NAD+']});
+  if(!has('Glutathione'))P.push({id:uid(),name:'Glutathione',icon:'💉',cat:'injection',dose:'50 units (100 mg)',freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Glutathione']});
+  if(!has('Retatrutide'))P.push({id:uid(),name:'Retatrutide',icon:'💉',cat:'injection',dose:RETA_DOSE,freq:{kind:'weekly',days:[1]},cycle:{on:false,weeksOn:4,weeksOff:4},start:t,time:'09:00',on:true,note:'',mix:PEPMIX['Retatrutide']});
   D.settings.peptidesSeeded=true;save();
 }
 function migratePeptideMix(){
@@ -3336,6 +3289,159 @@ function migratePeptideMix(){
 seedPeptides();
 migratePeptideMix();
 window.__pep={list:peptides,log:peptideLog,due:peptidesDue,dueOn:pepDue,next:pepNext,cycle:pepCycleWeek,phase:pepPhaseLabel,phaseEnd:pepOnEnd,allDue:function(t){return dueList(t||today());},ics:function(){return allICS();}};
+/* ===== My tracker: flexible schedules =====
+   Next due always counts from the LAST time something was actually taken (not a fixed calendar day).
+   Missed items stay due ("Overdue X days") every day until Used is tapped. Skip only hides it for today. */
+function tkWD(d){return parseD(d).getDay();}
+function tkFind(from,fn){if(!from)return null;for(var i=0;i<800;i++){var d=addDays(from,i);if(fn(d))return d;}return null;}
+function tkKind(f){f=f||{};var k=f.kind||'daily';if(k==='weekly'){var n=(f.days||[]).length;if(n>=7)return 'daily';if(n>1)return 'weekdays';}if(k==='biweekly')return 'weeks';return k;}
+function tkDay(f,st){var d=f.day!=null?f.day:((f.days||[])[0]);return d==null?tkWD(st):+d;}
+function tkCycleOk(o,d){var c=o.cycle;if(!c||!c.on||typeof pepCycleWeek!=='function')return true;var cy=pepCycleWeek({start:o.start||'2000-01-01',cycle:c},d);return !cy.on||!!cy.active;}
+function tkPush(o,d){if(!d)return null;return tkFind(d,function(x){return tkCycleOk(o,x);})||d;}
+function tkMonthDay(day,from){return tkFind(from,function(x){return +x.slice(8)===monthDay(x,day);});}
+function tkFirst(o){var f=o.freq||{},k=tkKind(f),st=o.start||today();
+  switch(k){case 'asneeded':return null;
+    case 'weekly':case 'weeks':var wd=tkDay(f,st);return tkPush(o,tkFind(st,function(x){return tkWD(x)===wd;}));
+    case 'weekdays':return tkPush(o,tkFind(st,function(x){return (f.days||[]).indexOf(tkWD(x))>=0;}));
+    case 'monthly':return tkPush(o,tkMonthDay(f.date||+st.slice(8),st));
+    default:return tkPush(o,st);}}
+function tkAfter(o,last){var f=o.freq||{},k=tkKind(f),d;
+  switch(k){case 'asneeded':return null;
+    case 'interval':d=addDays(last,Math.max(1,parseInt(f.n,10)||1));break;
+    case 'weekly':d=addDays(last,7);break;
+    case 'weeks':d=addDays(last,7*Math.max(1,parseInt(f.weeks!=null?f.weeks:f.n,10)||2));break;
+    case 'weekdays':d=tkFind(addDays(last,1),function(x){return (f.days||[]).indexOf(tkWD(x))>=0;});break;
+    case 'monthly':var p=parseD(last);d=tkMonthDay(f.date||+last.slice(8),iso(new Date(p.getFullYear(),p.getMonth()+1,1,12)));break;
+    default:d=addDays(last,1);}
+  if(o.start&&d&&d<o.start)d=tkFirst(o);
+  return tkPush(o,d);}
+/* o: {freq,start,cycle,nextOn,resumed}; last: date string of the last real dose (or null) */
+function tkNext(o,last,t){t=t||today();if(tkKind(o.freq)==='asneeded')return null;
+  var d=(o.nextOn&&(!last||last<o.nextOn))?o.nextOn:(last?tkAfter(o,last):tkFirst(o));
+  if(d&&o.resumed&&o.resumed>d)d=o.resumed;
+  if(d&&d<=t&&!tkCycleOk(o,t))d=tkPush(o,t);
+  return d;}
+function tkOver(next,t){return next&&next<t?diffDays(next,t):0;}
+function tkWhen(d,t){t=t||today();if(d===t)return 'today';if(d===addDays(t,1))return 'tomorrow';return WD[parseD(d).getDay()]+', '+fmtD(d);}
+function tkPlural(n,w){return n+' '+w+(n===1?'':'s');}
+/* one short status line: "Overdue 2 days" / "Due today" / "Next due: Wed, Nov 25" */
+function tkDueLine(next,kind,t,off){t=t||today();
+  if(kind==='asneeded')return 'Next due: as needed';
+  if(!next)return off?'Next due: reminders off':'Next due: \u2014';
+  var ov=tkOver(next,t);
+  if(ov>0&&kind!=='daily')return '\u26a0\ufe0f Overdue '+tkPlural(ov,'day')+' (was due '+tkWhen(next,t)+')';
+  if(next<=t)return 'Next due: today';
+  return 'Next due: '+tkWhen(next,t)+(off?' (reminders off)':'');}
+
+/* ---------- categories ---------- */
+var TKCATS=[['injection','\ud83d\udc89','Injections & peptides'],['vitamin','\ud83d\udc8a','Vitamins & supplements'],['skin','\u2728','Facials & skin'],['hair','\ud83d\udc87','Hair & scalp'],['other','\ud83d\udccc','Other']];
+function tkCatOf(v){return TKCATS.find(function(c){return c[0]===v;})||TKCATS[4];}
+function pepGuessCat(p){var n=String(p.name||'');if(/vitamin|omega|magnes|zinc|biotin|iron|probiotic|collagen|supplement/i.test(n))return 'vitamin';if(/hair|scalp|minox/i.test(n))return 'hair';if(/facial|micro.?needl|mask|peel|skin|face|led/i.test(n))return 'skin';return 'injection';}
+function rtCat(r){return {skin:'skin',hair:'hair',injection:'injection',supplement:'vitamin'}[r.type]||'other';}
+
+/* ---------- one adapter per source (peptides store, routines, vitamins) ---------- */
+function tkFromPep(p,t){var la=pepLast(p.id),kind=tkKind(p.freq),nx=p.on===false?null:tkNext(p,la&&la.date,t),cy=pepCycleWeek(p,t);
+  return {k:'x:'+p.id,src:'x',o:p,id:p.id,name:p.name,icon:p.icon||'\ud83d\udc89',dose:p.dose,mix:p.mix,cat:p.cat||pepGuessCat(p),kind:kind,freq:pepFreqText(p),
+    paused:p.on===false,brk:cy.on&&!cy.active&&p.on!==false,phase:pepPhaseLabel(p,t),cycleOn:cy.on&&cy.active,last:la,next:nx,
+    due:!!nx&&nx<=t&&p.on!==false,over:tkOver(nx,t),time:p.time||'09:00',remind:p.on!==false,
+    used:function(d,tm){pepLogDose(p.id,d,tm);},undo:function(){pepUnlog(p.id,t);},edit:function(){openPeptide(p);}};}
+function tkFromRt(r,t){var la=lastDoneRoutine(r.id),kind=tkKind(r.freq),nx=r.on===false?null:tkNext(r,la&&la.date,t);
+  return {k:'r:'+r.id,src:'r',o:r,id:r.id,name:r.name,icon:rIcon(r),dose:r.dose,cat:rtCat(r),kind:kind,freq:freqText(r),paused:r.on===false,last:la,next:nx,
+    due:!!nx&&nx<=t&&r.on!==false,over:tkOver(nx,t),time:r.time||'09:00',remind:r.on!==false&&r.remind!==false,
+    used:function(d,tm){var old=rLog(r.id,d);if(old&&old.status!=='done'){old.status='done';old.time=tm;delete r.nextOn;}else routineDone(d,r,{time:tm});},
+    undo:function(){var L=D.routineLog;for(var i=L.length-1;i>=0;i--){if(L[i].rid===r.id&&L[i].date===t&&L[i].status==='done'){L.splice(i,1);return;}}},edit:function(){openRoutine(r);}};}
+function tkSuppO(s){return {freq:suppFreq(s),start:s.start,cycle:s.cycle,nextOn:s.nextOn};}
+function tkFromSupp(s,t){var la=suppLast(s),o=tkSuppO(s),kind=tkKind(o.freq),nx=s.active===false?null:tkNext(o,la&&la.date,t);
+  return {k:'v:'+s.id,src:'v',o:s,id:s.id,name:s.name,icon:'\ud83d\udc8a',dose:s.dose,cat:'vitamin',kind:kind,freq:suppFreqText(s),paused:s.active===false,last:la,next:nx,
+    due:!!nx&&nx<=t&&s.active!==false,over:tkOver(nx,t),time:suppClock(s),remind:s.remind===true,
+    used:function(d,tm){suppLogDose(s.id,d,tm);},undo:function(){suppUnlogId(s.id,t);},edit:function(){openSupp(Object.assign({},s));}};}
+function suppFreqText(s){var f=suppFreq(s);var x=pepFreqText({freq:f});return (s.time==='pm'?'Evening':'Morning')+' \u00b7 '+x;}
+function tkItems(t){t=t||today();tkMigrate();var L=[];
+  peptides().forEach(function(p){L.push(tkFromPep(p,t));});
+  routines().filter(treatVisible).forEach(function(r){L.push(tkFromRt(r,t));});
+  suppList().filter(function(s){return !s.routine;}).forEach(function(s){L.push(tkFromSupp(s,t));});
+  return L;}
+function tkDueItems(t,homeOnly){t=t||today();return tkItems(t).filter(function(x){return x.due&&!isSkipped(t,x.k)&&(!homeOnly||x.remind);})
+  .sort(function(a,b){var oa=a.kind==='daily'?0:a.over,ob=b.kind==='daily'?0:b.over;return (ob-oa)||(a.time<b.time?-1:a.time>b.time?1:0);});}
+
+/* ---------- one-time, non-destructive migration ----------
+   Adds a category to every item. Items that were never logged keep their old next date (nextOn),
+   so nothing suddenly shows as overdue after the update. No existing field or log is removed. */
+function tkMigrate(){if(!D||!D.settings||D.settings.trackerV>=1)return false;var t=today();
+  peptides().forEach(function(p){if(!p.cat)p.cat=pepGuessCat(p);
+    if(p.on!==false&&!pepLast(p.id)&&!p.nextOn&&p.start&&p.start<t&&tkKind(p.freq)!=='daily'){var n=pepNextCal(p,t);if(n)p.nextOn=n;}});
+  routines().forEach(function(r){if(r.on!==false&&!lastDoneRoutine(r.id)&&!r.nextOn&&r.start&&r.start<t&&tkKind(r.freq)!=='daily'){var n=rNextCal(r,t);if(n)r.nextOn=n;}});
+  (D.settings.supps||[]).forEach(function(s){if(s.active!==false&&!s.routine&&!suppLast(s)&&!s.nextOn&&s.start&&s.start<t&&tkKind(suppFreq(s))!=='daily'){var n=suppNextCal(s,t);if(n)s.nextOn=n;}});
+  D.settings.trackerV=1;save();return true;}
+
+/* ---------- UI ---------- */
+function tkStatusEl(x,t){var ov=x.over>0&&x.kind!=='daily';
+  return h('div',{class:'pep-meta sch-meta','data-pep-meta':x.src==='x'?x.id:null,'data-tk-meta':x.k},
+    h('div',null,lastTakenText(x.last&&x.last.date,x.last&&x.last.time)),
+    h('div',{class:ov?'tk-over':(x.due?'tk-duetxt':null)},x.paused?'Paused \u2013 reminders off':x.brk?'On break \u2013 '+x.phase:tkDueLine(x.next,x.kind,t,!x.remind)));}
+function tkUsedTap(ev,x,t){tap(ev,x.name+' \u2713 used',x.icon,function(){x.used(t,nowTime());});}
+function tkRow(x,t){var takenToday=x.last&&x.last.date===t;
+  var attrs={class:'card tk-row'+(x.src==='x'?' pep-card':'')+(x.paused?' paused':'')+(x.due&&!takenToday?' tk-isdue':''),'data-k':x.k,onclick:function(ev){if(ev.target.closest('button'))return;x.edit();}};
+  if(x.src==='x')attrs['data-pep-id']=x.id;if(x.src==='r'){attrs['data-treat']=x.id;attrs['data-sched']='r:'+x.id;}if(x.src==='v'){attrs['data-sched-vit']=x.id;attrs['data-sched']='v:'+x.id;}
+  var c=h('div',attrs);
+  var editAttr={class:'btn sec sm',onclick:function(ev){ev.stopPropagation();x.edit();}};editAttr[x.src==='x'?'data-pep-edit':x.src==='r'?'data-treat-edit':'data-vit-edit']=x.id;
+  c.appendChild(h('div',{class:'row',style:'justify-content:space-between;align-items:flex-start;gap:10px'},
+    h('div',{class:'row',style:'gap:10px;min-width:0;align-items:flex-start;flex:1'},h('div',{class:'ic',style:'background:#d0606f22'},x.icon),
+      h('div',{class:'pep-tx'},h('b',{style:'font-size:17px;display:block'},x.name),
+        x.dose?h('div',{class:'muted small'},x.dose):null,
+        x.mix?h('div',{class:'muted small pep-mix','data-pep-mix':x.id},x.mix):null,
+        h('div',{class:'muted small'},x.freq),
+        (x.src==='x'&&(x.cycleOn||x.brk||x.paused))?h('div',{class:'pep-phase'},h('span',{class:'chip'+(x.cycleOn&&!x.paused?' on':''),'data-pep-phase':x.id},x.phase)):null,
+        tkStatusEl(x,t))),
+    h('button',editAttr,'Edit')));
+  var usedAttr={class:'btn'+(x.due?'':' sec')+' tk-used','data-took':x.k,style:'margin-top:12px',onclick:function(ev){ev.stopPropagation();tkUsedTap(ev,x,t);}};
+  usedAttr[x.src==='x'?'data-pep-log':x.src==='r'?'data-treat-log':'data-vit-log']=x.id;
+  if(takenToday){var lg={class:'btn sec',style:'flex:1'},un={class:'btn',style:'flex:none;width:auto;padding:0 18px',onclick:function(ev){ev.stopPropagation();tap(ev,'\u21a9 Undone \u00b7 '+x.name,'\u21a9',function(){x.undo();});}};
+    if(x.src==='x'){lg['data-pep-logged']=x.id;un['data-pep-undo']=x.id;}else un['data-tk-undo']=x.k;
+    c.appendChild(h('div',{class:'row',style:'gap:10px;margin-top:12px'},h('div',lg,'\u2713 Used today'),h('button',un,'\u21a9 Undo')));
+  } else if(x.paused||x.brk){
+    var la={class:'link',style:'min-width:0;font-size:13px;padding:0 4px;display:inline-block',onclick:function(ev){ev.stopPropagation();tkUsedTap(ev,x,t);}};la[x.src==='x'?'data-pep-log':'data-tk-log']=x.id;
+    c.appendChild(h('div',{class:'pep-rest','data-pep-rest':x.id,style:'margin-top:12px;text-align:center;font-size:14px;color:var(--muted)'},x.paused?'Paused \u2013 reminders off':'Break week \u2013 nothing due',' ',h('button',la,'Used anyway')));
+  } else c.appendChild(h('button',usedAttr,'\u2713 Used'));
+  return c;}
+/* compact "Due today / Overdue" list (top of the tracker and on Today) */
+function tkDueCard(t,o){o=o||{};var L=tkDueItems(t,o.home).filter(function(x){return x.k!==o.skipK&&!(x.last&&x.last.date===t);});
+  if(o.home&&!L.length)return null;
+  var c=h('div',{class:'card tk-due',id:o.home?'tk-home-due':'tk-due'});
+  c.appendChild(h('h2',null,'\u23f0 Due today / Overdue'));
+  if(!L.length){c.appendChild(h('div',{class:'muted',id:'tk-all-done',style:'padding:6px 0'},'\u2705 All caught up \u2013 nothing due right now.'));return c;}
+  L.forEach(function(x){var ov=x.over>0&&x.kind!=='daily';
+    c.appendChild(h('div',{class:'tk-due-row','data-due-k':x.k,onclick:function(ev){if(ev.target.closest('button'))return;x.edit();}},
+      h('div',{class:'tk-due-ic'},x.icon),
+      h('div',{class:'tk-due-tx'},h('b',null,x.name),h('div',{class:'small '+(ov?'tk-over':'muted')},(ov?'\u26a0\ufe0f Overdue '+tkPlural(x.over,'day'):'Due today')+(x.dose?' \u00b7 '+x.dose:''))),
+      h('button',{class:'btn tk-used-sm','data-due-used':x.k,onclick:function(ev){ev.stopPropagation();tkUsedTap(ev,x,t);}},'\u2713 Used')));});
+  c.appendChild(h('div',{class:'hint',style:'margin-top:8px'},'Took it another day? Tap the name \u2192 \u201cI took it on\u2026\u201d'));
+  return c;}
+function vPeptides(){
+  var w=h('div'),t=today(),I=tkItems(t);
+  w.appendChild(hdr('My injections & treatments',{back:true,sub:'Injections, microneedling, vitamins & reminders'}));
+  w.appendChild(tkDueCard(t));
+  w.appendChild(h('button',{class:'btn',id:'add-peptide',style:'margin-bottom:14px',onclick:function(){openPeptide();}},'+ Add item'));
+  w.appendChild(h('p',{class:'hint',style:'margin:-4px 2px 14px'},'Tap \u2713 Used when you take it. Tap a name to change it, see history, or log a past day. Next due always counts from the last time you used it.'));
+  var ids={injection:'pep-list',vitamin:'vit-sched-list',skin:'treat-list',hair:'hair-list',other:'other-list'};
+  TKCATS.forEach(function(c){var L=I.filter(function(x){return x.cat===c[0];});
+    if(!L.length&&c[0]!=='injection')return;
+    w.appendChild(h('div',{class:'sec-t'},c[1]+' '+c[2]));
+    var box=h('div',{id:ids[c[0]]});
+    if(!L.length)box.appendChild(h('div',{class:'card'},h('div',{class:'empty'},'Nothing here yet. Tap + Add item.')));
+    L.forEach(function(x){box.appendChild(tkRow(x,t));});
+    w.appendChild(box);});
+  w.appendChild(pepTypical());
+  return w;}
+function injHomeCard(){var t=today(),I=tkItems(t),names=I.map(function(x){return x.name;}),due=I.filter(function(x){return x.due&&!(x.last&&x.last.date===t)&&!isSkipped(t,x.k);}),ov=due.filter(function(x){return x.over>0&&x.kind!=='daily';});
+  var sub=names.length?names.join(', '):'Set times, repeats, and log when you last took something';
+  return h('div',{class:'card inj-home',id:'inj-home',role:'button',onclick:function(){go('peptides');}},
+    h('h2',null,'\ud83d\udc89 My injections & treatments',h('span',{class:'chev muted'},'\u203a')),
+    due.length?h('div',{class:'small '+(ov.length?'tk-over':'tk-duetxt'),id:'inj-home-due'},(ov.length?'\u26a0\ufe0f '+ov.length+' overdue \u00b7 ':'')+due.length+' due now'):null,
+    h('div',{class:'muted small',id:'inj-home-sub'},sub),
+    h('div',{class:'muted small',style:'margin-top:4px'},'Last taken, next due, and edit any schedule'));}
+tkMigrate();
+window.__tk={items:function(t){return tkItems(t||today()).map(function(x){return {k:x.k,name:x.name,cat:x.cat,kind:x.kind,last:x.last&&x.last.date,next:x.next,due:x.due,over:x.over};});},next:tkNext,migrate:tkMigrate};
 /* ================= Views ================= */
 function hdr(title,o){o=o||{};
   return h('div',{class:'hdr'},o.back?h('button',{class:'back','aria-label':'Back',onclick:function(){go((state.lastTab==='settings'&&(location.hash.replace(/^#\/?/,'')!=='settings'))?'settings':['today','insights','more','eat','week'].indexOf(state.lastTab)>=0?state.lastTab:(uiMode()==='simple'?'more':'track'));}},'‹'):null,
@@ -3353,6 +3459,7 @@ function vToday(){
   var t=today(), w=h('div'), hr=new Date().getHours();
   w.appendChild(hdr((hr<12?'Good morning':hr<18?'Good afternoon':'Good evening')+', Greta',{sub:fmtDL(t)}));
   var rpf=remPopup(t);if(rpf)w.appendChild(rpf);
+  var tdc=typeof tkDueCard==='function'?tkDueCard(t,{home:true,skipK:rpf&&rpf.getAttribute('data-rem')}):null;if(tdc)w.appendChild(tdc);
   if(typeof injHomeCard==='function')w.appendChild(injHomeCard());
   if(!isStandalone()&&!D.settings.a2hsHidden) w.appendChild(h('div',{class:'banner'},h('div',{style:'font-size:22px'},'📲'),h('div',{style:'flex:1'},h('b',null,'Add to your Home Screen'),h('div',{class:'muted'},'In Safari tap Share ',h('b',null,'⎙'),' → “Add to Home Screen”. ',h('a',{href:'#/settings',style:'color:var(--accent)'},'How-to'))),h('button',{class:'x','aria-label':'Dismiss',onclick:function(){D.settings.a2hsHidden=true;save();render();}},'×')));
   w.appendChild(h('div',{class:'sec-t'},'Quick add'));
@@ -3749,7 +3856,7 @@ function importData(file){
     var n=data&&typeof data==='object'?Object.keys(COLL).reduce(function(s,k){return s+(Array.isArray(data[k])?data[k].length:0);},0):0;
     if(!data||typeof data!=='object'||(!n&&!data.settings&&!Array.isArray(data.customFoods))){alert('That file doesn\u2019t look like a health tracker backup.');return;}
     if(!confirm('Restore this backup'+(o.exportedAt?' from '+new Date(o.exportedAt).toLocaleString():'')+'? ('+n+' entries)\n\nThis REPLACES all data currently in the app.'))return;
-    var prev=D;D=normalize(data);if(!save()){D=prev;return;}if(typeof seedPeptides==='function')seedPeptides();if(typeof migratePeptideMix==='function')migratePeptideMix();if(typeof seedRoutines==='function')seedRoutines();state.lim={};render();toast('Backup restored · '+n+' entries');};
+    var prev=D;D=normalize(data);if(!save()){D=prev;return;}if(typeof seedPeptides==='function')seedPeptides();if(typeof tkMigrate==='function')tkMigrate();if(typeof migratePeptideMix==='function')migratePeptideMix();if(typeof seedRoutines==='function')seedRoutines();state.lim={};render();toast('Backup restored · '+n+' entries');};
   r.readAsText(file);
 }
 
